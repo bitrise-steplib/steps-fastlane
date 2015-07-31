@@ -22,4 +22,11 @@ inputs:
         $ fastlane [your_action]
       is_required: true
       is_expand: true
+  - work_dir:
+    opts:
+      title: "Work directory"
+      description: |
+        Work directory
+      is_required: true
+      is_expand: true
 outputs: []

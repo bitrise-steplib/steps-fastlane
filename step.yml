@@ -23,4 +23,12 @@ inputs:
     is_expand: true
     value: ""
     is_dont_change_value: false
+  - mapped_to: work_dir
+    title: "Work directory"
+    description: |
+        Work directory
+    is_required: true
+    is_expand: true
+    value: ""
+    is_dont_change_value: false
 outputs: []
