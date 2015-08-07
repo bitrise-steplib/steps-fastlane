@@ -17,11 +17,11 @@ fi
 #
 # Install fastlane
 echo "Installing fastlane"
-gem install fastlane
+gem install fastlane --no-document
 echo
 
 #
 # Running fastlane actions
 cd "${work_dir}"
-echo "Running action"
-fastlane "${fastlane_action}"
+echo "fastlane ${fastlane_action}"
+fastlane ${fastlane_action}
