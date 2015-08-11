@@ -2,7 +2,6 @@
 
 set -e
 
-#
 # Required parameters
 if [ -z "${fastlane_action}" ] ; then
   echo "Missing required input: fastlane_action"
@@ -14,14 +13,16 @@ if [ -z "${work_dir}" ] ; then
   exit 1
 fi
 
-#
-# Install fastlane
-echo "Installing fastlane"
-gem install fastlane --no-document
-echo
+# Print configs
+echo "Params:"
+echo "* work_dir: ${work_dir}"
+echo "* fastlane_action: ${fastlane_action}"
 
-#
+set -v
+
+# Install fastlane
+gem install fastlane --no-document
+
 # Running fastlane actions
 cd "${work_dir}"
-echo "fastlane ${fastlane_action}"
 fastlane ${fastlane_action}
