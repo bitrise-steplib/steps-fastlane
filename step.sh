@@ -7,6 +7,7 @@ if [ -z "${fastlane_action}" ] ; then
   echo "Missing required input: fastlane_action"
   exit 1
 fi
+export lane_name="${fastlane_action}"
 
 if [ -z "${work_dir}" ] ; then
   echo "Missing required input: work_dir"
@@ -16,7 +17,7 @@ fi
 # Print configs
 echo "Params:"
 echo "* work_dir: ${work_dir}"
-echo "* fastlane_action: ${fastlane_action}"
+echo "* lane_name: ${lane_name}"
 
 set -v
 
@@ -25,4 +26,4 @@ gem install fastlane --no-document
 
 # Running fastlane actions
 cd "${work_dir}"
-fastlane ${fastlane_action}
+fastlane ${lane_name}
