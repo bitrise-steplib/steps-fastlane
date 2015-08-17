@@ -14,16 +14,14 @@ if [ -z "${work_dir}" ] ; then
   exit 1
 fi
 
-# Print configs
-echo "Params:"
-echo "* work_dir: ${work_dir}"
-echo "* lane_name: ${lane_name}"
-
-set -v
-
 # Install fastlane
+echo "gem install fastlane --no-document"
 gem install fastlane --no-document
+echo
 
 # Running fastlane actions
+echo "cd \"${work_dir}\""
 cd "${work_dir}"
+
+echo "fastlane ${lane_name}"
 fastlane ${lane_name}
