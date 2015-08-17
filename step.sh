@@ -1,7 +1,5 @@
 #!/bin/bash
 
-set -e
-
 # Required parameters
 if [ -z "${fastlane_action}" ] ; then
   echo "Missing required input: fastlane_action"
@@ -23,5 +21,5 @@ echo
 echo "cd \"${work_dir}\""
 cd "${work_dir}"
 
-echo "fastlane ${lane_name}"
+echo "set -eu -o pipefail && fastlane ${lane_name}"
 fastlane ${lane_name}
