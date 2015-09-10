@@ -17,17 +17,17 @@ is_skippable: false
 dependencies: []
 run_if: ""
 inputs:
-  - fastlane_action:
+  - lane:
     opts:
-      title: "Fastlane action"
+      title: "Fastlane lane"
       summary: ""
       description: |
         Fastlane action to run
-        $ fastlane [your_action]
+        $ fastlane [lane]
       is_required: true
       is_expand: true
       is_dont_change_value: false
-  - work_dir:
+  - work_dir: $BITRISE_SOURCE_DIR
     opts:
       title: "Work directory"
       summary: ""

@@ -1,13 +1,16 @@
-format_version: 0.9.5
-default_step_lib_source: https://bitbucket.org/bitrise-team/bitrise-new-steps-spec
-
-app:
-  envs:
-  # define these in your .bitrise.secrets.yml
-  - fastlane_action:
-  - work_dir:
+format_version: 1.0.0
+default_step_lib_source: https://github.com/bitrise-io/bitrise-steplib.git
 
 workflows:
   test:
     steps:
+    - git-clone@2.1.0:
+        run_if: true
+        inputs:
+        - repository_url: https://github.com/bitrise-io/fastlane-example.git
+        - branch: master
+        - clone_into_dir: ./_tmp
     - path::./:
+        inputs:
+        - lane: test
+        - work_dir: ./_tmp

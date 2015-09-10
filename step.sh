@@ -1,11 +1,11 @@
 #!/bin/bash
 
 # Required parameters
-if [ -z "${fastlane_action}" ] ; then
-  echo "Missing required input: fastlane_action"
+if [ -z "${lane}" ] ; then
+  echo "Missing required input: lane"
   exit 1
 fi
-export lane_name="${fastlane_action}"
+export lane_name="${lane}"
 
 if [ -z "${work_dir}" ] ; then
   echo "Missing required input: work_dir"
