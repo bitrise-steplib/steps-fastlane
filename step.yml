@@ -1,5 +1,5 @@
 title: "Fastlane"
-summary: Runs a defined fastlane action
+summary: Runs a defined fastlane lane
 website: https://github.com/bitrise-io/steps-fastlane
 source_code_url: https://github.com/bitrise-io/steps-fastlane
 support_url: https://github.com/bitrise-io/steps-fastlane/issues
@@ -22,7 +22,7 @@ inputs:
       title: "Fastlane lane"
       summary: ""
       description: |
-        Fastlane action to run
+        Fastlane lane to run
         $ fastlane [lane]
       is_required: true
       is_expand: true
