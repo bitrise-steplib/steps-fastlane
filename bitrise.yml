@@ -1,11 +1,13 @@
 format_version: 0.9.5
 default_step_lib_source: https://bitbucket.org/bitrise-team/bitrise-new-steps-spec
+
+app:
+  envs:
+  # define these in your .bitrise.secrets.yml
+  - fastlane_action:
+  - work_dir:
+
 workflows:
-  archive:
+  test:
     steps:
     - path::./:
-        title: Step Test
-        inputs:
-        - workdir: $XCODE_WORKD_DIR
-        - project_path: $XCODE_PROJECT_FILE
-        - scheme: $XCODE_PROJECT_SCHEME

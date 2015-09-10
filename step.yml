@@ -1,9 +1,8 @@
-name: "Fastlane"
-description: Runs a defined fastlane action
+title: "Fastlane"
+summary: Runs a defined fastlane action
 website: https://github.com/bitrise-io/steps-fastlane
-fork_url: https://github.com/bitrise-io/steps-fastlane
-source:
-  git: https://github.com/bitrise-io/steps-fastlane.git
+source_code_url: https://github.com/bitrise-io/steps-fastlane
+support_url: https://github.com/bitrise-io/steps-fastlane/issues
 host_os_tags:
   - "osx-10.10"
 project_type_tags:
@@ -13,22 +12,28 @@ type_tags:
   - xcode
   - fastlane
 is_requires_admin_user: false
+is_always_run: false
+is_skippable: false
+dependencies: []
+run_if: ""
 inputs:
-  - mapped_to: fastlane_action
-    title: "Lane name"
-    description: |
-        Lane name to run <br />
-        $ fastlane [lane_name]
-    is_required: true
-    is_expand: true
-    value: ""
-    is_dont_change_value: false
-  - mapped_to: work_dir
-    title: "Work directory"
-    description: |
+  - fastlane_action:
+    opts:
+      title: "Fastlane action"
+      summary: ""
+      description: |
+        Fastlane action to run
+        $ fastlane [your_action]
+      is_required: true
+      is_expand: true
+      is_dont_change_value: false
+  - work_dir:
+    opts:
+      title: "Work directory"
+      summary: ""
+      description: |
         Work directory
-    is_required: true
-    is_expand: true
-    value: ""
-    is_dont_change_value: false
+      is_required: true
+      is_expand: true
+      is_dont_change_value: false
 outputs: []
