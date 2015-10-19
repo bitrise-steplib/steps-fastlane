@@ -21,5 +21,5 @@ echo
 echo "cd \"${work_dir}\""
 cd "${work_dir}"
 
-echo "set -eu -o pipefail && fastlane ${lane_name}"
+echo "fastlane ${lane_name}"
 fastlane ${lane_name}
