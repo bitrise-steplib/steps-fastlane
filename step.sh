@@ -13,8 +13,17 @@ if [ -z "${work_dir}" ] ; then
 fi
 
 # Install fastlane
-echo "gem install fastlane --no-document"
-gem install fastlane --no-document
+if [ -f './Gemfile' ] ; then
+  echo
+  echo "Found 'Gemfile' - using it..."
+  bundle install --verbose
+  echo
+  echo "Fastlane version:"
+  bundle exec fastlane --version
+else
+  echo "gem install fastlane --no-document"
+  gem install fastlane --no-document
+fi
 echo
 
 # Running fastlane actions
