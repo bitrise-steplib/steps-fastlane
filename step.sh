@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -e
+
 # Required parameters
 if [ -z "${lane}" ] ; then
   echo "Missing required input: lane"
@@ -12,23 +14,32 @@ if [ -z "${work_dir}" ] ; then
   exit 1
 fi
 
+echo
+
+# Running fastlane actions
+echo '$' cd "${work_dir}"
+cd "${work_dir}"
+
 # Install fastlane
 if [ -f './Gemfile' ] ; then
   echo
   echo "Found 'Gemfile' - using it..."
-  bundle install --verbose
+  echo '$' bundle install
+  bundle install
   echo
   echo "Fastlane version:"
+  echo '$' bundle exec fastlane --version
   bundle exec fastlane --version
 else
-  echo "gem install fastlane --no-document"
+  echo " (i) No Gemfile found - using system installed fastlane ..."
+  echo '$' gem install fastlane --no-document
   gem install fastlane --no-document
+  echo
+  echo "Fastlane version:"
+  echo '$' fastlane --version
+  fastlane --version
 fi
+
 echo
-
-# Running fastlane actions
-echo "cd \"${work_dir}\""
-cd "${work_dir}"
-
-echo "fastlane ${lane_name}"
+echo '$' fastlane "${lane_name}"
 fastlane ${lane_name}
