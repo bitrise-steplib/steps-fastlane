@@ -20,26 +20,28 @@ echo
 echo '$' cd "${work_dir}"
 cd "${work_dir}"
 
+cmd_prefix=""
+
 # Install fastlane
 if [ -f './Gemfile' ] ; then
   echo
   echo "Found 'Gemfile' - using it..."
   echo '$' bundle install
   bundle install
-  echo
-  echo "Fastlane version:"
-  echo '$' bundle exec fastlane --version
-  bundle exec fastlane --version
+
+  cmd_prefix="bundle exec"
 else
   echo " (i) No Gemfile found - using system installed fastlane ..."
   echo '$' gem install fastlane --no-document
   gem install fastlane --no-document
-  echo
-  echo "Fastlane version:"
-  echo '$' fastlane --version
-  fastlane --version
 fi
 
 echo
-echo '$' fastlane "${lane_name}"
-fastlane ${lane_name}
+echo "Fastlane version:"
+echo '$' $cmd_prefix fastlane --version
+$cmd_prefix fastlane --version
+
+echo
+echo "Run fastlane:"
+echo '$' $cmd_prefix fastlane "${lane_name}"
+$cmd_prefix fastlane ${lane_name}
