@@ -25,13 +25,14 @@ cmd_prefix=""
 # Install fastlane
 if [ -f './Gemfile' ] ; then
   echo
-  echo "Found 'Gemfile' - using it..."
+  echo " (i) Found 'Gemfile' - using it..."
   echo '$' bundle install
   bundle install
 
   cmd_prefix="bundle exec"
 else
   echo " (i) No Gemfile found - using system installed fastlane ..."
+  echo " (i) Updating system installed fastlane ..."
   echo '$' gem install fastlane --no-document
   gem install fastlane --no-document
 fi

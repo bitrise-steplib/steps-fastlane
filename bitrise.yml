@@ -1,4 +1,4 @@
-format_version: 1.0.0
+format_version: 1.1.0
 default_step_lib_source: https://github.com/bitrise-io/bitrise-steplib.git
 
 app:
@@ -32,6 +32,15 @@ workflows:
         inputs:
         - path: ./_tmp
         - is_create_path: true
+    - script:
+        title: Generate a test Gemfile, with specific Fastlane version
+        inputs:
+        - content: |-
+            #!/bin/bash
+            cat >$WORK_DIR/Gemfile <<EOL
+            source 'https://rubygems.org'
+            gem 'fastlane', '~> 1.39.0'
+            EOL
     - path::./:
         inputs:
         - lane: $LANE
@@ -43,9 +52,9 @@ workflows:
   share-this-step:
     envs:
       # if you want to share this step into a StepLib
-      - MY_STEPLIB_REPO_FORK_GIT_URL:
+      - MY_STEPLIB_REPO_FORK_GIT_URL: $MY_STEPLIB_REPO_FORK_GIT_URL
       - STEP_ID_IN_STEPLIB: fastlane
-      - STEP_GIT_VERION_TAG_TO_SHARE: 2.1.0
+      - STEP_GIT_VERION_TAG_TO_SHARE: 2.1.1
       - STEP_GIT_CLONE_URL: https://github.com/bitrise-io/steps-fastlane.git
     description: |-
       If this is the first time you try to share a Step you should
