@@ -1,6 +1,11 @@
 format_version: 1.0.0
 default_step_lib_source: https://github.com/bitrise-io/bitrise-steplib.git
 
+app:
+  envs:
+  - LANE: test
+  - WORK_DIR: ./fastlane-example
+
 workflows:
   test:
     steps:
@@ -29,8 +34,8 @@ workflows:
         - is_create_path: true
     - path::./:
         inputs:
-        - lane: test
-        - work_dir: ./fastlane-example
+        - lane: $LANE
+        - work_dir: $WORK_DIR
 
 
   # ----------------------------------------------------------------
