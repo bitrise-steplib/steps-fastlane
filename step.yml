@@ -34,9 +34,17 @@ inputs:
     opts:
       title: "Working directory"
       summary: ""
-      description: |
-        Working directory
-      is_required: true
+      description: |-
+        Use this option if the fastlane directory is not in your repository's root.
+
+        Working directory should be the parent directory of your Fastfile's directory.
+
+        Example:
+
+        * If Fastfile path: `./here/is/my/fastlane/Fastfile`
+        * Then Fastfile's directory: `./here/is/my/fastlane`
+        * So Working Directory should be: `./here/is/my`
+      is_required: false
       is_expand: true
       is_dont_change_value: false
 outputs: []

@@ -7,6 +7,8 @@ app:
   - WORK_DIR: ./fastlane-example
 
 workflows:
+  # ----------------------------------------------------------------
+  # --- workflow to test this step
   test:
     steps:
     - script:
@@ -46,6 +48,36 @@ workflows:
         - lane: $LANE
         - work_dir: $WORK_DIR
 
+  # ----------------------------------------------------------------
+  # --- workflow to Release a new version with auto version bump
+  create-release:
+    steps:
+    - script:
+        title:
+        inputs:
+        - content: |
+            #!/bin/bash
+            set -e
+
+            export CI=true
+            releaseman create --bump-version patch
+
+  # ----------------------------------------------------------------
+  # --- workflow to Release a new version
+  create-release-version:
+    envs:
+    - RELEASE_VERSION: 2.1.2
+    steps:
+    - script:
+        title:
+        inputs:
+        - content: |
+            #!/bin/bash
+            set -e
+
+            export CI=true
+            releaseman create --version $RELEASE_VERSION
+
 
   # ----------------------------------------------------------------
   # --- workflows to Share this step into a Step Library
@@ -54,7 +86,7 @@ workflows:
       # if you want to share this step into a StepLib
       - MY_STEPLIB_REPO_FORK_GIT_URL: $MY_STEPLIB_REPO_FORK_GIT_URL
       - STEP_ID_IN_STEPLIB: fastlane
-      - STEP_GIT_VERION_TAG_TO_SHARE: 2.1.1
+      - STEP_GIT_VERION_TAG_TO_SHARE: 2.1.2
       - STEP_GIT_CLONE_URL: https://github.com/bitrise-io/steps-fastlane.git
     description: |-
       If this is the first time you try to share a Step you should
