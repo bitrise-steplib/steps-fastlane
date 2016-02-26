@@ -46,6 +46,32 @@ workflows:
         - lane: $LANE
         - work_dir: $WORK_DIR
 
+  create-release:
+    steps:
+    - script:
+        title:
+        inputs:
+        - content: |
+            #!/bin/bash
+            set -e
+
+            export CI=true
+            releaseman create --bump-version patch
+
+  create-release-version:
+    envs:
+    - RELEASE_VERSION: 2.1.2
+    steps:
+    - script:
+        title:
+        inputs:
+        - content: |
+            #!/bin/bash
+            set -e
+
+            export CI=true
+            releaseman create --version $RELEASE_VERSION
+
 
   # ----------------------------------------------------------------
   # --- workflows to Share this step into a Step Library
