@@ -9,17 +9,14 @@ if [ -z "${lane}" ] ; then
 fi
 export lane_name="${lane}"
 
-if [ -z "${work_dir}" ] ; then
-  echo "Missing required input: work_dir"
-  exit 1
+if [ ! -z "${work_dir}" ] ; then
+  echo '$' cd "${work_dir}"
+  cd "${work_dir}"
 fi
 
 echo
 
 # Running fastlane actions
-echo '$' cd "${work_dir}"
-cd "${work_dir}"
-
 cmd_prefix=""
 
 # Install fastlane
