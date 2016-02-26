@@ -14,26 +14,17 @@ type_tags:
   - build
   - xcode
   - fastlane
-is_requires_admin_user: false
-is_always_run: false
-is_skippable: false
-dependencies: []
-run_if: ""
 inputs:
   - lane:
     opts:
       title: "Fastlane lane"
-      summary: ""
       description: |
         Fastlane lane to run
         $ fastlane [lane]
       is_required: true
-      is_expand: true
-      is_dont_change_value: false
   - work_dir: $BITRISE_SOURCE_DIR
     opts:
       title: "Working directory"
-      summary: ""
       description: |-
         Use this option if the fastlane directory is not in your repository's root.
 
@@ -44,7 +35,3 @@ inputs:
         * If Fastfile path: `./here/is/my/fastlane/Fastfile`
         * Then Fastfile's directory: `./here/is/my/fastlane`
         * So Working Directory should be: `./here/is/my`
-      is_required: false
-      is_expand: true
-      is_dont_change_value: false
-outputs: []
