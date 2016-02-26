@@ -32,10 +32,10 @@ inputs:
       is_dont_change_value: false
   - work_dir: $BITRISE_SOURCE_DIR
     opts:
-      title: "Work directory"
+      title: "Working directory"
       summary: ""
       description: |
-        Work directory
+        Working directory
       is_required: true
       is_expand: true
       is_dont_change_value: false
