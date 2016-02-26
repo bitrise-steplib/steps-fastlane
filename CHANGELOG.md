@@ -1,0 +1,52 @@
+## Changelog (Current version: 2.1.2)
+
+-----------------
+
+### 2.1.2 (2016 Feb 26)
+
+* [3e51a26] Merge pull request #7 from bitrise-io/develop
+* [228e80d] work_dir is_required=false
+* [5433483] bitrise.yml updates
+* [443fd56] work_dir description updates & release configs added
+* [9572661] Merge pull request #6 from bitrise-io/develop
+* [33c4a21] step.yml update: Work directory -> Working directory
+* [74bfe38] bitrise.yml update & minimal log revision
+
+### 2.1.1 (2015 Dec 12)
+
+* [4e2b942] Merge pull request #4 from godrei/gem
+* [b7239ae] use gemfile if exist
+* [3c1a3e0] gitignore : added _tmp
+* [aa852e4] `share-this-step` workflow
+
+### 2.1.0 (2015 Nov 11)
+
+* [6a16b23] workdir switch #fix & log revision
+* [3d84023] Merge pull request #3 from rymir/fastlane-from-bundle
+* [a92761e] Use fastlane from Gemfile if Gemfile exists
+* [bfcbb27] fastlane command call debug echo fix
+* [8e562b3] Merge pull request #2 from bazscsa/patch-1
+* [89e3389] Update step.yml
+* [8addb6b] action -> lane
+* [c4e8191] bitrise v2 update
+
+### 2.0.0 (2015 Sep 10)
+
+* [8edf523] Merge pull request #1 from gkiki90/update
+* [0ed9290] update
+* [1045b3e] removed set -e
+
+### 1.1.0 (2015 Aug 17)
+
+* [89b3009] output fix for RVM
+* [ba16956] fastlane_action changed to lane_name
+
+### 1.0.1 (2015 Aug 12)
+
+* [4ee35ed] input changes
+* [bc7a9e3] install fastlane without documentation fix action call
+* [4bda80e] added work directory support
+
+-----------------
+
+Updated: 2016 Feb 26
