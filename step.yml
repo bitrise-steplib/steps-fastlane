@@ -10,6 +10,7 @@ host_os_tags:
   - "osx-10.10"
 project_type_tags:
   - ios
+  - android
 type_tags:
   - build
   - xcode
