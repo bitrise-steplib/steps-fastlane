@@ -1,8 +1,6 @@
-title: "Fastlane"
+title: "fastlane"
 summary: |-
-  You probably heard of the awesome fastlane. We are proud to welcome this
-  great tool in the integrations section. Add the step to your workflow and
-  enjoy your ride with us in the fastlane!
+  Runs your fastlane lane.
 website: https://github.com/bitrise-io/steps-fastlane
 source_code_url: https://github.com/bitrise-io/steps-fastlane
 support_url: https://github.com/bitrise-io/steps-fastlane/issues
@@ -18,9 +16,9 @@ type_tags:
 inputs:
   - lane:
     opts:
-      title: "Fastlane lane"
+      title: "fastlane lane"
       description: |
-        Fastlane lane to run
+        fastlane lane to run
         $ fastlane [lane]
       is_required: true
   - work_dir: $BITRISE_SOURCE_DIR
