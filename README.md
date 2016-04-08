@@ -1,6 +1,6 @@
 # Fastlane
 
-The new Fastlane step.
++This step runs the [`fastlane`](https://fastlane.tools) lane specified as input.
 
 ## How to use this Step
 
