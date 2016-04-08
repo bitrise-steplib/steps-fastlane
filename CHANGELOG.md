@@ -1,6 +1,17 @@
-## Changelog (Current version: 2.1.2)
+## Changelog (Current version: 2.1.3)
 
 -----------------
+
+### 2.1.3 (2016 Apr 08)
+
+* [76d0ed7] relelase config update
+* [15d24ad] prepare for release
+* [f547ad2] Merge pull request #12 from vasarhelyia/patch-4
+* [6ee9dbb] Merge pull request #13 from vasarhelyia/patch-1
+* [c395269] Update step.yml
+* [a790b8c] Update README.md
+* [fd441bb] Merge pull request #11 from jvanderwee/patch-1
+* [20b222e] Added android to project type tags
 
 ### 2.1.2 (2016 Feb 26)
 
@@ -49,4 +60,4 @@
 
 -----------------
 
-Updated: 2016 Feb 26
+Updated: 2016 Apr 08
