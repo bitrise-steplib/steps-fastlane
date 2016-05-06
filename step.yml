@@ -1,6 +1,13 @@
 title: "fastlane"
 summary: |-
   Runs your fastlane lane.
+description: |-
+  Runs your fastlane lane.
+
+  If `Gemfile` exists in the `work_dir` directory, fastlane will be used by
+  `bundle install` && `bundle exec`.
+
+  Otherwise the system installed `fastlane` version will be used.
 website: https://github.com/bitrise-io/steps-fastlane
 source_code_url: https://github.com/bitrise-io/steps-fastlane
 support_url: https://github.com/bitrise-io/steps-fastlane/issues
@@ -34,3 +41,12 @@ inputs:
         * If Fastfile path: `./here/is/my/fastlane/Fastfile`
         * Then Fastfile's directory: `./here/is/my/fastlane`
         * So Working Directory should be: `./here/is/my`
+  - update_fastlane: "true"
+    opts:
+      title: "Should update fastlane gem before run?"
+      description: |-
+        Should update fastlane gem before run?
+        *This option will be skipped if you have a `Gemfile` in the `work_dir` directory.*
+      value_options:
+      - "true"
+      - "false"

@@ -29,9 +29,11 @@ if [ -f './Gemfile' ] ; then
   cmd_prefix="bundle exec"
 else
   echo " (i) No Gemfile found - using system installed fastlane ..."
-  echo " (i) Updating system installed fastlane ..."
-  echo '$' gem install fastlane --no-document
-  gem install fastlane --no-document
+  if [[ "${update_fastlane}" == "true" ]] ; then
+    echo " (i) Updating fastlane ..."
+    echo '$' gem install fastlane --no-document
+    gem install fastlane --no-document
+  fi
 fi
 
 echo
