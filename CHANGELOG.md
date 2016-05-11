@@ -1,6 +1,12 @@
-## Changelog (Current version: 2.1.3)
+## Changelog (Current version: 2.2.0)
 
 -----------------
+
+### 2.2.0 (2016 May 11)
+
+* [7248377] prepare for release
+* [bd484d0] Merge pull request #14 from bitrise-io/update_fastlane_input
+* [037f37c] controll fastlane update
 
 ### 2.1.3 (2016 Apr 08)
 
@@ -60,4 +66,4 @@
 
 -----------------
 
-Updated: 2016 Apr 08
+Updated: 2016 May 11
