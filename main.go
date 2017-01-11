@@ -120,7 +120,7 @@ func main() {
 
 	workDir := configs.WorkDir
 	if workDir == "" {
-		log.Printf("WorkDir not set using CurrentWorkingDirectory...")
+		log.Printf("WorkDir not set, using CurrentWorkingDirectory...")
 		currentDir, err := pathutil.CurrentWorkingDirectoryAbsolutePath()
 		if err != nil {
 			failf("Failed to get current dir, error: %s", err)
@@ -172,7 +172,7 @@ func main() {
 			log.Printf("No fastlane version defined in Gemfile.lock")
 		}
 	} else {
-		log.Printf("Gemfile.lock does not exists")
+		log.Printf("Gemfile.lock does not exist")
 	}
 
 	fmt.Println()
