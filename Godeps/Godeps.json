@@ -1,0 +1,38 @@
+{
+	"ImportPath": "github.com/bitrise-io/steps-fastlane",
+	"GoVersion": "go1.7",
+	"GodepVersion": "v76",
+	"Packages": [
+		"./..."
+	],
+	"Deps": [
+		{
+			"ImportPath": "github.com/bitrise-io/go-utils/cmdex",
+			"Rev": "6d158a26258c099e22b13ec9222b104f17bf68f7"
+		},
+		{
+			"ImportPath": "github.com/bitrise-io/go-utils/colorstring",
+			"Rev": "6d158a26258c099e22b13ec9222b104f17bf68f7"
+		},
+		{
+			"ImportPath": "github.com/bitrise-io/go-utils/errorutil",
+			"Rev": "6d158a26258c099e22b13ec9222b104f17bf68f7"
+		},
+		{
+			"ImportPath": "github.com/bitrise-io/go-utils/fileutil",
+			"Rev": "6d158a26258c099e22b13ec9222b104f17bf68f7"
+		},
+		{
+			"ImportPath": "github.com/bitrise-io/go-utils/log",
+			"Rev": "6d158a26258c099e22b13ec9222b104f17bf68f7"
+		},
+		{
+			"ImportPath": "github.com/bitrise-io/go-utils/pathutil",
+			"Rev": "6d158a26258c099e22b13ec9222b104f17bf68f7"
+		},
+		{
+			"ImportPath": "github.com/kballard/go-shellquote",
+			"Rev": "d8ec1a69a250a17bb0e419c386eac1f3711dc142"
+		}
+	]
+}

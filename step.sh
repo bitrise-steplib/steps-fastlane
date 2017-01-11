@@ -1,47 +1,15 @@
 #!/bin/bash
+set -ex
+THIS_SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
-set -e
+tmp_gopath_dir="$(mktemp -d)"
 
-# Required parameters
-if [ -z "${lane}" ] ; then
-  echo "Missing required input: lane"
-  exit 1
-fi
-export lane_name="${lane}"
+go_package_name="github.com/bitrise-io/steps-fastlane"
+full_package_path="${tmp_gopath_dir}/src/${go_package_name}"
+mkdir -p "${full_package_path}"
 
-if [ ! -z "${work_dir}" ] ; then
-  echo '$' cd "${work_dir}"
-  cd "${work_dir}"
-fi
+rsync -avh --quiet "${THIS_SCRIPT_DIR}/" "${full_package_path}/"
 
-echo
-
-# Running fastlane actions
-cmd_prefix=""
-
-# Install fastlane
-if [ -f './Gemfile' ] ; then
-  echo
-  echo " (i) Found 'Gemfile' - using it..."
-  echo '$' bundle install
-  bundle install
-
-  cmd_prefix="bundle exec"
-else
-  echo " (i) No Gemfile found - using system installed fastlane ..."
-  if [[ "${update_fastlane}" == "true" ]] ; then
-    echo " (i) Updating fastlane ..."
-    echo '$' gem install fastlane --no-document
-    gem install fastlane --no-document
-  fi
-fi
-
-echo
-echo "Fastlane version:"
-echo '$' $cmd_prefix fastlane --version
-$cmd_prefix fastlane --version
-
-echo
-echo "Run fastlane:"
-echo '$' $cmd_prefix fastlane "${lane_name}"
-$cmd_prefix fastlane ${lane_name}
+export GOPATH="${tmp_gopath_dir}"
+export GO15VENDOREXPERIMENT=1
+go run "${full_package_path}/main.go"

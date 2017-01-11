@@ -15,11 +15,21 @@ host_os_tags:
   - "osx-10.10"
 project_type_tags:
   - ios
+  - macos
   - android
 type_tags:
   - build
   - xcode
   - fastlane
+deps:
+  brew:
+  - name: go
+  apt_get:
+  - name: golang
+    bin_name: go
+toolkit:
+  go:
+    package_name: github.com/bitrise-io/steps-fastlane
 inputs:
   - lane:
     opts:
