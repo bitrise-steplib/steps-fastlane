@@ -1,6 +1,11 @@
-## Changelog (Current version: 2.2.0)
+## Changelog (Current version: 2.3.0)
 
 -----------------
+
+### 2.3.0 (2017 Jan 11)
+
+* [f6d0d70] prepare for 2.3.0
+* [0d0126d] Step updates (#21)
 
 ### 2.2.0 (2016 May 11)
 
@@ -66,4 +71,4 @@
 
 -----------------
 
-Updated: 2016 May 11
+Updated: 2017 Jan 11
