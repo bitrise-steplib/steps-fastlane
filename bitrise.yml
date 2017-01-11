@@ -26,8 +26,16 @@ workflows:
         run_if: true
         inputs:
         - repository_url: $SAMPLE_APP_URL
-        - branch: master
         - clone_into_dir: ./_tmp
+        - commit: ""
+        - tag: ""
+        - branch: master
+        - branch_dest: ""
+        - pull_request_id: ""
+        - pull_request_repository_url: ""
+        - pull_request_merge_branch: ""
+        - build_url: ""
+        - build_api_token: ""
     - change-workdir:
         title: Switch working dir to test/_tmp dir
         run_if: true
