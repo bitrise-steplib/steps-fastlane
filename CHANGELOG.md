@@ -1,6 +1,11 @@
-## Changelog (Current version: 2.3.0)
+## Changelog (Current version: 2.3.1)
 
 -----------------
+
+### 2.3.1 (2017 Jan 13)
+
+* [c5bb253] prepare for 2.3.1
+* [a759865] use shared rubycommand package, fix command workdir (#22)
 
 ### 2.3.0 (2017 Jan 11)
 
@@ -71,4 +76,4 @@
 
 -----------------
 
-Updated: 2017 Jan 11
+Updated: 2017 Jan 13
