@@ -8,10 +8,11 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/bitrise-io/go-utils/command"
+	"github.com/bitrise-io/go-utils/command/rubycommand"
 	"github.com/bitrise-io/go-utils/fileutil"
 	"github.com/bitrise-io/go-utils/log"
 	"github.com/bitrise-io/go-utils/pathutil"
-	"github.com/bitrise-io/steps-fastlane/rubycmd"
 	shellquote "github.com/kballard/go-shellquote"
 )
 
@@ -142,16 +143,11 @@ func main() {
 		failf("Failed to parse lane (%s), error: %s", configs.Lane, err)
 	}
 
-	// Install desired Fastlane version
+	// Determine desired Fastlane version
 	fmt.Println()
-	log.Infof("Install desired Fatslane version")
+	log.Infof("Determine desired Fatslane version")
 
-	rubyCommand, err := rubycmd.NewRubyCommandModel()
-	if err != nil {
-		failf("Failed to create ruby command model, error: %s", err)
-	}
-
-	useBundle := false
+	useBundler := false
 
 	gemfileLockPth := filepath.Join(workDir, "Gemfile.lock")
 	log.Printf("Checking Gemfile.lock (%s) for fastlane gem", gemfileLockPth)
@@ -167,7 +163,7 @@ func main() {
 		if version != "" {
 			log.Printf("Gemfile.lock defined fastlane version: %s", version)
 
-			useBundle = true
+			useBundler = true
 		} else {
 			log.Printf("No fastlane version defined in Gemfile.lock")
 		}
@@ -177,18 +173,40 @@ func main() {
 
 	fmt.Println()
 
-	if useBundle {
-		log.Infof("Installing Fastlane with bundler")
+	// Install desired Fastlane version
+	if useBundler {
+		log.Infof("Install Fastlane with bundler")
 
 		bundleInstallCmd := []string{"bundle", "install", "--jobs", "20", "--retry", "5"}
-		if err := rubyCommand.Execute(workDir, false, bundleInstallCmd); err != nil {
+
+		log.Donef("$ %s", command.PrintableCommandArgs(false, bundleInstallCmd))
+
+		cmd, err := rubycommand.NewFromSlice(bundleInstallCmd...)
+		if err != nil {
+			failf("Failed to create command model, error: %s", err)
+		}
+
+		cmd.SetDir(workDir)
+
+		if err := cmd.Run(); err != nil {
 			failf("Command failed, error: %s", err)
 		}
 	} else if configs.UpdateFastlane == "true" {
-		log.Infof("Updating system installed Fastlane")
+		log.Infof("Update system installed Fastlane")
 
-		if err := rubyCommand.GemInstall("fastlane", ""); err != nil {
-			failf("Failed to install fastlane, error: %s", err)
+		cmds, err := rubycommand.GemInstall("fastlane", "")
+		if err != nil {
+			failf("Failed to create command model, error: %s", err)
+		}
+
+		for _, cmd := range cmds {
+			log.Donef("$ %s", cmd.PrintableCommandArgs())
+
+			cmd.SetDir(workDir)
+
+			if err := cmd.Run(); err != nil {
+				failf("Command failed, error: %s", err)
+			}
 		}
 	} else {
 		log.Infof("Using system installed Fastlane")
@@ -198,7 +216,21 @@ func main() {
 	log.Infof("Fastlane version:")
 
 	versionCmd := []string{"fastlane", "--version"}
-	if err := rubyCommand.Execute(workDir, useBundle, versionCmd); err != nil {
+	if useBundler {
+		versionCmd = append([]string{"bundle", "exec"}, versionCmd...)
+	}
+
+	log.Donef("$ %s", command.PrintableCommandArgs(false, versionCmd))
+
+	cmd, err := rubycommand.NewFromSlice(versionCmd...)
+	if err != nil {
+		failf("Command failed, error: %s", err)
+	}
+
+	cmd.SetStdout(os.Stdout).SetStderr(os.Stderr)
+	cmd.SetDir(workDir)
+
+	if err := cmd.Run(); err != nil {
 		failf("Command failed, error: %s", err)
 	}
 
@@ -208,7 +240,21 @@ func main() {
 
 	fastlaneCmd := []string{"fastlane"}
 	fastlaneCmd = append(fastlaneCmd, laneOptions...)
-	if err := rubyCommand.Execute(workDir, useBundle, fastlaneCmd); err != nil {
+	if useBundler {
+		fastlaneCmd = append([]string{"bundle", "exec"}, fastlaneCmd...)
+	}
+
+	log.Donef("$ %s", command.PrintableCommandArgs(false, fastlaneCmd))
+
+	cmd, err = rubycommand.NewFromSlice(fastlaneCmd...)
+	if err != nil {
+		failf("Failed to create command model, error: %s", err)
+	}
+
+	cmd.SetStdout(os.Stdout).SetStderr(os.Stderr)
+	cmd.SetDir(workDir)
+
+	if err := cmd.Run(); err != nil {
 		failf("Command failed, error: %s", err)
 	}
 }
