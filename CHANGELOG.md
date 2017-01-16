@@ -1,6 +1,11 @@
-## Changelog (Current version: 2.3.1)
+## Changelog (Current version: 2.3.2)
 
 -----------------
+
+### 2.3.2 (2017 Jan 16)
+
+* [73bd091] prepare for 2.3.2
+* [dfb21a1] Fix typo (#23)
 
 ### 2.3.1 (2017 Jan 13)
 
@@ -76,4 +81,4 @@
 
 -----------------
 
-Updated: 2017 Jan 13
+Updated: 2017 Jan 16
