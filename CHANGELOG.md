@@ -1,6 +1,11 @@
-## Changelog (Current version: 2.3.2)
+## Changelog (Current version: 2.3.3)
 
 -----------------
+
+### 2.3.3 (2017 Jan 16)
+
+* [073ceeb] prepare for 2.3.3
+* [a96740b] bundle and gem install command output fix (#24)
 
 ### 2.3.2 (2017 Jan 16)
 
