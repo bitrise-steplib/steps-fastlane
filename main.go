@@ -145,7 +145,7 @@ func main() {
 
 	// Determine desired Fastlane version
 	fmt.Println()
-	log.Infof("Determine desired Fatslane version")
+	log.Infof("Determine desired Fastlane version")
 
 	useBundler := false
 
