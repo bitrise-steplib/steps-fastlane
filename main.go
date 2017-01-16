@@ -186,6 +186,7 @@ func main() {
 			failf("Failed to create command model, error: %s", err)
 		}
 
+		cmd.SetStdout(os.Stdout).SetStderr(os.Stderr)
 		cmd.SetDir(workDir)
 
 		if err := cmd.Run(); err != nil {
@@ -202,6 +203,7 @@ func main() {
 		for _, cmd := range cmds {
 			log.Donef("$ %s", cmd.PrintableCommandArgs())
 
+			cmd.SetStdout(os.Stdout).SetStderr(os.Stderr)
 			cmd.SetDir(workDir)
 
 			if err := cmd.Run(); err != nil {
