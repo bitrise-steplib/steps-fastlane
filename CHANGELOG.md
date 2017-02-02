@@ -1,6 +1,11 @@
-## Changelog (Current version: 2.3.3)
+## Changelog (Current version: 2.3.4)
 
 -----------------
+
+### 2.3.4 (2017 Feb 02)
+
+* [b15a8f8] prepare for 2.3.4
+* [85a2d4a] Gemfile.lock inspect fix (#25)
 
 ### 2.3.3 (2017 Jan 16)
 
@@ -86,4 +91,4 @@
 
 -----------------
 
-Updated: 2017 Jan 16
+Updated: 2017 Feb 02
