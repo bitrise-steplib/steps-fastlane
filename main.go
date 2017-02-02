@@ -77,7 +77,7 @@ func fastlaneVersionFromGemfileLockContent(content string) string {
 
 		trimmed := strings.Trim(line, " ")
 		if trimmed == "" {
-			break
+			specsStart = false
 		}
 
 		if specsStart {
