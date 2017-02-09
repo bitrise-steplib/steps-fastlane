@@ -29,7 +29,6 @@ func createConfigsModelFromEnvs() ConfigsModel {
 		WorkDir:        os.Getenv("work_dir"),
 		Lane:           os.Getenv("lane"),
 		UpdateFastlane: os.Getenv("update_fastlane"),
-		DeployDir:      os.Getenv("BITRISE_DEPLOY_DIR"),
 	}
 }
 
@@ -38,7 +37,6 @@ func (configs ConfigsModel) print() {
 	log.Printf("- WorkDir: %s", configs.WorkDir)
 	log.Printf("- Lane: %s", configs.Lane)
 	log.Printf("- UpdateFastlane: %s", configs.UpdateFastlane)
-	log.Printf("- BITRISE_DEPLOY_DIR: %s", configs.DeployDir)
 }
 
 func (configs ConfigsModel) validate() error {
@@ -261,16 +259,26 @@ func main() {
 
 	if err := cmd.Run(); err != nil {
 		fmt.Println()
-		log.Errorf("Fastlane command: (%s) failed", command.PrintableCommandArgs(true, fastlaneCmd))
+		log.Errorf("Fastlane command: (%s) failed", cmd.PrintableCommandArgs())
 		log.Errorf("See the error log below, and use it to send issue report to fastlane github issue tracker:")
 		log.Printf("https://github.com/fastlane/fastlane/blob/master/.github/ISSUE_TEMPLATE.md#environment")
 		fmt.Println()
 
 		fastlaneEnvLogCmd := []string{"fastlane", "env"}
 		inputReader := strings.NewReader("n")
-		if err := command.RunCommandWithReaderAndWriters(inputReader, os.Stdout, os.Stdout, fastlaneEnvLogCmd[0], fastlaneEnvLogCmd...); err != nil {
-			log.Warnf("Fastlane command: (%s) failed", command.PrintableCommandArgs(true, fastlaneEnvLogCmd))
+		cmd, errEnv := rubycommand.NewFromSlice(fastlaneEnvLogCmd...)
+		if errEnv != nil {
+			log.Warnf("Failed to create command model, error: %s", errEnv)
+		} else {
+			cmd.SetStdin(inputReader)
+			cmd.SetStdout(os.Stdout).SetStderr(os.Stderr)
+			cmd.SetDir(workDir)
+
+			if errEnv := cmd.Run(); errEnv != nil {
+				log.Warnf("Fastlane command: (%s) failed", cmd.PrintableCommandArgs())
+			}
 		}
+
 		failf("Command failed, error: %s", err)
 	}
 }
