@@ -21,7 +21,6 @@ type ConfigsModel struct {
 	WorkDir        string
 	Lane           string
 	UpdateFastlane string
-	DeployDir      string
 }
 
 func createConfigsModelFromEnvs() ConfigsModel {
@@ -264,9 +263,8 @@ func main() {
 		log.Printf("https://github.com/fastlane/fastlane/blob/master/.github/ISSUE_TEMPLATE.md#environment")
 		fmt.Println()
 
-		fastlaneEnvLogCmd := []string{"fastlane", "env"}
 		inputReader := strings.NewReader("n")
-		cmd, errEnv := rubycommand.NewFromSlice(fastlaneEnvLogCmd...)
+		cmd, errEnv := rubycommand.New("fastlane", "env")
 		if errEnv != nil {
 			log.Warnf("Failed to create command model, error: %s", errEnv)
 		} else {
