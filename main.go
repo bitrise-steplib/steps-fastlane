@@ -1,8 +1,10 @@
 package main
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
+	"io"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -21,6 +23,7 @@ type ConfigsModel struct {
 	WorkDir        string
 	Lane           string
 	UpdateFastlane string
+	DeployDir      string
 }
 
 func createConfigsModelFromEnvs() ConfigsModel {
@@ -28,6 +31,7 @@ func createConfigsModelFromEnvs() ConfigsModel {
 		WorkDir:        os.Getenv("work_dir"),
 		Lane:           os.Getenv("lane"),
 		UpdateFastlane: os.Getenv("update_fastlane"),
+		DeployDir:      os.Getenv("BITRISE_DEPLOY_DIR"),
 	}
 }
 
@@ -36,6 +40,7 @@ func (configs ConfigsModel) print() {
 	log.Printf("- WorkDir: %s", configs.WorkDir)
 	log.Printf("- Lane: %s", configs.Lane)
 	log.Printf("- UpdateFastlane: %s", configs.UpdateFastlane)
+	log.Printf("- BITRISE_DEPLOY_DIR: %s", configs.DeployDir)
 }
 
 func (configs ConfigsModel) validate() error {
@@ -103,6 +108,23 @@ func fastlaneVersionFromGemfileLock(gemfileLockPth string) (string, error) {
 		return "", err
 	}
 	return fastlaneVersionFromGemfileLockContent(content), nil
+}
+
+func printEnvLog() (string, error) {
+
+	var outBuffer bytes.Buffer
+	outWriter := io.Writer(&outBuffer)
+
+	var errBuffer bytes.Buffer
+	errWriter := io.Writer(&errBuffer)
+
+	inputReader := strings.NewReader("n")
+
+	err := command.RunCommandWithReaderAndWriters(inputReader, outWriter, errWriter, "fastlane", "env")
+
+	outStr := string(outBuffer.Bytes())
+
+	return outStr, err
 }
 
 func main() {
@@ -177,7 +199,7 @@ func main() {
 	if useBundler {
 		log.Infof("Install Fastlane with bundler")
 
-		bundleInstallCmd := []string{"bundle", "install", "--jobs", "20", "--retry", "5"}
+		bundleInstallCmd := []string{"bundle", "install", "--local", "--jobs", "20", "--retry", "5"}
 
 		log.Donef("$ %s", command.PrintableCommandArgs(false, bundleInstallCmd))
 
@@ -257,6 +279,21 @@ func main() {
 	cmd.SetDir(workDir)
 
 	if err := cmd.Run(); err != nil {
+		if outputFastlaneEnvLog, err := printEnvLog(); err == nil {
+			fastlaneEnvLogPth := filepath.Join(configs.DeployDir, "fastlane_env_log.log")
+			if err := fileutil.WriteStringToFile(fastlaneEnvLogPth, outputFastlaneEnvLog); err != nil {
+				log.Errorf("Failed to write fastlane env log file")
+			}
+			fmt.Println()
+			log.Infof("Running command:")
+			log.Donef("$ %s failed", command.PrintableCommandArgs(true, []string{"fastlane", "env"}))
+			log.Errorf("failed")
+			fmt.Println()
+			log.Printf("See the error log below, and use it to send issue report to fastlane github issue tracker:")
+			log.Printf("https://github.com/fastlane/fastlane/blob/master/.github/ISSUE_TEMPLATE.md#environment")
+			fmt.Println()
+			log.Printf(outputFastlaneEnvLog)
+		}
 		failf("Command failed, error: %s", err)
 	}
 }
