@@ -257,6 +257,26 @@ func main() {
 	cmd.SetDir(workDir)
 
 	if err := cmd.Run(); err != nil {
+		fmt.Println()
+		log.Errorf("Fastlane command: (%s) failed", cmd.PrintableCommandArgs())
+		log.Errorf("See the error log below, and use it to send issue report to fastlane github issue tracker:")
+		log.Printf("https://github.com/fastlane/fastlane/issues/new")
+		fmt.Println()
+
+		inputReader := strings.NewReader("n")
+		cmd, errEnv := rubycommand.New("fastlane", "env")
+		if errEnv != nil {
+			log.Warnf("Failed to create command model, error: %s", errEnv)
+		} else {
+			cmd.SetStdin(inputReader)
+			cmd.SetStdout(os.Stdout).SetStderr(os.Stderr)
+			cmd.SetDir(workDir)
+
+			if errEnv := cmd.Run(); errEnv != nil {
+				log.Warnf("Fastlane command: (%s) failed", cmd.PrintableCommandArgs())
+			}
+		}
+
 		failf("Command failed, error: %s", err)
 	}
 }
