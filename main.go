@@ -285,11 +285,8 @@ func main() {
 				log.Errorf("Failed to write fastlane env log file")
 			}
 			fmt.Println()
-			log.Infof("Running command:")
-			log.Donef("$ %s failed", command.PrintableCommandArgs(true, []string{"fastlane", "env"}))
-			log.Errorf("failed")
-			fmt.Println()
-			log.Printf("See the error log below, and use it to send issue report to fastlane github issue tracker:")
+			log.Errorf("Fastlane command: (%s) failed", command.PrintableCommandArgs(true, []string{"fastlane", "env"}))
+			log.Errorf("See the error log below, and use it to send issue report to fastlane github issue tracker:")
 			log.Printf("https://github.com/fastlane/fastlane/blob/master/.github/ISSUE_TEMPLATE.md#environment")
 			fmt.Println()
 			log.Printf(outputFastlaneEnvLog)
