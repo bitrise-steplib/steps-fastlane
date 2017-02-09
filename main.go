@@ -199,7 +199,7 @@ func main() {
 	if useBundler {
 		log.Infof("Install Fastlane with bundler")
 
-		bundleInstallCmd := []string{"bundle", "install", "--local", "--jobs", "20", "--retry", "5"}
+		bundleInstallCmd := []string{"bundle", "install", "--jobs", "20", "--retry", "5"}
 
 		log.Donef("$ %s", command.PrintableCommandArgs(false, bundleInstallCmd))
 
