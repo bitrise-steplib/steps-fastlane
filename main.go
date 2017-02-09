@@ -260,7 +260,7 @@ func main() {
 		fmt.Println()
 		log.Errorf("Fastlane command: (%s) failed", cmd.PrintableCommandArgs())
 		log.Errorf("See the error log below, and use it to send issue report to fastlane github issue tracker:")
-		log.Printf("https://github.com/fastlane/fastlane/blob/master/.github/ISSUE_TEMPLATE.md#environment")
+		log.Printf("https://github.com/fastlane/fastlane/issues/new")
 		fmt.Println()
 
 		inputReader := strings.NewReader("n")
