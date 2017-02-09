@@ -1,6 +1,11 @@
-## Changelog (Current version: 2.3.4)
+## Changelog (Current version: 2.3.5)
 
 -----------------
+
+### 2.3.5 (2017 Feb 09)
+
+* [fbfe94b] Prepare for 2.3.5
+* [5db9df2] Print fastlane env log on error (#26)
 
 ### 2.3.4 (2017 Feb 02)
 
@@ -91,4 +96,4 @@
 
 -----------------
 
-Updated: 2017 Feb 02
+Updated: 2017 Feb 09
