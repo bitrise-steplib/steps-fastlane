@@ -1,10 +1,8 @@
 package main
 
 import (
-	"bytes"
 	"errors"
 	"fmt"
-	"io"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -108,23 +106,6 @@ func fastlaneVersionFromGemfileLock(gemfileLockPth string) (string, error) {
 		return "", err
 	}
 	return fastlaneVersionFromGemfileLockContent(content), nil
-}
-
-func printEnvLog() (string, error) {
-
-	var outBuffer bytes.Buffer
-	outWriter := io.Writer(&outBuffer)
-
-	var errBuffer bytes.Buffer
-	errWriter := io.Writer(&errBuffer)
-
-	inputReader := strings.NewReader("n")
-
-	err := command.RunCommandWithReaderAndWriters(inputReader, outWriter, errWriter, "fastlane", "env")
-
-	outStr := string(outBuffer.Bytes())
-
-	return outStr, err
 }
 
 func main() {
@@ -279,17 +260,16 @@ func main() {
 	cmd.SetDir(workDir)
 
 	if err := cmd.Run(); err != nil {
-		if outputFastlaneEnvLog, err := printEnvLog(); err == nil {
-			fastlaneEnvLogPth := filepath.Join(configs.DeployDir, "fastlane_env_log.log")
-			if err := fileutil.WriteStringToFile(fastlaneEnvLogPth, outputFastlaneEnvLog); err != nil {
-				log.Errorf("Failed to write fastlane env log file")
-			}
-			fmt.Println()
-			log.Errorf("Fastlane command: (%s) failed", command.PrintableCommandArgs(true, []string{"fastlane", "env"}))
-			log.Errorf("See the error log below, and use it to send issue report to fastlane github issue tracker:")
-			log.Printf("https://github.com/fastlane/fastlane/blob/master/.github/ISSUE_TEMPLATE.md#environment")
-			fmt.Println()
-			log.Printf(outputFastlaneEnvLog)
+		fmt.Println()
+		log.Errorf("Fastlane command: (%s) failed", command.PrintableCommandArgs(true, fastlaneCmd))
+		log.Errorf("See the error log below, and use it to send issue report to fastlane github issue tracker:")
+		log.Printf("https://github.com/fastlane/fastlane/blob/master/.github/ISSUE_TEMPLATE.md#environment")
+		fmt.Println()
+
+		fastlaneEnvLogCmd := []string{"fastlane", "env"}
+		inputReader := strings.NewReader("n")
+		if err := command.RunCommandWithReaderAndWriters(inputReader, os.Stdout, os.Stdout, fastlaneEnvLogCmd[0], fastlaneEnvLogCmd...); err != nil {
+			log.Warnf("Fastlane command: (%s) failed", command.PrintableCommandArgs(true, fastlaneEnvLogCmd))
 		}
 		failf("Command failed, error: %s", err)
 	}
