@@ -1,6 +1,11 @@
-## Changelog (Current version: 2.3.5)
+## Changelog (Current version: 2.3.6)
 
 -----------------
+
+### 2.3.6 (2017 Feb 10)
+
+* [f93bc42] Prepare for 2.3.6
+* [0fe68fd] Log formatting
 
 ### 2.3.5 (2017 Feb 09)
 
@@ -96,4 +101,4 @@
 
 -----------------
 
-Updated: 2017 Feb 09
+Updated: 2017 Feb 10
