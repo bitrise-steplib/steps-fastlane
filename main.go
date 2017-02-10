@@ -259,8 +259,7 @@ func main() {
 	if err := cmd.Run(); err != nil {
 		fmt.Println()
 		log.Errorf("Fastlane command: (%s) failed", cmd.PrintableCommandArgs())
-		log.Errorf("See the error log below, and use it to send issue report to fastlane github issue tracker:")
-		log.Printf("https://github.com/fastlane/fastlane/issues/new")
+		log.Errorf("If you want to send an issue report to fastlane (https://github.com/fastlane/fastlane/issues/new), you can find the output of fastlane env (below):")
 		fmt.Println()
 
 		inputReader := strings.NewReader("n")
