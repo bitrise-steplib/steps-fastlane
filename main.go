@@ -23,6 +23,9 @@ type ConfigsModel struct {
 	UpdateFastlane string
 }
 
+// BuildlogPth ...
+var BuildlogPth string
+
 func createConfigsModelFromEnvs() ConfigsModel {
 	return ConfigsModel{
 		WorkDir:        os.Getenv("work_dir"),
@@ -103,6 +106,25 @@ func fastlaneVersionFromGemfileLock(gemfileLockPth string) (string, error) {
 		return "", err
 	}
 	return fastlaneVersionFromGemfileLockContent(content), nil
+}
+
+func processLogFiles(path string, info os.FileInfo, err error) error {
+	if err != nil {
+		log.Errorf("Failed to return walk path, error: %s", err)
+		return nil
+	}
+	if !info.IsDir() {
+		//thats a file, lets do something with it yeah
+		if relLogPath, err := filepath.Rel(BuildlogPth, path); err != nil {
+			log.Errorf("Failed to get base path, error: %s", err)
+		} else {
+			if err := os.Rename(path, filepath.Join(os.Getenv("BITRISE_DEPLOY_DIR"), strings.Replace(relLogPath, "/", "_", -1))); err != nil {
+				log.Errorf("Failed to move log files, error: %s", err)
+			}
+		}
+
+	}
+	return nil
 }
 
 func main() {
@@ -256,6 +278,14 @@ func main() {
 	cmd.SetStdout(os.Stdout).SetStderr(os.Stderr)
 	cmd.SetDir(workDir)
 
+	var buildlogPthErr error
+
+	if BuildlogPth, buildlogPthErr = pathutil.NormalizedOSTempDirPath("fastlane_logs"); buildlogPthErr == nil {
+		cmd.AppendEnvs("FL_BUILDLOG_PATH=" + BuildlogPth)
+	} else {
+		log.Errorf("Failed to create temp dir for fastlane logs, error: %s", buildlogPthErr)
+	}
+
 	if err := cmd.Run(); err != nil {
 		fmt.Println()
 		log.Errorf("Fastlane command: (%s) failed", cmd.PrintableCommandArgs())
@@ -277,5 +307,10 @@ func main() {
 		}
 
 		failf("Command failed, error: %s", err)
+	} else if buildlogPthErr == nil {
+		err := filepath.Walk(BuildlogPth, processLogFiles)
+		if err != nil {
+			log.Errorf("Failed to walk directory, error: %s", err)
+		}
 	}
 }
