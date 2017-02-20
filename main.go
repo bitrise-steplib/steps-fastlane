@@ -1,6 +1,8 @@
 package main
 
 import (
+	"bufio"
+	"bytes"
 	"errors"
 	"fmt"
 	"os"
@@ -256,26 +258,64 @@ func main() {
 	cmd.SetStdout(os.Stdout).SetStderr(os.Stderr)
 	cmd.SetDir(workDir)
 
+	buildlogPth := ""
+
+	if tempDir, err := pathutil.NormalizedOSTempDirPath("fastlane_logs"); err != nil {
+		log.Errorf("Failed to create temp dir for fastlane logs, error: %s", err)
+	} else {
+		buildlogPth = tempDir
+		cmd.AppendEnvs("FL_BUILDLOG_PATH=" + buildlogPth)
+	}
+
+	deployDir := os.Getenv("BITRISE_DEPLOY_DIR")
+	if deployDir == "" {
+		log.Warnf("No BITRISE_DEPLOY_DIR found")
+	}
+	deployPth := filepath.Join(deployDir, "fastlane_env.log")
+
 	if err := cmd.Run(); err != nil {
 		fmt.Println()
 		log.Errorf("Fastlane command: (%s) failed", cmd.PrintableCommandArgs())
-		log.Errorf("If you want to send an issue report to fastlane (https://github.com/fastlane/fastlane/issues/new), you can find the output of fastlane env (below):")
+		log.Errorf("If you want to send an issue report to fastlane (https://github.com/fastlane/fastlane/issues/new), you can find the output of fastlane env int he following log file:")
+		fmt.Println()
+		log.Infof(deployPth)
 		fmt.Println()
 
-		inputReader := strings.NewReader("n")
-		cmd, errEnv := rubycommand.New("fastlane", "env")
-		if errEnv != nil {
-			log.Warnf("Failed to create command model, error: %s", errEnv)
+		if cmd, err := rubycommand.New("fastlane", "env"); err != nil {
+			log.Warnf("Failed to create command model, error: %s", err)
 		} else {
+			inputReader := strings.NewReader("n")
+			var outBuffer bytes.Buffer
+			outWriter := bufio.NewWriter(&outBuffer)
+
 			cmd.SetStdin(inputReader)
-			cmd.SetStdout(os.Stdout).SetStderr(os.Stderr)
+			cmd.SetStdout(outWriter).SetStderr(os.Stderr)
 			cmd.SetDir(workDir)
 
 			if errEnv := cmd.Run(); errEnv != nil {
 				log.Warnf("Fastlane command: (%s) failed", cmd.PrintableCommandArgs())
+			} else if outBuffer.String() != "" {
+				if err := fileutil.WriteStringToFile(deployPth, outBuffer.String()); err != nil {
+					log.Warnf("Failed to write fastlane env log file, error: %s", err)
+				}
 			}
 		}
-
 		failf("Command failed, error: %s", err)
+	}
+
+	if err := filepath.Walk(buildlogPth, func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+		if !info.IsDir() {
+			if relLogPath, err := filepath.Rel(buildlogPth, path); err == nil {
+				return err
+			} else if err := os.Rename(path, filepath.Join(deployDir, strings.Replace(relLogPath, "/", "_", -1))); err != nil {
+				return err
+			}
+		}
+		return nil
+	}); err != nil {
+		log.Errorf("Failed to walk directory, error: %s", err)
 	}
 }
