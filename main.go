@@ -281,9 +281,8 @@ func main() {
 		log.Infof(deployPth)
 		fmt.Println()
 
-		cmd, errEnv := rubycommand.New("fastlane", "env")
-		if errEnv != nil {
-			log.Warnf("Failed to create command model, error: %s", errEnv)
+		if cmd, err := rubycommand.New("fastlane", "env"); err != nil {
+			log.Warnf("Failed to create command model, error: %s", err)
 		} else {
 			inputReader := strings.NewReader("n")
 			var outBuffer bytes.Buffer
@@ -304,22 +303,19 @@ func main() {
 		failf("Command failed, error: %s", err)
 	}
 
-	if buildlogPth != "" {
-		err := filepath.Walk(buildlogPth, func(path string, info os.FileInfo, err error) error {
-			if err != nil {
+	if err := filepath.Walk(buildlogPth, func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+		if !info.IsDir() {
+			if relLogPath, err := filepath.Rel(buildlogPth, path); err == nil {
+				return err
+			} else if err := os.Rename(path, filepath.Join(deployDir, strings.Replace(relLogPath, "/", "_", -1))); err != nil {
 				return err
 			}
-			if !info.IsDir() {
-				if relLogPath, err := filepath.Rel(buildlogPth, path); err == nil {
-					return err
-				} else if err := os.Rename(path, filepath.Join(deployDir, strings.Replace(relLogPath, "/", "_", -1))); err != nil {
-					return err
-				}
-			}
-			return nil
-		})
-		if err != nil {
-			log.Errorf("Failed to walk directory, error: %s", err)
 		}
+		return nil
+	}); err != nil {
+		log.Errorf("Failed to walk directory, error: %s", err)
 	}
 }
