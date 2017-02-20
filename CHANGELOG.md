@@ -1,6 +1,11 @@
-## Changelog (Current version: 2.3.6)
+## Changelog (Current version: 2.3.7)
 
 -----------------
+
+### 2.3.7 (2017 Feb 20)
+
+* [1cf6e66] Prepare for 2.3.7
+* [7134c7d] Moving fastlane logs to deploy dir (#27)
 
 ### 2.3.6 (2017 Feb 10)
 
@@ -101,4 +106,4 @@
 
 -----------------
 
-Updated: 2017 Feb 10
+Updated: 2017 Feb 20
