@@ -305,6 +305,7 @@ func main() {
 			if err != nil {
 				return err
 			}
+			log.Infof(path)
 			if !info.IsDir() {
 				if relLogPath, err := filepath.Rel(buildlogPth, path); err == nil {
 					return err
