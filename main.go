@@ -305,9 +305,8 @@ func main() {
 			if err != nil {
 				return err
 			}
-			log.Infof(path)
 			if !info.IsDir() {
-				if relLogPath, err := filepath.Rel(buildlogPth, path); err == nil {
+				if relLogPath, err := filepath.Rel(buildlogPth, path); err != nil {
 					return err
 				} else if err := os.Rename(path, filepath.Join(deployDir, strings.Replace(relLogPath, "/", "_", -1))); err != nil {
 					return err
