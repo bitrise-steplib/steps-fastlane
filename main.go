@@ -300,22 +300,22 @@ func main() {
 				}
 			}
 		}
-		failf("Command failed, error: %s", err)
-	}
 
-	if err := filepath.Walk(buildlogPth, func(path string, info os.FileInfo, err error) error {
-		if err != nil {
-			return err
-		}
-		if !info.IsDir() {
-			if relLogPath, err := filepath.Rel(buildlogPth, path); err == nil {
-				return err
-			} else if err := os.Rename(path, filepath.Join(deployDir, strings.Replace(relLogPath, "/", "_", -1))); err != nil {
+		if err := filepath.Walk(buildlogPth, func(path string, info os.FileInfo, err error) error {
+			if err != nil {
 				return err
 			}
+			if !info.IsDir() {
+				if relLogPath, err := filepath.Rel(buildlogPth, path); err != nil {
+					return err
+				} else if err := os.Rename(path, filepath.Join(deployDir, strings.Replace(relLogPath, "/", "_", -1))); err != nil {
+					return err
+				}
+			}
+			return nil
+		}); err != nil {
+			log.Errorf("Failed to walk directory, error: %s", err)
 		}
-		return nil
-	}); err != nil {
-		log.Errorf("Failed to walk directory, error: %s", err)
+		failf("Command failed, error: %s", err)
 	}
 }
