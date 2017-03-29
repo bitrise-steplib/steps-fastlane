@@ -1,6 +1,11 @@
-## Changelog (Current version: 2.3.7)
+## Changelog (Current version: 2.3.8)
 
 -----------------
+
+### 2.3.8 (2017 Mar 29)
+
+* [6af235b] Prepare for 2.3.8
+* [d50d972] Fixed raw-logs deploy (#28)
 
 ### 2.3.7 (2017 Feb 20)
 
@@ -106,4 +111,4 @@
 
 -----------------
 
-Updated: 2017 Feb 20
+Updated: 2017 Mar 29
