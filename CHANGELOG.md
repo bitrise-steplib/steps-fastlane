@@ -1,6 +1,11 @@
-## Changelog (Current version: 2.3.8)
+## Changelog (Current version: 2.3.9)
 
 -----------------
+
+### 2.3.9 (2017 Mar 29)
+
+* [42fc758] Prepare for 2.3.9
+* [3436259] type_tags updated
 
 ### 2.3.8 (2017 Mar 29)
 
