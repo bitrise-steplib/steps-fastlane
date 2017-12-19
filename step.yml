@@ -17,6 +17,7 @@ project_type_tags:
   - ios
   - mac
   - android
+  - fastlane
 type_tags:
   - utility
 deps:
