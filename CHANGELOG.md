@@ -1,6 +1,12 @@
-## Changelog (Current version: 2.3.9)
+## Changelog (Current version: 2.3.10)
 
 -----------------
+
+### 2.3.10 (2017 Dec 19)
+
+* [85bd326] Bump version to 2.3.10
+* [b9908f6] Merge pull request #32 from bitrise-io/add-project-type
+* [afcb440] Add fastlan project type
 
 ### 2.3.9 (2017 Mar 29)
 
@@ -116,4 +122,4 @@
 
 -----------------
 
-Updated: 2017 Mar 29
+Updated: 2017 Dec 19
