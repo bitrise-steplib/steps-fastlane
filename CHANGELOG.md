@@ -1,6 +1,11 @@
-## Changelog (Current version: 2.3.10)
+## Changelog (Current version: 2.3.11)
 
 -----------------
+
+### 2.3.11 (2017 Dec 19)
+
+* [f00bd82] Bump version to 2.3.11
+* [2e02835] Update project type mac to macos (#33)
 
 ### 2.3.10 (2017 Dec 19)
 
