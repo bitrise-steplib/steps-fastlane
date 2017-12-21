@@ -1,6 +1,11 @@
-## Changelog (Current version: 2.3.11)
+## Changelog (Current version: 2.3.12)
 
 -----------------
+
+### 2.3.12 (2017 Dec 21)
+
+* [8fb1b88] Bump version to 2.3.12
+* [b6984cf] Fix: commander-fastlane gem's version detected instead of fastlane version (#34)
 
 ### 2.3.11 (2017 Dec 19)
 
@@ -127,4 +132,4 @@
 
 -----------------
 
-Updated: 2017 Dec 19
+Updated: 2017 Dec 21
