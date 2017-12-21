@@ -88,9 +88,9 @@ func fastlaneVersionFromGemfileLockContent(content string) string {
 	}
 
 	//     fastlane (1.109.0)
-	exp := regexp.MustCompile(`fastlane \((.+)\)`)
+	exp := regexp.MustCompile(`^fastlane \((.+)\)`)
 	for _, line := range relevantLines {
-		match := exp.FindStringSubmatch(line)
+		match := exp.FindStringSubmatch(strings.TrimSpace(line))
 		if match != nil && len(match) == 2 {
 			return match[1]
 		}
