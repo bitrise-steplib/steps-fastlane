@@ -276,7 +276,7 @@ func main() {
 	if err := cmd.Run(); err != nil {
 		fmt.Println()
 		log.Errorf("Fastlane command: (%s) failed", cmd.PrintableCommandArgs())
-		log.Errorf("If you want to send an issue report to fastlane (https://github.com/fastlane/fastlane/issues/new), you can find the output of fastlane env int he following log file:")
+		log.Errorf("If you want to send an issue report to fastlane (https://github.com/fastlane/fastlane/issues/new), you can find the output of fastlane env in the following log file:")
 		fmt.Println()
 		log.Infof(deployPth)
 		fmt.Println()
