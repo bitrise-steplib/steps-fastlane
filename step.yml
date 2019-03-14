@@ -11,13 +11,6 @@ description: |-
 website: https://github.com/bitrise-io/steps-fastlane
 source_code_url: https://github.com/bitrise-io/steps-fastlane
 support_url: https://github.com/bitrise-io/steps-fastlane/issues
-host_os_tags:
-  - "osx-10.10"
-project_type_tags:
-  - ios
-  - macos
-  - android
-  - fastlane
 type_tags:
   - utility
 deps:

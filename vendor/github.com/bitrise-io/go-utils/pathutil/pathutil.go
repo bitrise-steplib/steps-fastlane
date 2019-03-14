@@ -4,10 +4,37 @@ import (
 	"errors"
 	"io/ioutil"
 	"os"
+	"os/user"
 	"path/filepath"
 	"runtime"
 	"strings"
 )
+
+// RevokableChangeDir ...
+func RevokableChangeDir(dir string) (func() error, error) {
+	origDir, err := CurrentWorkingDirectoryAbsolutePath()
+	if err != nil {
+		return nil, err
+	}
+
+	revokeFn := func() error {
+		return os.Chdir(origDir)
+	}
+
+	return revokeFn, os.Chdir(dir)
+}
+
+// ChangeDirForFunction ...
+func ChangeDirForFunction(dir string, fn func()) error {
+	revokeFn, err := RevokableChangeDir(dir)
+	if err != nil {
+		return err
+	}
+
+	fn()
+
+	return revokeFn()
+}
 
 // IsRelativePath ...
 func IsRelativePath(pth string) bool {
@@ -85,10 +112,42 @@ func AbsPath(pth string) (string, error) {
 	if pth == "" {
 		return "", errors.New("No Path provided")
 	}
-	if len(pth) >= 2 && pth[:2] == "~/" {
-		pth = strings.Replace(pth, "~/", "$HOME/", 1)
+
+	pth, err := ExpandTilde(pth)
+	if err != nil {
+		return "", err
 	}
+
 	return filepath.Abs(os.ExpandEnv(pth))
+}
+
+// ExpandTilde ...
+func ExpandTilde(pth string) (string, error) {
+	if pth == "" {
+		return "", errors.New("No Path provided")
+	}
+
+	if strings.HasPrefix(pth, "~") {
+		pth = strings.TrimPrefix(pth, "~")
+
+		if len(pth) == 0 || strings.HasPrefix(pth, "/") {
+			return os.ExpandEnv("$HOME" + pth), nil
+		}
+
+		splitPth := strings.Split(pth, "/")
+		username := splitPth[0]
+
+		usr, err := user.Lookup(username)
+		if err != nil {
+			return "", err
+		}
+
+		pathInUsrHome := strings.Join(splitPth[1:], "/")
+
+		return filepath.Join(usr.HomeDir, pathInUsrHome), nil
+	}
+
+	return pth, nil
 }
 
 // CurrentWorkingDirectoryAbsolutePath ...
