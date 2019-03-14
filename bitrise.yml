@@ -1,145 +1,55 @@
-format_version: 1.3.1
+format_version: 6
 default_step_lib_source: https://github.com/bitrise-io/bitrise-steplib.git
 
 app:
   envs:
-  - STEP_VERSION: 2.3.12
-
-  - SAMPLE_APP_URL: "https://github.com/bitrise-samples/BitriseFastlaneSample.git"
-  - LANE: test
+  - SAMPLE_APP_URL: "https://github.com/bitrise-samples/sample-apps-ios-simple-objc-with-uitest.git"
+  - LANE: tests
 
 workflows:
   # ----------------------------------------------------------------
   # --- workflow to test this step
   ci:
-    before_run:
-    - go-tests
+    before-run:
+    - audit-this-step
     steps:
+    - go-list:
+    - golint:
+    - errcheck:
+    - go-test:
     - script:
         inputs:
-        - content: |-
-            #!/bin/bash
-            set -e
-            set -v
-            rm -rf ./_tmp
-    - git-clone:
-        run_if: true
-        inputs:
-        - repository_url: $SAMPLE_APP_URL
-        - clone_into_dir: ./_tmp
-        - commit: ""
-        - tag: ""
-        - branch: master
-        - branch_dest: ""
-        - pull_request_id: ""
-        - pull_request_repository_url: ""
-        - pull_request_merge_branch: ""
-        - build_url: ""
-        - build_api_token: ""
+        - content: rm -rf ./_tmp
     - change-workdir:
         title: Switch working dir to test/_tmp dir
         run_if: true
         inputs:
         - path: ./_tmp
         - is_create_path: true
+    - script:
+        inputs:
+        - content: git clone $SAMPLE_APP_URL -b fastlane .
     - path::./:
         inputs:
         - lane: $LANE
-
-  go-tests:
-    before_run:
-    - _install-test-tools
-    steps:
-    - script:
-        title: Export go files to test
-        inputs:
-        - content: |-
-            #!/bin/bash
-            set -ex
-
-            no_vendor_paths="$(go list ./... | grep -v vendor)"
-            envman add --key GOLIST_WITHOUT_VENDOR --value "$no_vendor_paths"
-    - script:
-        title: Err check
-        inputs:
-        - content: |-
-            #!/bin/bash
-            set -ex
-
-            errcheck -asserts=true -blank=true $GOLIST_WITHOUT_VENDOR
-    - script:
-        title: Go lint
-        inputs:
-        - content: |-
-            #!/bin/bash
-            set -ex
-
-            while read -r line; do
-              echo "-> Linting: $line"
-              golint_out="$(golint $line)"
-              if [[ "${golint_out}" != "" ]] ; then
-                echo "=> Golint issues found:"
-                echo "${golint_out}"
-                exit 1
-              fi
-            done <<< "$GOLIST_WITHOUT_VENDOR"
-    - script:
-        title: Go test
-        inputs:
-        - content: |-
-            #!/bin/bash
-            set -ex
-
-            go test ./...
-
-  _install-test-tools:
-    steps:
-    - script:
-        title: Install required testing tools
-        inputs:
-        - content: |-
-            #!/bin/bash
-            set -ex
-
-            # Check for unhandled errors
-            go get -u -v github.com/kisielk/errcheck
-
-            # Go lint
-            go get -u -v github.com/golang/lint/golint
+        - work_dir: ios-simple-objc
 
   # ----------------------------------------------------------------
   # --- Utility workflows
-  godeps-update:
-    title: Godeps update
+  dep-update:
+    title: Dep update
+    description: |
+      Used for updating bitrise dependencies with dep
     steps:
     - script:
         title: Dependency update
         inputs:
-        - content: |
+        - content: |-
             #!/bin/bash
             set -ex
-            go get -u -v github.com/tools/godep
-
-            rm -rf ./Godeps
-            rm -rf ./vendor
-
-            go get -t -d ./...
-            godep save ./...
-
-  # ----------------------------------------------------------------
-  # --- workflows to create Release
-  create-release:
-    title: Create release with Releaseman
-    steps:
-    - script:
-        title:
-        inputs:
-        - content: |
-            #!/bin/bash
-            set -e
-
-            export CI=true
-            releaseman create --version $STEP_VERSION
+            go get -u -v github.com/golang/dep/cmd/dep
+            dep ensure -v
+            dep ensure -v -update
 
   # ----------------------------------------------------------------
   # --- workflows to Share this step into a Step Library
@@ -152,44 +62,3 @@ workflows:
             #!/bin/bash
             set -ex
             stepman audit --step-yml ./step.yml
-
-  share-this-step:
-    envs:
-      # if you want to share this step into a StepLib
-      - MY_STEPLIB_REPO_FORK_GIT_URL: $MY_STEPLIB_REPO_FORK_GIT_URL
-      - STEP_ID_IN_STEPLIB: fastlane
-      - STEP_GIT_VERION_TAG_TO_SHARE: $STEP_VERSION
-      - STEP_GIT_CLONE_URL: https://github.com/bitrise-io/steps-fastlane.git
-    title: Share the step
-    description: |-
-      If this is the first time you try to share a Step you should
-      first call: $ bitrise share
-
-      This will print you a guide, and information about how Step sharing
-      works. Please read it at least once!
-
-      As noted in the Step sharing guide you'll have to fork the
-      StepLib you want to share this step into. Once you're done with forking
-      the repository you should set your own fork's git clone URL
-      in the `.bitrise.secrets.yml` file, or here in the `envs` section,
-      as the value of the `MY_STEPLIB_REPO_FORK_GIT_URL` environment.
-
-      You're now ready to share this Step, just make sure that
-      the `STEP_ID_IN_STEPLIB` and `STEP_GIT_VERION_TAG_TO_SHARE`
-      environments are set to the desired values!
-
-      To share this Step into a StepLib you can just run: $ bitrise run share-this-step
-
-      Once it finishes the only thing left is to actually create a Pull Request,
-      the way described in the guide printed at the end of the process.
-    before_run:
-    - audit-this-step
-    steps:
-    - script:
-        inputs:
-        - content: |-
-            #!/bin/bash
-            set -ex
-            bitrise share start -c ${MY_STEPLIB_REPO_FORK_GIT_URL}
-            bitrise share create --stepid ${STEP_ID_IN_STEPLIB} --tag ${STEP_GIT_VERION_TAG_TO_SHARE} --git ${STEP_GIT_CLONE_URL}
-            bitrise share finish

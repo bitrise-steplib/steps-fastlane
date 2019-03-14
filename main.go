@@ -183,7 +183,7 @@ func main() {
 
 		log.Donef("$ %s", command.PrintableCommandArgs(false, bundleInstallCmd))
 
-		cmd, err := rubycommand.NewFromSlice(bundleInstallCmd...)
+		cmd, err := rubycommand.NewFromSlice(bundleInstallCmd)
 		if err != nil {
 			failf("Failed to create command model, error: %s", err)
 		}
@@ -226,7 +226,7 @@ func main() {
 
 	log.Donef("$ %s", command.PrintableCommandArgs(false, versionCmd))
 
-	cmd, err := rubycommand.NewFromSlice(versionCmd...)
+	cmd, err := rubycommand.NewFromSlice(versionCmd)
 	if err != nil {
 		failf("Command failed, error: %s", err)
 	}
@@ -250,7 +250,7 @@ func main() {
 
 	log.Donef("$ %s", command.PrintableCommandArgs(false, fastlaneCmd))
 
-	cmd, err = rubycommand.NewFromSlice(fastlaneCmd...)
+	cmd, err = rubycommand.NewFromSlice(fastlaneCmd)
 	if err != nil {
 		failf("Failed to create command model, error: %s", err)
 	}

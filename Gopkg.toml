@@ -1,0 +1,15 @@
+[[constraint]]
+  branch = "master"
+  name = "github.com/bitrise-io/go-utils"
+
+[[constraint]]
+  branch = "master"
+  name = "github.com/kballard/go-shellquote"
+
+[[constraint]]
+  name = "github.com/stretchr/testify"
+  branch = "master"
+
+[prune]
+  go-tests = true
+  unused-packages = true
