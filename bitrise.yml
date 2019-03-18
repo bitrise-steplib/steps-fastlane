@@ -3,8 +3,8 @@ default_step_lib_source: https://github.com/bitrise-io/bitrise-steplib.git
 
 app:
   envs:
-  - SAMPLE_APP_URL: "https://github.com/bitrise-samples/sample-apps-ios-simple-objc-with-uitest.git"
-  - LANE: tests
+  - SAMPLE_APP_URL: "https://github.com/bitrise-samples/sample-apps-fastlane-test.git"
+  - LANE: release
 
 workflows:
   # ----------------------------------------------------------------
@@ -28,11 +28,15 @@ workflows:
         - is_create_path: true
     - script:
         inputs:
-        - content: git clone $SAMPLE_APP_URL -b fastlane .
+        - content: git clone $SAMPLE_APP_URL .
+    - ios-auto-provision@1.3.1:
+        inputs:
+        - generate_profiles: 'yes'
+        - distribution_type: app-store
     - path::./:
         inputs:
         - lane: $LANE
-        - work_dir: ios-simple-objc
+        - work_dir: sample-apps-fastlane-test
 
   # ----------------------------------------------------------------
   # --- Utility workflows
