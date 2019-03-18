@@ -38,7 +38,7 @@ workflows:
     - path::./:
         inputs:
         - lane: $LANE
-        - work_dir: sample-apps-fastlane-test
+        - work_dir: ./
 
   # ----------------------------------------------------------------
   # --- Utility workflows
