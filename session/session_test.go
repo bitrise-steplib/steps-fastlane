@@ -56,8 +56,6 @@ func TestGetDeveloperPortalData(t *testing.T) {
 	if reflect.DeepEqual(got, PortalData{}) {
 		t.Errorf("getDeveloperPortalData() = nil")
 	}
-
-	t.Logf(sPretty(got))
 }
 
 const dummyPortalDataJSON = `{
