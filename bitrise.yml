@@ -5,6 +5,8 @@ app:
   envs:
   - SAMPLE_APP_URL: "https://github.com/bitrise-samples/sample-apps-fastlane-test.git"
   - LANE: release
+  - BITRISE_PROJECT_PATH: ./sample-apps-fastlane-test/sample-apps-fastlane-test.xcodeproj
+  - BITRISE_SCHEME: sample-apps-fastlane-test
 
 workflows:
   # ----------------------------------------------------------------
