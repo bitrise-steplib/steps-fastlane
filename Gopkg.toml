@@ -17,3 +17,7 @@
 [[constraint]]
   branch = "master"
   name = "github.com/bitrise-tools/go-steputils"
+
+[[constraint]]
+  branch = "master"
+  name = "github.com/bitrise-io/steps-deploy-to-itunesconnect-deliver"
