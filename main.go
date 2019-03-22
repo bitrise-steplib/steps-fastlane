@@ -15,7 +15,7 @@ import (
 	"github.com/bitrise-io/go-utils/fileutil"
 	"github.com/bitrise-io/go-utils/log"
 	"github.com/bitrise-io/go-utils/pathutil"
-	"github.com/bitrise-io/steps-fastlane/session"
+	"github.com/bitrise-io/steps-deploy-to-itunesconnect-deliver/devportalservice"
 	"github.com/bitrise-tools/go-steputils/tools"
 	shellquote "github.com/kballard/go-shellquote"
 )
@@ -146,9 +146,12 @@ func main() {
 	fmt.Println()
 	log.Infof("Ensure cookies for Apple Developer Portal")
 
-	fs, err := session.GetSession()
-	if err != nil {
-		log.Warnf("Failed to get the session for the Apple Developer Portal, error: %s", err)
+	fs, errors := devportalservice.SessionData()
+	if errors != nil {
+		log.Warnf("Failed to activate the Bitrise Apple Developer Portal connection: %s\nRead more: https://devcenter.bitrise.io/getting-started/signing-up/connecting-apple-dev-account/\nerrors:")
+		for _, err := range errors {
+			log.Errorf("%s\n", err)
+		}
 	} else {
 		if err := tools.ExportEnvironmentWithEnvman("FASTLANE_SESSION", fs); err != nil {
 			failf("Failed to export FASTLANE_SESSION, error: %s", err)
