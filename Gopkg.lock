@@ -18,6 +18,22 @@
   revision = "2a09aab8380d7842750328aebd5671bcccea89c8"
 
 [[projects]]
+  branch = "master"
+  digest = "1:a3b919ac82ab21667747cd674a4090889bb1a0c4570e093eb6d0c61f7a01064f"
+  name = "github.com/bitrise-io/steps-deploy-to-itunesconnect-deliver"
+  packages = ["devportalservice"]
+  pruneopts = "UT"
+  revision = "80467e08fd63e3f11dd03e08ed8ccca716ef49d4"
+
+[[projects]]
+  branch = "master"
+  digest = "1:659157c334882ba37fe50584d691ea469fb6e708a49e81dcd4381fef6ba611b0"
+  name = "github.com/bitrise-tools/go-steputils"
+  packages = ["tools"]
+  pruneopts = "UT"
+  revision = "ec226b2359fcd806be64f0ad2217d8e741a1ff11"
+
+[[projects]]
   digest = "1:ffe9824d294da03b391f44e1ae8281281b4afc1bdaa9588c9097785e3af10cec"
   name = "github.com/davecgh/go-spew"
   packages = ["spew"]
@@ -61,6 +77,8 @@
     "github.com/bitrise-io/go-utils/fileutil",
     "github.com/bitrise-io/go-utils/log",
     "github.com/bitrise-io/go-utils/pathutil",
+    "github.com/bitrise-io/steps-deploy-to-itunesconnect-deliver/devportalservice",
+    "github.com/bitrise-tools/go-steputils/tools",
     "github.com/kballard/go-shellquote",
     "github.com/stretchr/testify/require",
   ]

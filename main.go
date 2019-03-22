@@ -15,6 +15,8 @@ import (
 	"github.com/bitrise-io/go-utils/fileutil"
 	"github.com/bitrise-io/go-utils/log"
 	"github.com/bitrise-io/go-utils/pathutil"
+	"github.com/bitrise-io/steps-deploy-to-itunesconnect-deliver/devportalservice"
+	"github.com/bitrise-tools/go-steputils/tools"
 	shellquote "github.com/kballard/go-shellquote"
 )
 
@@ -138,6 +140,29 @@ func main() {
 	}
 
 	log.Donef("Expanded WorkDir: %s", workDir)
+
+	//
+	// Fastlane session
+	fmt.Println()
+	log.Infof("Ensure cookies for Apple Developer Portal")
+
+	fs, errors := devportalservice.SessionData()
+	if errors != nil {
+		log.Warnf("Failed to activate the Bitrise Apple Developer Portal connection: %s\nRead more: https://devcenter.bitrise.io/getting-started/signing-up/connecting-apple-dev-account/\nerrors:")
+		for _, err := range errors {
+			log.Errorf("%s\n", err)
+		}
+	} else {
+		if err := tools.ExportEnvironmentWithEnvman("FASTLANE_SESSION", fs); err != nil {
+			failf("Failed to export FASTLANE_SESSION, error: %s", err)
+		}
+
+		if err := os.Setenv("FASTLANE_SESSION", fs); err != nil {
+			failf("Failed to set FASTLANE_SESSION env, error: %s", err)
+		}
+
+		log.Donef("Session exported")
+	}
 
 	// Split lane option
 	laneOptions, err := shellquote.Split(configs.Lane)
