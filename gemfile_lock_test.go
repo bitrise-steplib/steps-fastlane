@@ -1,14 +1,19 @@
 package main
 
 import (
+	"reflect"
 	"testing"
-
-	"github.com/stretchr/testify/require"
 )
 
-func testFastlaneVersionFromGemfileLockContent(t *testing.T) {
-	version := fastlaneVersionFromGemfileLockContent(gemfileLockContent)
-	require.Equal(t, "2.13.0", version)
+func Test_fastlaneVersionFromGemfileLockContent(t *testing.T) {
+	got := gemVersionFromGemfileLockContent("fastlane", gemfileLockContent)
+	want := gemVersion{
+		version: "2.13.0",
+		found:   true,
+	}
+	if !reflect.DeepEqual(got, want) {
+		t.Errorf("gemVersionFromGemfileLockContent() = %+v, want: %+v", got, want)
+	}
 }
 
 const gemfileLockContent = `GIT

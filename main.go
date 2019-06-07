@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"regexp"
 	"strings"
 
 	"github.com/bitrise-io/go-utils/command"
@@ -67,46 +66,6 @@ func (configs ConfigsModel) validate() error {
 func failf(format string, v ...interface{}) {
 	log.Errorf(format, v...)
 	os.Exit(1)
-}
-
-func fastlaneVersionFromGemfileLockContent(content string) string {
-	relevantLines := []string{}
-	lines := strings.Split(content, "\n")
-
-	specsStart := false
-	for _, line := range lines {
-		if strings.Contains(line, "specs:") {
-			specsStart = true
-		}
-
-		trimmed := strings.Trim(line, " ")
-		if trimmed == "" {
-			specsStart = false
-		}
-
-		if specsStart {
-			relevantLines = append(relevantLines, line)
-		}
-	}
-
-	//     fastlane (1.109.0)
-	exp := regexp.MustCompile(`^fastlane \((.+)\)`)
-	for _, line := range relevantLines {
-		match := exp.FindStringSubmatch(strings.TrimSpace(line))
-		if match != nil && len(match) == 2 {
-			return match[1]
-		}
-	}
-
-	return ""
-}
-
-func fastlaneVersionFromGemfileLock(gemfileLockPth string) (string, error) {
-	content, err := fileutil.ReadStringFromFile(gemfileLockPth)
-	if err != nil {
-		return "", err
-	}
-	return fastlaneVersionFromGemfileLockContent(content), nil
 }
 
 func main() {
@@ -174,28 +133,14 @@ func main() {
 	fmt.Println()
 	log.Infof("Determine desired Fastlane version")
 
+	gemVersions, err := parseGemfileLock(workDir)
+	if err != nil {
+		failf("%s", err)
+	}
+
 	useBundler := false
-
-	gemfileLockPth := filepath.Join(workDir, "Gemfile.lock")
-	log.Printf("Checking Gemfile.lock (%s) for fastlane gem", gemfileLockPth)
-
-	if exist, err := pathutil.IsPathExists(gemfileLockPth); err != nil {
-		failf("Failed to check if Gemfile.lock exist at (%s), error: %s", gemfileLockPth, err)
-	} else if exist {
-		version, err := fastlaneVersionFromGemfileLock(gemfileLockPth)
-		if err != nil {
-			failf("Failed to read Fastlane versiom from Gemfile.lock (%s), error: %s", gemfileLockPth, err)
-		}
-
-		if version != "" {
-			log.Printf("Gemfile.lock defined fastlane version: %s", version)
-
-			useBundler = true
-		} else {
-			log.Printf("No fastlane version defined in Gemfile.lock")
-		}
-	} else {
-		log.Printf("Gemfile.lock does not exist")
+	if gemVersions.fastlane.found {
+		useBundler = true
 	}
 
 	fmt.Println()
@@ -204,17 +149,19 @@ func main() {
 	if useBundler {
 		log.Infof("Install Fastlane with bundler")
 
-		bundleInstallCmd := []string{"bundle", "install", "--jobs", "20", "--retry", "5"}
+		if err := installBundler(gemVersions.bundler); err != nil {
+			failf("failed to install bundler, error: %s", err)
+		}
 
-		log.Donef("$ %s", command.PrintableCommandArgs(false, bundleInstallCmd))
-
-		cmd, err := rubycommand.NewFromSlice(bundleInstallCmd)
+		cmd, err := getBundleInstallCommand(gemVersions.bundler)
 		if err != nil {
-			failf("Failed to create command model, error: %s", err)
+			failf("failed to create bundle command, error: %s", err)
 		}
 
 		cmd.SetStdout(os.Stdout).SetStderr(os.Stderr)
 		cmd.SetDir(workDir)
+
+		log.Donef("$ %s", cmd.PrintableCommandArgs())
 
 		if err := cmd.Run(); err != nil {
 			failf("Command failed, error: %s", err)
