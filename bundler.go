@@ -5,7 +5,7 @@ import (
 	"github.com/bitrise-io/go-utils/command/rubycommand"
 )
 
-func installBundler(gemfileLockVersion gemVersion) (*command.Model, error) {
+func getInstallBundlerCommand(gemfileLockVersion gemVersion) (*command.Model, error) {
 	installBundlerCmdParams := []string{"gem", "install", "bundler", "--force"}
 	if gemfileLockVersion.found {
 		installBundlerCmdParams = append(installBundlerCmdParams, []string{"-v", gemfileLockVersion.version}...)

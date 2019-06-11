@@ -151,7 +151,7 @@ func main() {
 		log.Infof("Install bundler")
 
 		// install bundler with `gem install bundler [-v version]`
-		installBundlerCommand, err := installBundler(gemVersions.bundler)
+		installBundlerCommand, err := getInstallBundlerCommand(gemVersions.bundler)
 		if err != nil {
 			failf("failed to create command, error: %s", err)
 		}
