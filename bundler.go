@@ -6,7 +6,7 @@ import (
 )
 
 func getInstallBundlerCommand(gemfileLockVersion gemVersion) (*command.Model, error) {
-	installBundlerCmdParams := []string{"gem", "install", "bundler", "--force"}
+	installBundlerCmdParams := []string{"gem", "install", "bundler", "--force", "--no-document"}
 	if gemfileLockVersion.found {
 		installBundlerCmdParams = append(installBundlerCmdParams, []string{"-v", gemfileLockVersion.version}...)
 	}
