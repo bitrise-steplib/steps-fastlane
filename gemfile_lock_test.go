@@ -5,14 +5,58 @@ import (
 	"testing"
 )
 
-func Test_fastlaneVersionFromGemfileLockContent(t *testing.T) {
-	got := gemVersionFromGemfileLockContent("fastlane", gemfileLockContent)
+func Test_parseGemVersion(t *testing.T) {
 	want := gemVersion{
 		version: "2.13.0",
 		found:   true,
 	}
-	if !reflect.DeepEqual(got, want) {
+	if got := parseGemVersion("fastlane", gemfileLockContent); !reflect.DeepEqual(got, want) {
 		t.Errorf("gemVersionFromGemfileLockContent() = %+v, want: %+v", got, want)
+	}
+}
+
+func Test_parseBundlerVersion(t *testing.T) {
+	tests := []struct {
+		name               string
+		gemfileLockContent string
+		want               gemVersion
+	}{
+		{
+			name:               "should match",
+			gemfileLockContent: gemfileLockContent,
+			want: gemVersion{
+				version: "1.13.6",
+				found:   true,
+			},
+		},
+		{
+			name: "newline after version",
+			gemfileLockContent: `BUNDLED WITH
+      1.13.6
+      
+      `,
+			want: gemVersion{
+				version: "1.13.6",
+				found:   true,
+			},
+		},
+		{
+			name: "newline before version",
+			gemfileLockContent: `BUNDLED WITH
+      
+      1.13.6`,
+			want: gemVersion{
+				version: "1.13.6",
+				found:   true,
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := parseBundlerVersion(tt.gemfileLockContent); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("parseBundlerVersion() = %v, want %v", got, tt.want)
+			}
+		})
 	}
 }
 
