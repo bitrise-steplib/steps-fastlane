@@ -1,23 +1,20 @@
+
+[[constraint]]
+  branch = "master"
+  name = "github.com/bitrise-io/go-steputils"
+
 [[constraint]]
   branch = "master"
   name = "github.com/bitrise-io/go-utils"
 
 [[constraint]]
   branch = "master"
-  name = "github.com/kballard/go-shellquote"
+  name = "github.com/bitrise-steplib/steps-deploy-to-itunesconnect-deliver"
 
 [[constraint]]
-  name = "github.com/stretchr/testify"
   branch = "master"
+  name = "github.com/kballard/go-shellquote"
 
 [prune]
   go-tests = true
   unused-packages = true
-
-[[constraint]]
-  branch = "master"
-  name = "github.com/bitrise-tools/go-steputils"
-
-[[constraint]]
-  branch = "master"
-  name = "github.com/bitrise-io/steps-deploy-to-itunesconnect-deliver"
