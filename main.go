@@ -12,7 +12,6 @@ import (
 	"github.com/bitrise-io/go-steputils/tools"
 	"github.com/bitrise-io/go-utils/command"
 	"github.com/bitrise-io/go-utils/command/rubycommand"
-	"github.com/bitrise-io/go-utils/errorutil"
 	"github.com/bitrise-io/go-utils/fileutil"
 	"github.com/bitrise-io/go-utils/log"
 	"github.com/bitrise-io/go-utils/pathutil"
@@ -148,6 +147,7 @@ func main() {
 
 	// Install desired Fastlane version
 	if useBundler {
+		fmt.Println()
 		log.Infof("Install bundler")
 
 		// install bundler with `gem install bundler [-v version]`
@@ -156,18 +156,18 @@ func main() {
 			failf("failed to create command, error: %s", err)
 		}
 
-		log.Debugf("$ %s", installBundlerCommand.PrintableCommandArgs())
+		log.Donef("$ %s", installBundlerCommand.PrintableCommandArgs())
 		fmt.Println()
 
-		out, err := installBundlerCommand.RunAndReturnTrimmedCombinedOutput()
-		if err != nil {
-			if errorutil.IsExitStatusError(err) {
-				failf("failed to install bundler, command exited with error: %s, out: %s", err, out)
-			}
-			failf("failed to install bundler, failed to run command, error: %s", err)
+		installBundlerCommand.SetStdout(os.Stdout).SetStderr(os.Stderr)
+		installBundlerCommand.SetDir(workDir)
+
+		if err := installBundlerCommand.Run(); err != nil {
+			failf("command failed, error: %s", err)
 		}
 
 		// install Gemfile.lock gems with `bundle [_version_] install ...`
+		fmt.Println()
 		log.Infof("Install Fastlane with bundler")
 
 		cmd, err := getBundleInstallCommand(gemVersions.bundler)
