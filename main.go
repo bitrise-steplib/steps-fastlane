@@ -7,16 +7,15 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"regexp"
 	"strings"
 
+	"github.com/bitrise-io/go-steputils/tools"
 	"github.com/bitrise-io/go-utils/command"
 	"github.com/bitrise-io/go-utils/command/rubycommand"
 	"github.com/bitrise-io/go-utils/fileutil"
 	"github.com/bitrise-io/go-utils/log"
 	"github.com/bitrise-io/go-utils/pathutil"
-	"github.com/bitrise-io/steps-deploy-to-itunesconnect-deliver/devportalservice"
-	"github.com/bitrise-tools/go-steputils/tools"
+	"github.com/bitrise-steplib/steps-deploy-to-itunesconnect-deliver/devportalservice"
 	shellquote "github.com/kballard/go-shellquote"
 )
 
@@ -67,46 +66,6 @@ func (configs ConfigsModel) validate() error {
 func failf(format string, v ...interface{}) {
 	log.Errorf(format, v...)
 	os.Exit(1)
-}
-
-func fastlaneVersionFromGemfileLockContent(content string) string {
-	relevantLines := []string{}
-	lines := strings.Split(content, "\n")
-
-	specsStart := false
-	for _, line := range lines {
-		if strings.Contains(line, "specs:") {
-			specsStart = true
-		}
-
-		trimmed := strings.Trim(line, " ")
-		if trimmed == "" {
-			specsStart = false
-		}
-
-		if specsStart {
-			relevantLines = append(relevantLines, line)
-		}
-	}
-
-	//     fastlane (1.109.0)
-	exp := regexp.MustCompile(`^fastlane \((.+)\)`)
-	for _, line := range relevantLines {
-		match := exp.FindStringSubmatch(strings.TrimSpace(line))
-		if match != nil && len(match) == 2 {
-			return match[1]
-		}
-	}
-
-	return ""
-}
-
-func fastlaneVersionFromGemfileLock(gemfileLockPth string) (string, error) {
-	content, err := fileutil.ReadStringFromFile(gemfileLockPth)
-	if err != nil {
-		return "", err
-	}
-	return fastlaneVersionFromGemfileLockContent(content), nil
 }
 
 func main() {
@@ -174,44 +133,50 @@ func main() {
 	fmt.Println()
 	log.Infof("Determine desired Fastlane version")
 
+	gemVersions, err := parseGemfileLock(workDir)
+	if err != nil {
+		failf("%s", err)
+	}
+
 	useBundler := false
-
-	gemfileLockPth := filepath.Join(workDir, "Gemfile.lock")
-	log.Printf("Checking Gemfile.lock (%s) for fastlane gem", gemfileLockPth)
-
-	if exist, err := pathutil.IsPathExists(gemfileLockPth); err != nil {
-		failf("Failed to check if Gemfile.lock exist at (%s), error: %s", gemfileLockPth, err)
-	} else if exist {
-		version, err := fastlaneVersionFromGemfileLock(gemfileLockPth)
-		if err != nil {
-			failf("Failed to read Fastlane versiom from Gemfile.lock (%s), error: %s", gemfileLockPth, err)
-		}
-
-		if version != "" {
-			log.Printf("Gemfile.lock defined fastlane version: %s", version)
-
-			useBundler = true
-		} else {
-			log.Printf("No fastlane version defined in Gemfile.lock")
-		}
-	} else {
-		log.Printf("Gemfile.lock does not exist")
+	if gemVersions.fastlane.found {
+		useBundler = true
 	}
 
 	fmt.Println()
 
 	// Install desired Fastlane version
 	if useBundler {
+		fmt.Println()
+		log.Infof("Install bundler")
+
+		// install bundler with `gem install bundler [-v version]`
+		installBundlerCommand, err := getInstallBundlerCommand(gemVersions.bundler)
+		if err != nil {
+			failf("failed to create command, error: %s", err)
+		}
+
+		log.Donef("$ %s", installBundlerCommand.PrintableCommandArgs())
+		fmt.Println()
+
+		installBundlerCommand.SetStdout(os.Stdout).SetStderr(os.Stderr)
+		installBundlerCommand.SetDir(workDir)
+
+		if err := installBundlerCommand.Run(); err != nil {
+			failf("command failed, error: %s", err)
+		}
+
+		// install Gemfile.lock gems with `bundle [_version_] install ...`
+		fmt.Println()
 		log.Infof("Install Fastlane with bundler")
 
-		bundleInstallCmd := []string{"bundle", "install", "--jobs", "20", "--retry", "5"}
-
-		log.Donef("$ %s", command.PrintableCommandArgs(false, bundleInstallCmd))
-
-		cmd, err := rubycommand.NewFromSlice(bundleInstallCmd)
+		cmd, err := getBundleInstallCommand(gemVersions.bundler)
 		if err != nil {
-			failf("Failed to create command model, error: %s", err)
+			failf("failed to create bundle command, error: %s", err)
 		}
+
+		log.Donef("$ %s", cmd.PrintableCommandArgs())
+		fmt.Println()
 
 		cmd.SetStdout(os.Stdout).SetStderr(os.Stderr)
 		cmd.SetDir(workDir)
