@@ -13,12 +13,13 @@
   revision = "cecc766da84859e37e780d9d1c416f0f3993e6b1"
 
 [[projects]]
-  branch = "master"
-  digest = "1:e6ae4a49339d04b8a44d80aa5e013592c78f0ed588bdd6ca4a68f75738663b63"
+  branch = "TOOL-494-bundler-commands"
+  digest = "1:0b92becc4bff2994a2e214ec734a8e3a5d8029b66c8c517742b546918c2280ae"
   name = "github.com/bitrise-io/go-utils"
   packages = [
     "colorstring",
     "command",
+    "command/gems",
     "command/rubycommand",
     "errorutil",
     "fileutil",
@@ -28,7 +29,7 @@
     "pointers",
   ]
   pruneopts = "UT"
-  revision = "7a4402b387ebcdf3e2a0aa3b18d4c8636768f9a0"
+  revision = "730e06302df9974441a002a78638a5f51c6ad16d"
 
 [[projects]]
   branch = "master"
@@ -53,6 +54,7 @@
     "github.com/bitrise-io/go-steputils/stepconf",
     "github.com/bitrise-io/go-steputils/tools",
     "github.com/bitrise-io/go-utils/command",
+    "github.com/bitrise-io/go-utils/command/gems",
     "github.com/bitrise-io/go-utils/command/rubycommand",
     "github.com/bitrise-io/go-utils/fileutil",
     "github.com/bitrise-io/go-utils/log",

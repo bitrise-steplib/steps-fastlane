@@ -11,6 +11,7 @@ import (
 	"github.com/bitrise-io/go-steputils/stepconf"
 	"github.com/bitrise-io/go-steputils/tools"
 	"github.com/bitrise-io/go-utils/command"
+	"github.com/bitrise-io/go-utils/command/gems"
 	"github.com/bitrise-io/go-utils/command/rubycommand"
 	"github.com/bitrise-io/go-utils/fileutil"
 	"github.com/bitrise-io/go-utils/log"
@@ -67,7 +68,7 @@ func main() {
 
 	log.Donef("Expanded WorkDir: %s", workDir)
 
-	rbenvVersionsCommand, err := getRbenvVersionsCommand()
+	rbenvVersionsCommand, err := gems.RbenvVersionsCommand()
 	if err != nil {
 		log.Warnf("%s", err)
 	} else if rbenvVersionsCommand != nil {
@@ -117,7 +118,7 @@ func main() {
 	}
 
 	useBundler := false
-	if gemVersions.fastlane.found {
+	if gemVersions.fastlane.Found {
 		useBundler = true
 	}
 
@@ -129,7 +130,7 @@ func main() {
 		log.Infof("Install bundler")
 
 		// install bundler with `gem install bundler [-v version]`
-		installBundlerCommand, err := getInstallBundlerCommand(gemVersions.bundler)
+		installBundlerCommand, err := gems.InstallBundlerCommand(gemVersions.bundler)
 		if err != nil {
 			failf("failed to create command, error: %s", err)
 		}
@@ -148,7 +149,7 @@ func main() {
 		fmt.Println()
 		log.Infof("Install Fastlane with bundler")
 
-		cmd, err := getBundleInstallCommand(gemVersions.bundler)
+		cmd, err := gems.BundleInstallCommand(gemVersions.bundler)
 		if err != nil {
 			failf("failed to create bundle command, error: %s", err)
 		}
@@ -190,8 +191,8 @@ func main() {
 	versionCmd := []string{"fastlane", "--version"}
 	if useBundler {
 		bundleExec := []string{"bundle"}
-		if gemVersions.bundler.found {
-			bundleExec = append(bundleExec, "_"+gemVersions.bundler.version+"_")
+		if gemVersions.bundler.Found {
+			bundleExec = append(bundleExec, "_"+gemVersions.bundler.Version+"_")
 		}
 		bundleExec = append(bundleExec, "exec")
 
@@ -220,8 +221,8 @@ func main() {
 	fastlaneCmd = append(fastlaneCmd, laneOptions...)
 	if useBundler {
 		bundleExec := []string{"bundle"}
-		if gemVersions.bundler.found {
-			bundleExec = append(bundleExec, "_"+gemVersions.bundler.version+"_")
+		if gemVersions.bundler.Found {
+			bundleExec = append(bundleExec, "_"+gemVersions.bundler.Version+"_")
 		}
 		bundleExec = append(bundleExec, "exec")
 
