@@ -23,3 +23,11 @@ func getBundleInstallCommand(gemfileLockVersion gemVersion) (*command.Model, err
 
 	return rubycommand.NewFromSlice(bundleInstallCmdParams)
 }
+
+func getRbenvVersionsCommand() (*command.Model, error) {
+	if _, err := command.New("which", "rbenv").RunAndReturnTrimmedCombinedOutput(); err != nil {
+		return nil, err
+	}
+
+	return command.New("rbenv", "versions"), nil
+}

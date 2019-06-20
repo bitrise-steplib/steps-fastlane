@@ -24,6 +24,8 @@ type Config struct {
 	WorkDir        string `env:"work_dir,dir"`
 	Lane           string `env:"lane,required"`
 	UpdateFastlane bool   `env:"update_fastlane,opt[true,false]"`
+
+	GemHome string `env:"GEM_HOME"`
 }
 
 func failf(format string, v ...interface{}) {
@@ -39,6 +41,10 @@ func main() {
 
 	stepconf.Print(config)
 	fmt.Println()
+
+	if strings.TrimSpace(config.GemHome) != "" {
+		log.Warnf("Custom value (%s) is set for GEM_HOME environment variable. This can lead to errors as gem lookup path may not contain GEM_HOME.")
+	}
 
 	// Expand WorkDir
 	log.Infof("Expand WorkDir")
@@ -61,6 +67,17 @@ func main() {
 
 	log.Donef("Expanded WorkDir: %s", workDir)
 
+	rbenvVersionsCommand, err := getRbenvVersionsCommand()
+	if err != nil {
+		log.Warnf("%s", err)
+	} else if rbenvVersionsCommand != nil {
+		fmt.Println()
+		log.Donef("$ %s", rbenvVersionsCommand.PrintableCommandArgs())
+		if err := rbenvVersionsCommand.SetStdout(os.Stdout).SetStderr(os.Stderr).SetDir(workDir).Run(); err != nil {
+			log.Warnf("%s", err)
+		}
+	}
+
 	//
 	// Fastlane session
 	fmt.Println()
@@ -68,7 +85,7 @@ func main() {
 
 	fs, errors := devportalservice.SessionData()
 	if errors != nil {
-		log.Warnf("Failed to activate the Bitrise Apple Developer Portal connection: %s\nRead more: https://devcenter.bitrise.io/getting-started/signing-up/connecting-apple-dev-account/\nerrors:")
+		log.Warnf("Failed to activate the Bitrise Apple Developer Portal connection: %s\nRead more: https://devcenter.bitrise.io/getting-started/connecting-apple-dev-account/ \nerrors:")
 		for _, err := range errors {
 			log.Errorf("%s\n", err)
 		}
@@ -172,7 +189,13 @@ func main() {
 
 	versionCmd := []string{"fastlane", "--version"}
 	if useBundler {
-		versionCmd = append([]string{"bundle", "exec"}, versionCmd...)
+		bundleExec := []string{"bundle"}
+		if gemVersions.bundler.found {
+			bundleExec = append(bundleExec, "_"+gemVersions.bundler.version+"_")
+		}
+		bundleExec = append(bundleExec, "exec")
+
+		versionCmd = append(bundleExec, versionCmd...)
 	}
 
 	log.Donef("$ %s", command.PrintableCommandArgs(false, versionCmd))
@@ -196,7 +219,13 @@ func main() {
 	fastlaneCmd := []string{"fastlane"}
 	fastlaneCmd = append(fastlaneCmd, laneOptions...)
 	if useBundler {
-		fastlaneCmd = append([]string{"bundle", "exec"}, fastlaneCmd...)
+		bundleExec := []string{"bundle"}
+		if gemVersions.bundler.found {
+			bundleExec = append(bundleExec, "_"+gemVersions.bundler.version+"_")
+		}
+		bundleExec = append(bundleExec, "exec")
+
+		fastlaneCmd = append(bundleExec, fastlaneCmd...)
 	}
 
 	log.Donef("$ %s", command.PrintableCommandArgs(false, fastlaneCmd))
