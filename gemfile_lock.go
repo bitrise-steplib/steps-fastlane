@@ -59,6 +59,21 @@ func parseFastlaneVersion(gemfileLockContent string) gemVersion {
 	return parseGemVersion("fastlane", gemfileLockContent)
 }
 
+// parseGemVersion returns the gem version parsed from a Gemfile.lock on a best effort basis, for logging purposes only.
+//
+// parseGemVersion("fastlane", ...), for the following Gemfile.lock example, it returns: ">= 2.0)"
+//   specs:
+//     CFPropertyList (3.0.0)
+//     addressable (2.6.0)
+//       public_suffix (>= 2.0.2, < 4.0)
+//     atomos (0.1.3)
+//     babosa (1.0.2)
+//     badge (0.8.5)
+//       curb (~> 0.9)
+//       fastimage (>= 1.6)
+//       fastlane (>= 2.0)
+//       mini_magick (>= 4.5)
+//     claide (1.0.2)
 func parseGemVersion(gemName string, content string) gemVersion {
 	relevantLines := []string{}
 	lines := strings.Split(content, "\n")
