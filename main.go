@@ -3,12 +3,12 @@ package main
 import (
 	"bufio"
 	"bytes"
-	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
 
+	"github.com/bitrise-io/go-steputils/stepconf"
 	"github.com/bitrise-io/go-steputils/tools"
 	"github.com/bitrise-io/go-utils/command"
 	"github.com/bitrise-io/go-utils/command/rubycommand"
@@ -19,48 +19,11 @@ import (
 	shellquote "github.com/kballard/go-shellquote"
 )
 
-// ConfigsModel ...
-type ConfigsModel struct {
-	WorkDir        string
-	Lane           string
-	UpdateFastlane string
-}
-
-func createConfigsModelFromEnvs() ConfigsModel {
-	return ConfigsModel{
-		WorkDir:        os.Getenv("work_dir"),
-		Lane:           os.Getenv("lane"),
-		UpdateFastlane: os.Getenv("update_fastlane"),
-	}
-}
-
-func (configs ConfigsModel) print() {
-	log.Infof("Configs:")
-	log.Printf("- WorkDir: %s", configs.WorkDir)
-	log.Printf("- Lane: %s", configs.Lane)
-	log.Printf("- UpdateFastlane: %s", configs.UpdateFastlane)
-}
-
-func (configs ConfigsModel) validate() error {
-	if configs.Lane == "" {
-		return errors.New("no Lane parameter specified")
-	}
-
-	if configs.WorkDir != "" {
-		if exist, err := pathutil.IsDirExists(configs.WorkDir); err != nil {
-			return fmt.Errorf("failed to check if WorkDir exist at: %s, error: %s", configs.WorkDir, err)
-		} else if !exist {
-			return fmt.Errorf("WorkDir not exist at: %s", configs.WorkDir)
-		}
-	}
-
-	if configs.UpdateFastlane == "" {
-		return errors.New("no UpdateFastlane parameter specified")
-	} else if configs.UpdateFastlane != "true" && configs.UpdateFastlane != "false" {
-		return fmt.Errorf(`invalid UpdateFastlane parameter specified: %s, available: ["true", "false"]`, configs.UpdateFastlane)
-	}
-
-	return nil
+// Config conatins inputs parsed from enviroment variables
+type Config struct {
+	WorkDir        string `env:"work_dir,dir"`
+	Lane           string `env:"lane,required"`
+	UpdateFastlane bool   `env:"update_fastlane,opt[true,false]"`
 }
 
 func failf(format string, v ...interface{}) {
@@ -69,20 +32,18 @@ func failf(format string, v ...interface{}) {
 }
 
 func main() {
-	configs := createConfigsModelFromEnvs()
-
-	fmt.Println()
-	configs.print()
-
-	if err := configs.validate(); err != nil {
+	var config Config
+	if err := stepconf.Parse(&config); err != nil {
 		failf("Issue with input: %s", err)
 	}
 
-	// Expand WorkDir
+	stepconf.Print(config)
 	fmt.Println()
+
+	// Expand WorkDir
 	log.Infof("Expand WorkDir")
 
-	workDir := configs.WorkDir
+	workDir := config.WorkDir
 	if workDir == "" {
 		log.Printf("WorkDir not set, using CurrentWorkingDirectory...")
 		currentDir, err := pathutil.CurrentWorkingDirectoryAbsolutePath()
@@ -124,9 +85,9 @@ func main() {
 	}
 
 	// Split lane option
-	laneOptions, err := shellquote.Split(configs.Lane)
+	laneOptions, err := shellquote.Split(config.Lane)
 	if err != nil {
-		failf("Failed to parse lane (%s), error: %s", configs.Lane, err)
+		failf("Failed to parse lane (%s), error: %s", config.Lane, err)
 	}
 
 	// Determine desired Fastlane version
@@ -184,7 +145,7 @@ func main() {
 		if err := cmd.Run(); err != nil {
 			failf("Command failed, error: %s", err)
 		}
-	} else if configs.UpdateFastlane == "true" {
+	} else if config.UpdateFastlane {
 		log.Infof("Update system installed Fastlane")
 
 		cmds, err := rubycommand.GemInstall("fastlane", "")
