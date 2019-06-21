@@ -4,7 +4,7 @@
   name = "github.com/bitrise-io/go-steputils"
 
 [[override]]
-  branch = "TOOL-494-bundler-commands"
+  branch = "master"
   name = "github.com/bitrise-io/go-utils"
 
 [[constraint]]

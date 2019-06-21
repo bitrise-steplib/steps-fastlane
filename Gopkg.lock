@@ -13,8 +13,8 @@
   revision = "cecc766da84859e37e780d9d1c416f0f3993e6b1"
 
 [[projects]]
-  branch = "TOOL-494-bundler-commands"
-  digest = "1:f8e71b37a198769f18ed0b22caf09af16890ef2a03c4f1fc79f4e04ad2aeacb9"
+  branch = "master"
+  digest = "1:4c6d2852cad7cbaa8b0f3910b698e27b154ca8495a88cf0548c55c1d217e53b0"
   name = "github.com/bitrise-io/go-utils"
   packages = [
     "colorstring",
@@ -29,7 +29,7 @@
     "pointers",
   ]
   pruneopts = "UT"
-  revision = "bfe28523499dc19b8066a57f96c3ed89db5c6d50"
+  revision = "12d92d0c7b75b6925108e6420eb9b3fabf67db03"
 
 [[projects]]
   branch = "master"
