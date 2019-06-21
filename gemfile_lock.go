@@ -11,7 +11,7 @@ import (
 )
 
 type gemVersions struct {
-	fastlane, bundler gems.GemVersion
+	fastlane, bundler gems.Version
 }
 
 func parseGemfileLock(searchDir string) (gemVersions, error) {
@@ -32,7 +32,7 @@ func parseGemfileLock(searchDir string) (gemVersions, error) {
 
 	var gemVersions gemVersions
 
-	gemVersions.fastlane, err = gems.ParseFastlaneVersion(content)
+	gemVersions.fastlane, err = gems.ParseVersionFromBundle("fastlane", content)
 	if err != nil {
 		return gemVersions, err
 	}

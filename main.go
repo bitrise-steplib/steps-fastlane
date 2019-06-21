@@ -130,6 +130,7 @@ func main() {
 		log.Infof("Install bundler")
 
 		// install bundler with `gem install bundler [-v version]`
+		// in some configurations, the command "bunder _1.2.3_" can return 'Command not found', installing bundler solves this
 		installBundlerCommand, err := gems.InstallBundlerCommand(gemVersions.bundler)
 		if err != nil {
 			failf("failed to create command, error: %s", err)
@@ -190,13 +191,7 @@ func main() {
 
 	versionCmd := []string{"fastlane", "--version"}
 	if useBundler {
-		bundleExec := []string{"bundle"}
-		if gemVersions.bundler.Found {
-			bundleExec = append(bundleExec, "_"+gemVersions.bundler.Version+"_")
-		}
-		bundleExec = append(bundleExec, "exec")
-
-		versionCmd = append(bundleExec, versionCmd...)
+		versionCmd = append(gems.BundleExecPrefix(gemVersions.bundler), versionCmd...)
 	}
 
 	log.Donef("$ %s", command.PrintableCommandArgs(false, versionCmd))
@@ -220,13 +215,7 @@ func main() {
 	fastlaneCmd := []string{"fastlane"}
 	fastlaneCmd = append(fastlaneCmd, laneOptions...)
 	if useBundler {
-		bundleExec := []string{"bundle"}
-		if gemVersions.bundler.Found {
-			bundleExec = append(bundleExec, "_"+gemVersions.bundler.Version+"_")
-		}
-		bundleExec = append(bundleExec, "exec")
-
-		fastlaneCmd = append(bundleExec, fastlaneCmd...)
+		fastlaneCmd = append(gems.BundleExecPrefix(gemVersions.bundler), fastlaneCmd...)
 	}
 
 	log.Donef("$ %s", command.PrintableCommandArgs(false, fastlaneCmd))
