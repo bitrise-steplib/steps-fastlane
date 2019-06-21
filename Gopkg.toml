@@ -3,7 +3,7 @@
   branch = "master"
   name = "github.com/bitrise-io/go-steputils"
 
-[[override]]
+[[constraint]]
   branch = "master"
   name = "github.com/bitrise-io/go-utils"
 
