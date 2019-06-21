@@ -68,10 +68,7 @@ func main() {
 
 	log.Donef("Expanded WorkDir: %s", workDir)
 
-	rbenvVersionsCommand, err := gems.RbenvVersionsCommand()
-	if err != nil {
-		log.Warnf("%s", err)
-	} else if rbenvVersionsCommand != nil {
+	if rbenvVersionsCommand := gems.RbenvVersionsCommand(); rbenvVersionsCommand != nil {
 		fmt.Println()
 		log.Donef("$ %s", rbenvVersionsCommand.PrintableCommandArgs())
 		if err := rbenvVersionsCommand.SetStdout(os.Stdout).SetStderr(os.Stderr).SetDir(workDir).Run(); err != nil {
@@ -131,10 +128,7 @@ func main() {
 
 		// install bundler with `gem install bundler [-v version]`
 		// in some configurations, the command "bunder _1.2.3_" can return 'Command not found', installing bundler solves this
-		installBundlerCommand, err := gems.InstallBundlerCommand(gemVersions.bundler)
-		if err != nil {
-			failf("failed to create command, error: %s", err)
-		}
+		installBundlerCommand := gems.InstallBundlerCommand(gemVersions.bundler)
 
 		log.Donef("$ %s", installBundlerCommand.PrintableCommandArgs())
 		fmt.Println()
