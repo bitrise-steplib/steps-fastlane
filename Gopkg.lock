@@ -14,7 +14,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:023a468eceb971857624e705062771c72fbd4766169f6356094eef8672c6bcb0"
+  digest = "1:70555a04787b68d07df049783e8ac0c4c897f339c697f9766aef122d6620a221"
   name = "github.com/bitrise-io/go-utils"
   packages = [
     "colorstring",
@@ -29,7 +29,7 @@
     "pointers",
   ]
   pruneopts = "UT"
-  revision = "10ba6612803187a89b6935f06a617e9e1cd9d2bf"
+  revision = "5dfd5a5f1271cffb2bc0b1cf4c3815139da8175a"
 
 [[projects]]
   branch = "master"
@@ -37,7 +37,7 @@
   name = "github.com/bitrise-steplib/steps-deploy-to-itunesconnect-deliver"
   packages = ["devportalservice"]
   pruneopts = "UT"
-  revision = "b975f2436eb701dfc2328aa9ae3f96c658c0206d"
+  revision = "83c6d1920d53f2fdd2adcb8477271708eb4ceaf3"
 
 [[projects]]
   branch = "master"
