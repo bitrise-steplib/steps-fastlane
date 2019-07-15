@@ -4,7 +4,6 @@ default_step_lib_source: https://github.com/bitrise-io/bitrise-steplib.git
 app:
   envs:
   - SAMPLE_APP_URL: "https://github.com/bitrise-samples/sample-apps-fastlane-test.git"
-  - LANE: release
   - BITRISE_PROJECT_PATH: ./sample-apps-fastlane-test.xcodeproj
   - BITRISE_SCHEME: sample-apps-fastlane-test
 
@@ -31,13 +30,32 @@ workflows:
     - script:
         inputs:
         - content: git clone $SAMPLE_APP_URL .
+    - path::./:
+        inputs:
+        - lane: tests
+        - work_dir: ./
+
+  fastlane-session-test:
+    steps:
+    - script:
+        inputs:
+        - content: rm -rf ./_tmp
+    - change-workdir:
+        title: Switch working dir to test/_tmp dir
+        run_if: true
+        inputs:
+        - path: ./_tmp
+        - is_create_path: true
+    - script:
+        inputs:
+        - content: git clone $SAMPLE_APP_URL .
     - ios-auto-provision@1.3.1:
         inputs:
         - generate_profiles: 'yes'
         - distribution_type: app-store
     - path::./:
         inputs:
-        - lane: $LANE
+        - lane: release
         - work_dir: ./
 
   # ----------------------------------------------------------------

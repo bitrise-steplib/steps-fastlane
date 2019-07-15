@@ -3,14 +3,15 @@ package main
 import (
 	"bufio"
 	"bytes"
-	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
 
+	"github.com/bitrise-io/go-steputils/stepconf"
 	"github.com/bitrise-io/go-steputils/tools"
 	"github.com/bitrise-io/go-utils/command"
+	"github.com/bitrise-io/go-utils/command/gems"
 	"github.com/bitrise-io/go-utils/command/rubycommand"
 	"github.com/bitrise-io/go-utils/fileutil"
 	"github.com/bitrise-io/go-utils/log"
@@ -19,48 +20,13 @@ import (
 	shellquote "github.com/kballard/go-shellquote"
 )
 
-// ConfigsModel ...
-type ConfigsModel struct {
-	WorkDir        string
-	Lane           string
-	UpdateFastlane string
-}
+// Config conatins inputs parsed from enviroment variables
+type Config struct {
+	WorkDir        string `env:"work_dir,dir"`
+	Lane           string `env:"lane,required"`
+	UpdateFastlane bool   `env:"update_fastlane,opt[true,false]"`
 
-func createConfigsModelFromEnvs() ConfigsModel {
-	return ConfigsModel{
-		WorkDir:        os.Getenv("work_dir"),
-		Lane:           os.Getenv("lane"),
-		UpdateFastlane: os.Getenv("update_fastlane"),
-	}
-}
-
-func (configs ConfigsModel) print() {
-	log.Infof("Configs:")
-	log.Printf("- WorkDir: %s", configs.WorkDir)
-	log.Printf("- Lane: %s", configs.Lane)
-	log.Printf("- UpdateFastlane: %s", configs.UpdateFastlane)
-}
-
-func (configs ConfigsModel) validate() error {
-	if configs.Lane == "" {
-		return errors.New("no Lane parameter specified")
-	}
-
-	if configs.WorkDir != "" {
-		if exist, err := pathutil.IsDirExists(configs.WorkDir); err != nil {
-			return fmt.Errorf("failed to check if WorkDir exist at: %s, error: %s", configs.WorkDir, err)
-		} else if !exist {
-			return fmt.Errorf("WorkDir not exist at: %s", configs.WorkDir)
-		}
-	}
-
-	if configs.UpdateFastlane == "" {
-		return errors.New("no UpdateFastlane parameter specified")
-	} else if configs.UpdateFastlane != "true" && configs.UpdateFastlane != "false" {
-		return fmt.Errorf(`invalid UpdateFastlane parameter specified: %s, available: ["true", "false"]`, configs.UpdateFastlane)
-	}
-
-	return nil
+	GemHome string `env:"GEM_HOME"`
 }
 
 func failf(format string, v ...interface{}) {
@@ -69,20 +35,22 @@ func failf(format string, v ...interface{}) {
 }
 
 func main() {
-	configs := createConfigsModelFromEnvs()
-
-	fmt.Println()
-	configs.print()
-
-	if err := configs.validate(); err != nil {
+	var config Config
+	if err := stepconf.Parse(&config); err != nil {
 		failf("Issue with input: %s", err)
 	}
 
-	// Expand WorkDir
+	stepconf.Print(config)
 	fmt.Println()
+
+	if strings.TrimSpace(config.GemHome) != "" {
+		log.Warnf("Custom value (%s) is set for GEM_HOME environment variable. This can lead to errors as gem lookup path may not contain GEM_HOME.")
+	}
+
+	// Expand WorkDir
 	log.Infof("Expand WorkDir")
 
-	workDir := configs.WorkDir
+	workDir := config.WorkDir
 	if workDir == "" {
 		log.Printf("WorkDir not set, using CurrentWorkingDirectory...")
 		currentDir, err := pathutil.CurrentWorkingDirectoryAbsolutePath()
@@ -100,6 +68,14 @@ func main() {
 
 	log.Donef("Expanded WorkDir: %s", workDir)
 
+	if rbenvVersionsCommand := gems.RbenvVersionsCommand(); rbenvVersionsCommand != nil {
+		fmt.Println()
+		log.Donef("$ %s", rbenvVersionsCommand.PrintableCommandArgs())
+		if err := rbenvVersionsCommand.SetStdout(os.Stdout).SetStderr(os.Stderr).SetDir(workDir).Run(); err != nil {
+			log.Warnf("%s", err)
+		}
+	}
+
 	//
 	// Fastlane session
 	fmt.Println()
@@ -107,7 +83,7 @@ func main() {
 
 	fs, errors := devportalservice.SessionData()
 	if errors != nil {
-		log.Warnf("Failed to activate the Bitrise Apple Developer Portal connection: %s\nRead more: https://devcenter.bitrise.io/getting-started/signing-up/connecting-apple-dev-account/\nerrors:")
+		log.Warnf("Failed to activate the Bitrise Apple Developer Portal connection: %s\nRead more: https://devcenter.bitrise.io/getting-started/connecting-apple-dev-account/ \nerrors:")
 		for _, err := range errors {
 			log.Errorf("%s\n", err)
 		}
@@ -124,9 +100,9 @@ func main() {
 	}
 
 	// Split lane option
-	laneOptions, err := shellquote.Split(configs.Lane)
+	laneOptions, err := shellquote.Split(config.Lane)
 	if err != nil {
-		failf("Failed to parse lane (%s), error: %s", configs.Lane, err)
+		failf("Failed to parse lane (%s), error: %s", config.Lane, err)
 	}
 
 	// Determine desired Fastlane version
@@ -139,7 +115,7 @@ func main() {
 	}
 
 	useBundler := false
-	if gemVersions.fastlane.found {
+	if gemVersions.fastlane.Found {
 		useBundler = true
 	}
 
@@ -151,10 +127,8 @@ func main() {
 		log.Infof("Install bundler")
 
 		// install bundler with `gem install bundler [-v version]`
-		installBundlerCommand, err := getInstallBundlerCommand(gemVersions.bundler)
-		if err != nil {
-			failf("failed to create command, error: %s", err)
-		}
+		// in some configurations, the command "bunder _1.2.3_" can return 'Command not found', installing bundler solves this
+		installBundlerCommand := gems.InstallBundlerCommand(gemVersions.bundler)
 
 		log.Donef("$ %s", installBundlerCommand.PrintableCommandArgs())
 		fmt.Println()
@@ -170,7 +144,7 @@ func main() {
 		fmt.Println()
 		log.Infof("Install Fastlane with bundler")
 
-		cmd, err := getBundleInstallCommand(gemVersions.bundler)
+		cmd, err := gems.BundleInstallCommand(gemVersions.bundler)
 		if err != nil {
 			failf("failed to create bundle command, error: %s", err)
 		}
@@ -184,7 +158,7 @@ func main() {
 		if err := cmd.Run(); err != nil {
 			failf("Command failed, error: %s", err)
 		}
-	} else if configs.UpdateFastlane == "true" {
+	} else if config.UpdateFastlane {
 		log.Infof("Update system installed Fastlane")
 
 		cmds, err := rubycommand.GemInstall("fastlane", "")
@@ -211,7 +185,7 @@ func main() {
 
 	versionCmd := []string{"fastlane", "--version"}
 	if useBundler {
-		versionCmd = append([]string{"bundle", "exec"}, versionCmd...)
+		versionCmd = append(gems.BundleExecPrefix(gemVersions.bundler), versionCmd...)
 	}
 
 	log.Donef("$ %s", command.PrintableCommandArgs(false, versionCmd))
@@ -235,7 +209,7 @@ func main() {
 	fastlaneCmd := []string{"fastlane"}
 	fastlaneCmd = append(fastlaneCmd, laneOptions...)
 	if useBundler {
-		fastlaneCmd = append([]string{"bundle", "exec"}, fastlaneCmd...)
+		fastlaneCmd = append(gems.BundleExecPrefix(gemVersions.bundler), fastlaneCmd...)
 	}
 
 	log.Donef("$ %s", command.PrintableCommandArgs(false, fastlaneCmd))
