@@ -34,6 +34,30 @@ func failf(format string, v ...interface{}) {
 	os.Exit(1)
 }
 
+func fastlaneDebugInfo(workDir string, useBundler bool, bundlerVersion gems.Version) (*bytes.Buffer, error) {
+	envCmd := []string{"fastlane", "env"}
+	if useBundler {
+		envCmd = append(gems.BundleExecPrefix(bundlerVersion), envCmd...)
+	}
+
+	cmd, err := rubycommand.NewFromSlice(envCmd)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create command model, error: %s", err)
+	}
+
+	cmd.SetStdin(strings.NewReader("n"))
+	var outBuffer bytes.Buffer
+	cmd.SetStdout(bufio.NewWriter(&outBuffer)).SetStderr(os.Stderr)
+	cmd.SetDir(workDir)
+
+	log.Debugf("$ %s", cmd.PrintableCommandArgs())
+	if err := cmd.Run(); err != nil {
+		return nil, fmt.Errorf("Fastlane command: (%s) failed", cmd.PrintableCommandArgs())
+	}
+
+	return &outBuffer, nil
+}
+
 func main() {
 	var config Config
 	if err := stepconf.Parse(&config); err != nil {
@@ -245,23 +269,11 @@ func main() {
 		log.Infof(deployPth)
 		fmt.Println()
 
-		if cmd, err := rubycommand.New("fastlane", "env"); err != nil {
-			log.Warnf("Failed to create command model, error: %s", err)
-		} else {
-			inputReader := strings.NewReader("n")
-			var outBuffer bytes.Buffer
-			outWriter := bufio.NewWriter(&outBuffer)
-
-			cmd.SetStdin(inputReader)
-			cmd.SetStdout(outWriter).SetStderr(os.Stderr)
-			cmd.SetDir(workDir)
-
-			if errEnv := cmd.Run(); errEnv != nil {
-				log.Warnf("Fastlane command: (%s) failed", cmd.PrintableCommandArgs())
-			} else if outBuffer.String() != "" {
-				if err := fileutil.WriteStringToFile(deployPth, outBuffer.String()); err != nil {
-					log.Warnf("Failed to write fastlane env log file, error: %s", err)
-				}
+		if fastlaneDebugInfo, err := fastlaneDebugInfo(workDir, useBundler, gemVersions.bundler); err != nil {
+			log.Warnf("%s", err)
+		} else if fastlaneDebugInfo != nil && fastlaneDebugInfo.String() != "" {
+			if err := fileutil.WriteStringToFile(deployPth, fastlaneDebugInfo.String()); err != nil {
+				log.Warnf("Failed to write fastlane env log file, error: %s", err)
 			}
 		}
 
