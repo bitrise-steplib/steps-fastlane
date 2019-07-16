@@ -34,7 +34,7 @@ func failf(format string, v ...interface{}) {
 	os.Exit(1)
 }
 
-func fastlaneDebugInfo(workDir string, useBundler bool, bundlerVersion gems.Version) (*bytes.Buffer, error) {
+func fastlaneDebugInfo(workDir string, useBundler bool, bundlerVersion gems.Version) (string, error) {
 	envCmd := []string{"fastlane", "env"}
 	if useBundler {
 		envCmd = append(gems.BundleExecPrefix(bundlerVersion), envCmd...)
@@ -42,20 +42,20 @@ func fastlaneDebugInfo(workDir string, useBundler bool, bundlerVersion gems.Vers
 
 	cmd, err := rubycommand.NewFromSlice(envCmd)
 	if err != nil {
-		return nil, fmt.Errorf("failed to create command model, error: %s", err)
+		return "", fmt.Errorf("failed to create command model, error: %s", err)
 	}
 
-	cmd.SetStdin(strings.NewReader("n"))
 	var outBuffer bytes.Buffer
+	cmd.SetStdin(strings.NewReader("n"))
 	cmd.SetStdout(bufio.NewWriter(&outBuffer)).SetStderr(os.Stderr)
 	cmd.SetDir(workDir)
 
 	log.Debugf("$ %s", cmd.PrintableCommandArgs())
 	if err := cmd.Run(); err != nil {
-		return nil, fmt.Errorf("Fastlane command: (%s) failed", cmd.PrintableCommandArgs())
+		return "", fmt.Errorf("Fastlane command: (%s) failed", cmd.PrintableCommandArgs())
 	}
 
-	return &outBuffer, nil
+	return outBuffer.String(), nil
 }
 
 func main() {
@@ -271,8 +271,8 @@ func main() {
 
 		if fastlaneDebugInfo, err := fastlaneDebugInfo(workDir, useBundler, gemVersions.bundler); err != nil {
 			log.Warnf("%s", err)
-		} else if fastlaneDebugInfo != nil && fastlaneDebugInfo.String() != "" {
-			if err := fileutil.WriteStringToFile(deployPth, fastlaneDebugInfo.String()); err != nil {
+		} else if fastlaneDebugInfo != "" {
+			if err := fileutil.WriteStringToFile(deployPth, fastlaneDebugInfo); err != nil {
 				log.Warnf("Failed to write fastlane env log file, error: %s", err)
 			}
 		}
