@@ -152,7 +152,6 @@ func main() {
 
 	// Install desired Fastlane version
 	if useBundler {
-		fmt.Println()
 		log.Infof("Install bundler")
 
 		// install bundler with `gem install bundler [-v version]`
@@ -210,7 +209,7 @@ func main() {
 	}
 
 	fmt.Println()
-	log.Infof("Fastlane version:")
+	log.Infof("Fastlane version")
 
 	versionCmd := []string{"fastlane", "--version"}
 	if useBundler {
