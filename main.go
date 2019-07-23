@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"bytes"
 	"fmt"
+	"net/http"
 	"os"
 	"path/filepath"
 	"strings"
@@ -103,15 +104,18 @@ func main() {
 	//
 	// Fastlane session
 	fmt.Println()
-	log.Infof("Ensure cookies for Apple Developer Portal")
 
-	fs, errors := devportalservice.SessionData()
-	if errors != nil {
-		log.Warnf("Failed to activate the Bitrise Apple Developer Portal connection: %s\nRead more: https://devcenter.bitrise.io/getting-started/connecting-apple-dev-account/ \nerrors:")
-		for _, err := range errors {
-			log.Errorf("%s\n", err)
+	fs, err := devportalservice.SessionData()
+	if err != nil {
+		if networkErr, ok := err.(devportalservice.NetworkError); ok && networkErr.Status == http.StatusNotFound {
+			log.Debugf("Connected Apple Developer Portal Account not found")
+		} else {
+			log.Errorf("Failed to activate the Bitrise Apple Developer Portal connection: %s", err)
+			log.Warnf("Read more: https://devcenter.bitrise.io/getting-started/connecting-apple-dev-account/")
 		}
 	} else {
+		log.Infof("Connected Apple Developer Portal Account found, exposing FASTLANE_SESSION env var")
+
 		if err := tools.ExportEnvironmentWithEnvman("FASTLANE_SESSION", fs); err != nil {
 			failf("Failed to export FASTLANE_SESSION, error: %s", err)
 		}
