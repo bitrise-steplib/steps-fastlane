@@ -134,6 +134,8 @@ func performRequest(req *http.Request, requestResponse interface{}) ([]byte, err
 		return nil, fmt.Errorf("failed to read response body, error: %s", err)
 	}
 
+	fmt.Println(response.StatusCode)
+
 	if response.StatusCode != http.StatusOK {
 		return nil, fmt.Errorf("Response status: %d - Body: %s", response.StatusCode, string(body))
 	}
