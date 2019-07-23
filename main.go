@@ -110,7 +110,7 @@ func main() {
 		if networkErr, ok := err.(devportalservice.NetworkError); ok && networkErr.Status == http.StatusNotFound {
 			log.Debugf("Connected Apple Developer Portal Account not found")
 		} else {
-			log.Errorf("Failed to activate the Bitrise Apple Developer Portal connection: %s", err)
+			log.Errorf("Failed to activate Bitrise Apple Developer Portal connection: %s", err)
 			log.Warnf("Read more: https://devcenter.bitrise.io/getting-started/connecting-apple-dev-account/")
 		}
 	} else {
