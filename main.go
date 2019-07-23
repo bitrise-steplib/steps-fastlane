@@ -103,17 +103,18 @@ func main() {
 
 	//
 	// Fastlane session
-	fmt.Println()
-
 	fs, err := devportalservice.SessionData()
 	if err != nil {
 		if networkErr, ok := err.(devportalservice.NetworkError); ok && networkErr.Status == http.StatusNotFound {
+			log.Debugf("")
 			log.Debugf("Connected Apple Developer Portal Account not found")
 		} else {
+			fmt.Println()
 			log.Errorf("Failed to activate Bitrise Apple Developer Portal connection: %s", err)
 			log.Warnf("Read more: https://devcenter.bitrise.io/getting-started/connecting-apple-dev-account/")
 		}
 	} else {
+		fmt.Println()
 		log.Infof("Connected Apple Developer Portal Account found, exposing FASTLANE_SESSION env var")
 
 		if err := tools.ExportEnvironmentWithEnvman("FASTLANE_SESSION", fs); err != nil {
