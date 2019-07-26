@@ -3,6 +3,7 @@ package devportalservice
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -12,6 +13,26 @@ import (
 
 	"github.com/bitrise-io/go-utils/log"
 )
+
+// NetworkError represents a networking issue.
+type NetworkError struct {
+	Status int
+	Body   string
+}
+
+func (e NetworkError) Error() string {
+	return fmt.Sprintf("response %d %s", e.Status, e.Body)
+}
+
+// CIEnvMissingError represents an issue caused by missing environment variables,
+// which environment variables are exposed in builds on Bitrise.io.
+type CIEnvMissingError struct {
+	Key string
+}
+
+func (e CIEnvMissingError) Error() string {
+	return fmt.Sprintf("%s env is not exported", e.Key)
+}
 
 // portalData ...
 type portalData struct {
@@ -36,15 +57,17 @@ type cookie struct {
 
 // SessionData will fetch the session from Bitrise for the connected Apple developer account
 // If the BITRISE_PORTAL_DATA_JSON is provided (for debug purposes) it will use that instead.
-func SessionData() (string, []error) {
+func SessionData() (string, error) {
 	p, err := getDeveloperPortalData(os.Getenv("BITRISE_BUILD_URL"), os.Getenv("BITRISE_BUILD_API_TOKEN"))
 	if err != nil {
-		return "", []error{err}
+		return "", err
 	}
 
-	cookies, errors := convertDesCookie(p.SessionCookies["https://idmsa.apple.com"])
-	session := strings.Join(cookies, "")
-	return session, errors
+	cookies, err := convertDesCookie(p.SessionCookies["https://idmsa.apple.com"])
+	if err != nil {
+		return "", err
+	}
+	return strings.Join(cookies, ""), nil
 }
 
 func getDeveloperPortalData(buildURL, buildAPIToken string) (portalData, error) {
@@ -56,11 +79,11 @@ func getDeveloperPortalData(buildURL, buildAPIToken string) (portalData, error) 
 	}
 
 	if buildURL == "" {
-		return portalData{}, fmt.Errorf("BITRISE_BUILD_URL env is not exported")
+		return portalData{}, CIEnvMissingError{Key: "BITRISE_BUILD_URL"}
 	}
 
 	if buildAPIToken == "" {
-		return portalData{}, fmt.Errorf("BITRISE_BUILD_API_TOKEN env is not exported")
+		return portalData{}, CIEnvMissingError{Key: "BITRISE_BUILD_API_TOKEN env is not exported"}
 	}
 
 	req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("%s/apple_developer_portal_data.json", buildURL), nil)
@@ -71,14 +94,14 @@ func getDeveloperPortalData(buildURL, buildAPIToken string) (portalData, error) 
 	req.Header.Add("BUILD_API_TOKEN", buildAPIToken)
 
 	if _, err := performRequest(req, &p); err != nil {
-		return portalData{}, fmt.Errorf("Falied to fetch portal data from Bitrise, error: %s", err)
+		return portalData{}, err
 	}
 	return p, nil
 }
 
-func convertDesCookie(cookies []cookie) ([]string, []error) {
+func convertDesCookie(cookies []cookie) ([]string, error) {
 	var convertedCookies []string
-	var errors []error
+	var errs []string
 	for _, c := range cookies {
 		if convertedCookies == nil {
 			convertedCookies = append(convertedCookies, "---"+"\n")
@@ -97,21 +120,24 @@ func convertDesCookie(cookies []cookie) ([]string, []error) {
   path: "{{.Path}}"
 `)
 		if err != nil {
-			errors = append(errors, fmt.Errorf("Failed to create golang template for the cookie: %v", c))
+			errs = append(errs, fmt.Sprintf("Failed to create golang template for the cookie: %v", c))
 			continue
 		}
 
 		var b bytes.Buffer
 		err = tmpl.Execute(&b, c)
 		if err != nil {
-			errors = append(errors, fmt.Errorf("Failed to parse cookie: %v", c))
+			errs = append(errs, fmt.Sprintf("Failed to parse cookie: %v", c))
 			continue
 		}
 
 		convertedCookies = append(convertedCookies, b.String()+"\n")
 	}
 
-	return convertedCookies, errors
+	if len(errs) > 0 {
+		return nil, errors.New(strings.Join(errs, "\n"))
+	}
+	return convertedCookies, nil
 }
 
 func performRequest(req *http.Request, requestResponse interface{}) ([]byte, error) {
@@ -135,7 +161,7 @@ func performRequest(req *http.Request, requestResponse interface{}) ([]byte, err
 	}
 
 	if response.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("Response status: %d - Body: %s", response.StatusCode, string(body))
+		return nil, NetworkError{Status: response.StatusCode, Body: string(body)}
 	}
 
 	// Parse JSON body
