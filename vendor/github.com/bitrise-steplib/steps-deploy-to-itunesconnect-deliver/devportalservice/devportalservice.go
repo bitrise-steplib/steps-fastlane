@@ -14,10 +14,24 @@ import (
 	"github.com/bitrise-io/go-utils/log"
 )
 
-// NetworkError ...
+// NetworkError represents a networking issue.
 type NetworkError struct {
 	Status int
 	Body   string
+}
+
+func (e NetworkError) Error() string {
+	return fmt.Sprintf("response %d %s", e.Status, e.Body)
+}
+
+// CIEnvMissingError represents an issue caused by missing environment variables,
+// which environment variables are exposed in builds on Bitrise.io.
+type CIEnvMissingError struct {
+	Key string
+}
+
+func (e CIEnvMissingError) Error() string {
+	return fmt.Sprintf("%s env is not exported", e.Key)
 }
 
 // portalData ...
@@ -56,10 +70,6 @@ func SessionData() (string, error) {
 	return strings.Join(cookies, ""), nil
 }
 
-func (e NetworkError) Error() string {
-	return fmt.Sprintf("response %d %s", e.Status, e.Body)
-}
-
 func getDeveloperPortalData(buildURL, buildAPIToken string) (portalData, error) {
 	var p portalData
 
@@ -69,11 +79,11 @@ func getDeveloperPortalData(buildURL, buildAPIToken string) (portalData, error) 
 	}
 
 	if buildURL == "" {
-		return portalData{}, fmt.Errorf("BITRISE_BUILD_URL env is not exported")
+		return portalData{}, CIEnvMissingError{Key: "BITRISE_BUILD_URL"}
 	}
 
 	if buildAPIToken == "" {
-		return portalData{}, fmt.Errorf("BITRISE_BUILD_API_TOKEN env is not exported")
+		return portalData{}, CIEnvMissingError{Key: "BITRISE_BUILD_API_TOKEN env is not exported"}
 	}
 
 	req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("%s/apple_developer_portal_data.json", buildURL), nil)
@@ -124,7 +134,10 @@ func convertDesCookie(cookies []cookie) ([]string, error) {
 		convertedCookies = append(convertedCookies, b.String()+"\n")
 	}
 
-	return convertedCookies, errors.New(strings.Join(errs, "\n"))
+	if len(errs) > 0 {
+		return nil, errors.New(strings.Join(errs, "\n"))
+	}
+	return convertedCookies, nil
 }
 
 func performRequest(req *http.Request, requestResponse interface{}) ([]byte, error) {

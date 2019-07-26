@@ -26,6 +26,7 @@ type Config struct {
 	WorkDir        string `env:"work_dir,dir"`
 	Lane           string `env:"lane,required"`
 	UpdateFastlane bool   `env:"update_fastlane,opt[true,false]"`
+	VerboseLog     bool   `env:"verbose_log,opt[yes,no]"`
 
 	GemHome string `env:"GEM_HOME"`
 }
@@ -59,6 +60,23 @@ func fastlaneDebugInfo(workDir string, useBundler bool, bundlerVersion gems.Vers
 	return outBuffer.String(), nil
 }
 
+func handleSessionDataError(err error) {
+	if err == nil {
+		return
+	}
+
+	if networkErr, ok := err.(devportalservice.NetworkError); ok && networkErr.Status == http.StatusNotFound {
+		log.Debugf("")
+		log.Debugf("Connected Apple Developer Portal Account not found")
+		log.Debugf("Most likely because there is no Apple Developer Portal Account connected to the build, or the build is running locally.")
+		log.Debugf("Read more: https://devcenter.bitrise.io/getting-started/connecting-apple-dev-account/")
+	} else {
+		fmt.Println()
+		log.Errorf("Failed to activate Bitrise Apple Developer Portal connection: %s", err)
+		log.Warnf("Read more: https://devcenter.bitrise.io/getting-started/connecting-apple-dev-account/")
+	}
+}
+
 func main() {
 	var config Config
 	if err := stepconf.Parse(&config); err != nil {
@@ -66,6 +84,7 @@ func main() {
 	}
 
 	stepconf.Print(config)
+	log.SetEnableDebugLog(config.VerboseLog)
 	fmt.Println()
 
 	if strings.TrimSpace(config.GemHome) != "" {
@@ -105,14 +124,7 @@ func main() {
 	// Fastlane session
 	fs, err := devportalservice.SessionData()
 	if err != nil {
-		if networkErr, ok := err.(devportalservice.NetworkError); ok && networkErr.Status == http.StatusNotFound {
-			log.Debugf("")
-			log.Debugf("Connected Apple Developer Portal Account not found")
-		} else {
-			fmt.Println()
-			log.Errorf("Failed to activate Bitrise Apple Developer Portal connection: %s", err)
-			log.Warnf("Read more: https://devcenter.bitrise.io/getting-started/connecting-apple-dev-account/")
-		}
+		handleSessionDataError(err)
 	} else {
 		fmt.Println()
 		log.Infof("Connected Apple Developer Portal Account found, exposing FASTLANE_SESSION env var")
