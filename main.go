@@ -9,6 +9,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/bitrise-io/go-steputils/cache"
 	"github.com/bitrise-io/go-steputils/stepconf"
 	"github.com/bitrise-io/go-steputils/tools"
 	"github.com/bitrise-io/go-utils/command"
@@ -310,4 +311,26 @@ func main() {
 		}
 		failf("Command failed, error: %s", err)
 	}
+
+	fmt.Println()
+	log.Infof("Collecting cache")
+
+	projectLocationAbs := ""
+	cache := cache.New()
+	for _, depFunc := range depsFuncs {
+		includes, excludes, err := depFunc(projectLocationAbs)
+		if err != nil {
+			log.Warnf(err.Error())
+			continue
+		}
+
+		for _, item := range includes {
+			cache.IncludePath(item)
+		}
+
+		for _, item := range excludes {
+			cache.ExcludePath(item)
+		}
+	}
+	cache.Commit()
 }
