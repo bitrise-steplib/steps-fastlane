@@ -21,7 +21,7 @@ import (
 	shellquote "github.com/kballard/go-shellquote"
 )
 
-// Config conatins inputs parsed from enviroment variables
+// Config contains inputs parsed from environment variables
 type Config struct {
 	WorkDir        string `env:"work_dir,dir"`
 	Lane           string `env:"lane,required"`

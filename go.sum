@@ -1,0 +1,8 @@
+github.com/bitrise-io/go-steputils v0.0.0-20190806143347-f540824d77df h1:UaDw6nAsI2jlGjNqhdMUbk0xhJJ+iQZ1buEXHRKrtU8=
+github.com/bitrise-io/go-steputils v0.0.0-20190806143347-f540824d77df/go.mod h1:GXgBV3Frd3qcnsg+NryQTyx1CHjZHr/2w7Bx4WAcB4o=
+github.com/bitrise-io/go-utils v0.0.0-20190814105345-ad86bf775472 h1:jM4pIBkBUOucinQ2IdlfbpIZxJqgS/k1TZZrENFej8A=
+github.com/bitrise-io/go-utils v0.0.0-20190814105345-ad86bf775472/go.mod h1:Pp48eQd8BSNEzWWTBxdFUd/ufS5b5Bgkmt9D5NedjWg=
+github.com/bitrise-steplib/steps-deploy-to-itunesconnect-deliver v0.0.0-20190815132021-09bfb54640c4 h1:rzEqvBYa+WJ44mAsiD4DAW4zX6vLjdwAg3nvJSqkJc4=
+github.com/bitrise-steplib/steps-deploy-to-itunesconnect-deliver v0.0.0-20190815132021-09bfb54640c4/go.mod h1:mm5WIhfyTnf89pNO+4ylSsUAbEh8JGSpV3F7V0XWB4U=
+github.com/kballard/go-shellquote v0.0.0-20180428030007-95032a82bc51 h1:Z9n2FFNUXsshfwJMBgNA0RU6/i7WVaAegv3PtuIHPMs=
+github.com/kballard/go-shellquote v0.0.0-20180428030007-95032a82bc51/go.mod h1:CzGEWj7cYgsdH8dAjBGEr58BoE7ScuLd+fwFZ44+/x8=
