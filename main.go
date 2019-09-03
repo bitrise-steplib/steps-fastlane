@@ -315,12 +315,11 @@ func main() {
 	fmt.Println()
 	log.Infof("Collecting cache")
 
-	projectLocationAbs := ""
 	cache := cache.New()
 	for _, depFunc := range depsFuncs {
-		includes, excludes, err := depFunc(projectLocationAbs)
+		includes, excludes, err := depFunc(workDir)
 		if err != nil {
-			log.Warnf(err.Error())
+			log.Warnf("failed to collect dependencies: %s", err.Error())
 			continue
 		}
 
@@ -332,5 +331,9 @@ func main() {
 			cache.ExcludePath(item)
 		}
 	}
-	cache.Commit()
+	if err := cache.Commit(); err != nil {
+		log.Warnf("failed to commit paths to cache: %s", err)
+	}
+
+	fmt.Printf("cache paths: %s\n", os.Getenv("BITRISE_CACHE_EXCLUDE_PATHS"))
 }
