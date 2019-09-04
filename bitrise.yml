@@ -29,6 +29,7 @@ workflows:
         - content: |-
             set -ex
             git clone $SAMPLE_APP_URL -b $BRANCH .
+    - certificate-and-profile-installer:
     - path::./:
         inputs:
         - lane: build
@@ -37,6 +38,7 @@ workflows:
     - script:
         inputs:
         - content: |-
+            set -ex
             if [[ -z "$BITRISE_CACHE_EXCLUDE_PATHS" ]] ; then
                 echo "BITRISE_CACHE_EXCLUDE_PATHS is empty"
                 exit 1
