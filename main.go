@@ -334,6 +334,4 @@ func main() {
 	if err := cache.Commit(); err != nil {
 		log.Warnf("failed to commit paths to cache: %s", err)
 	}
-
-	fmt.Printf("cache paths: %s\n", os.Getenv("BITRISE_CACHE_EXCLUDE_PATHS"))
 }

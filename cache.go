@@ -16,8 +16,8 @@ type depsFunc func(dir string) ([]string, []string, error)
 
 var depsFuncs = []depsFunc{
 	cocoapodsDeps,
-	cacheCarthageDeps,
-	cacheAndroidDeps,
+	carthageDeps,
+	androidDeps,
 }
 
 func cocoapodsDeps(dir string) ([]string, []string, error) {
@@ -44,7 +44,7 @@ func cocoapodsDeps(dir string) ([]string, []string, error) {
 		}
 	}
 
-	if len(relevant) > 0 {
+	if len(relevant) > 1 {
 		log.Debugf("Multiple Podfile.lock found: %s", strings.Join(relevant, ", "))
 	}
 
@@ -57,7 +57,7 @@ func cocoapodsDeps(dir string) ([]string, []string, error) {
 	return include, nil, nil
 }
 
-func cacheCarthageDeps(dir string) ([]string, []string, error) {
+func carthageDeps(dir string) ([]string, []string, error) {
 	files, err := utility.ListPathInDirSortedByComponents(dir, true)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to search for files in (%s), error: %s", dir, err)
@@ -81,7 +81,7 @@ func cacheCarthageDeps(dir string) ([]string, []string, error) {
 		}
 	}
 
-	if len(relevant) > 0 {
+	if len(relevant) > 1 {
 		log.Debugf("Multiple Cartfile.resolved found: %s", strings.Join(relevant, ", "))
 	}
 
@@ -94,7 +94,7 @@ func cacheCarthageDeps(dir string) ([]string, []string, error) {
 	return include, nil, nil
 }
 
-func cacheAndroidDeps(dir string) ([]string, []string, error) {
+func androidDeps(dir string) ([]string, []string, error) {
 	scanner := android.NewScanner()
 	_, err := scanner.DetectPlatform(dir)
 	if err != nil {

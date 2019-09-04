@@ -1,16 +1,13 @@
 format_version: 7
 default_step_lib_source: https://github.com/bitrise-io/bitrise-steplib.git
 
-app:
-  envs:
-  - SAMPLE_APP_URL: "https://github.com/bitrise-samples/sample-apps-fastlane-test.git"
-  - BITRISE_PROJECT_PATH: ./sample-apps-fastlane-test.xcodeproj
-  - BITRISE_SCHEME: sample-apps-fastlane-test
-
 workflows:
   # ----------------------------------------------------------------
   # --- workflow to test this step
   ci:
+    envs:
+    - SAMPLE_APP_URL: "https://github.com/bitrise-io/sample-apps-flutter-veggieseasons.git"
+    - BRANCH: fastlane
     before-run:
     - audit-this-step
     steps:
@@ -29,14 +26,32 @@ workflows:
         - is_create_path: true
     - script:
         inputs:
-        - content: git clone $SAMPLE_APP_URL .
+        - content: |-
+            set -ex
+            git clone $SAMPLE_APP_URL -b $BRANCH .
     - path::./:
         inputs:
-        - lane: tests
+        - lane: build
         - work_dir: ./
         - verbose_log: "yes"
+    - script:
+        inputs:
+        - content: |-
+            if [[ -z "$BITRISE_CACHE_EXCLUDE_PATHS" ]] ; then
+                echo "BITRISE_CACHE_EXCLUDE_PATHS is empty"
+                exit 1
+            fi
+
+            if [[ -z "$BITRISE_CACHE_INCLUDE_PATHS" ]] ; then
+                echo "BITRISE_CACHE_INCLUDE_PATHS is empty"
+                exit 1
+            fi
 
   fastlane-session-test:
+    envs:
+    - SAMPLE_APP_URL: "https://github.com/bitrise-samples/sample-apps-fastlane-test.git"
+    - BITRISE_PROJECT_PATH: ./sample-apps-fastlane-test.xcodeproj
+    - BITRISE_SCHEME: sample-apps-fastlane-test
     steps:
     - script:
         inputs:
