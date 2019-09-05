@@ -7,6 +7,8 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"reflect"
+	"runtime"
 	"strings"
 
 	"github.com/bitrise-io/go-steputils/cache"
@@ -19,7 +21,7 @@ import (
 	"github.com/bitrise-io/go-utils/log"
 	"github.com/bitrise-io/go-utils/pathutil"
 	"github.com/bitrise-steplib/steps-deploy-to-itunesconnect-deliver/devportalservice"
-	shellquote "github.com/kballard/go-shellquote"
+	"github.com/kballard/go-shellquote"
 )
 
 // Config contains inputs parsed from environment variables
@@ -76,6 +78,10 @@ func handleSessionDataError(err error) {
 		log.Errorf("Failed to activate Bitrise Apple Developer Portal connection: %s", err)
 		log.Warnf("Read more: https://devcenter.bitrise.io/getting-started/connecting-apple-dev-account/")
 	}
+}
+
+func functionName(i interface{}) string {
+	return runtime.FuncForPC(reflect.ValueOf(i).Pointer()).Name()
 }
 
 func main() {
@@ -315,23 +321,24 @@ func main() {
 	fmt.Println()
 	log.Infof("Collecting cache")
 
-	cache := cache.New()
+	c := cache.New()
 	for _, depFunc := range depsFuncs {
 		includes, excludes, err := depFunc(workDir)
+		log.Debugf("%s found include path:\n%s\nexclude paths:\n%s", functionName(depFunc), strings.Join(includes, "\n"), strings.Join(excludes, "\n"))
 		if err != nil {
 			log.Warnf("failed to collect dependencies: %s", err.Error())
 			continue
 		}
 
 		for _, item := range includes {
-			cache.IncludePath(item)
+			c.IncludePath(item)
 		}
 
 		for _, item := range excludes {
-			cache.ExcludePath(item)
+			c.ExcludePath(item)
 		}
 	}
-	if err := cache.Commit(); err != nil {
+	if err := c.Commit(); err != nil {
 		log.Warnf("failed to commit paths to cache: %s", err)
 	}
 }

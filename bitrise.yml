@@ -79,20 +79,18 @@ workflows:
 
   # ----------------------------------------------------------------
   # --- Utility workflows
-  dep-update:
-    title: Dep update
+  vendor-update:
+    title: Vendor update
     description: |
-      Used for updating bitrise dependencies with dep
+      Used for updating the vendored dependencies
     steps:
     - script:
-        title: Dependency update
+        title: Vendor update
         inputs:
         - content: |-
             #!/bin/bash
             set -ex
-            go get -u -v github.com/golang/dep/cmd/dep
-            dep ensure -v
-            dep ensure -v -update
+            go mod vendor
 
   # ----------------------------------------------------------------
   # --- workflows to Share this step into a Step Library

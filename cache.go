@@ -20,86 +20,61 @@ var depsFuncs = []depsFunc{
 	androidDeps,
 }
 
-func cocoapodsDeps(dir string) ([]string, []string, error) {
-	files, err := utility.ListPathInDirSortedByComponents(dir, true)
+func iosDeps(dir string, buildDirName, lockFileName string) ([]string, []string, error) {
+	files, err := utility.ListPathInDirSortedByComponents(dir, false)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to search for files in (%s), error: %s", dir, err)
 	}
 
-	locks, err := utility.FilterPaths(files, utility.BaseFilter("Podfile.lock", true))
+	locks, err := utility.FilterPaths(files, utility.BaseFilter(lockFileName, true))
 	if err != nil {
 		return nil, nil, err
 	}
 
-	var relevant []string
+	buildDirToLockFile := map[string]string{}
 	for _, lock := range locks {
-		podsPth := filepath.Join(filepath.Dir(lock), "Pods")
-		exist, err := pathutil.IsPathExists(podsPth)
+		buildDir := filepath.Join(filepath.Dir(lock), buildDirName)
+		exist, err := pathutil.IsPathExists(buildDir)
 		if err != nil {
 			return nil, nil, err
 		}
 
 		if exist {
-			relevant = append(relevant, lock)
+			buildDirToLockFile[buildDir] = lock
 		}
 	}
 
-	if len(relevant) > 1 {
-		log.Debugf("Multiple Podfile.lock found: %s", strings.Join(relevant, ", "))
+	if len(buildDirToLockFile) > 1 {
+		var locks []string
+		for _, lock := range buildDirToLockFile {
+			locks = append(locks, lock)
+		}
+		log.Debugf("Multiple %s found: %s", lockFileName, strings.Join(locks, ", "))
 	}
 
 	var include []string
-	for _, lock := range locks {
-		podsPth := filepath.Join(filepath.Dir(lock), "Pods")
-		include = append(include, fmt.Sprintf("%s -> %s", podsPth, lock))
+	for buildDir, lockFile := range buildDirToLockFile {
+		include = append(include, fmt.Sprintf("%s -> %s", buildDir, lockFile))
 	}
 
 	return include, nil, nil
 }
 
+func cocoapodsDeps(dir string) ([]string, []string, error) {
+	return iosDeps(dir, "Pods", "Podfile.lock")
+}
+
 func carthageDeps(dir string) ([]string, []string, error) {
-	files, err := utility.ListPathInDirSortedByComponents(dir, true)
-	if err != nil {
-		return nil, nil, fmt.Errorf("failed to search for files in (%s), error: %s", dir, err)
-	}
-
-	locks, err := utility.FilterPaths(files, utility.BaseFilter("Cartfile.resolved", true))
-	if err != nil {
-		return nil, nil, err
-	}
-
-	var relevant []string
-	for _, lock := range locks {
-		carthagePth := filepath.Join(filepath.Dir(lock), "Carthage")
-		exist, err := pathutil.IsPathExists(carthagePth)
-		if err != nil {
-			return nil, nil, err
-		}
-
-		if exist {
-			relevant = append(relevant, lock)
-		}
-	}
-
-	if len(relevant) > 1 {
-		log.Debugf("Multiple Cartfile.resolved found: %s", strings.Join(relevant, ", "))
-	}
-
-	var include []string
-	for _, lock := range locks {
-		carthagePth := filepath.Join(filepath.Dir(lock), "Carthage")
-		include = append(include, fmt.Sprintf("%s -> %s", carthagePth, lock))
-	}
-
-	return include, nil, nil
+	return iosDeps(dir, "Carthage", "Cartfile.resolved")
 }
 
 func androidDeps(dir string) ([]string, []string, error) {
 	scanner := android.NewScanner()
-	_, err := scanner.DetectPlatform(dir)
+	detected, err := scanner.DetectPlatform(dir)
 	if err != nil {
 		return nil, nil, err
 	}
+	log.Debugf("android platform detected: %v", detected)
 
 	var include []string
 	var exclude []string
