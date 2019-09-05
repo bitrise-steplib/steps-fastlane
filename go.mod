@@ -12,7 +12,7 @@ require (
 	github.com/bitrise-io/go-xcode v0.0.0-20190718082554-07ccf582b6b1 // indirect
 	github.com/bitrise-io/goinp v0.0.0-20190611131639-bd18a8681e27 // indirect
 	github.com/bitrise-io/stepman v0.0.0-20190813144014-10564a4888a6 // indirect
-	github.com/bitrise-io/xcode-project v0.0.0-20190829132102-743450f7d0f0
+	github.com/bitrise-io/xcode-project v0.0.0-20190829132102-743450f7d0f0 // indirect
 	github.com/bitrise-steplib/bitrise-step-android-unit-test v0.0.0-20190902203028-ff8e682d8645
 	github.com/bitrise-steplib/steps-deploy-to-itunesconnect-deliver v0.0.0-20190815132021-09bfb54640c4
 	github.com/kballard/go-shellquote v0.0.0-20180428030007-95032a82bc51
