@@ -30,6 +30,7 @@ type Config struct {
 	Lane           string `env:"lane,required"`
 	UpdateFastlane bool   `env:"update_fastlane,opt[true,false]"`
 	VerboseLog     bool   `env:"verbose_log,opt[yes,no]"`
+	EnableCache    bool   `env:"enable_cache,opt[yes,no]"`
 
 	GemHome string `env:"GEM_HOME"`
 }
@@ -318,27 +319,29 @@ func main() {
 		failf("Command failed, error: %s", err)
 	}
 
-	fmt.Println()
-	log.Infof("Collecting cache")
+	if config.EnableCache {
+		fmt.Println()
+		log.Infof("Collecting cache")
 
-	c := cache.New()
-	for _, depFunc := range depsFuncs {
-		includes, excludes, err := depFunc(workDir)
-		log.Debugf("%s found include path:\n%s\nexclude paths:\n%s", functionName(depFunc), strings.Join(includes, "\n"), strings.Join(excludes, "\n"))
-		if err != nil {
-			log.Warnf("failed to collect dependencies: %s", err.Error())
-			continue
-		}
+		c := cache.New()
+		for _, depFunc := range depsFuncs {
+			includes, excludes, err := depFunc(workDir)
+			log.Debugf("%s found include path:\n%s\nexclude paths:\n%s", functionName(depFunc), strings.Join(includes, "\n"), strings.Join(excludes, "\n"))
+			if err != nil {
+				log.Warnf("failed to collect dependencies: %s", err.Error())
+				continue
+			}
 
-		for _, item := range includes {
-			c.IncludePath(item)
-		}
+			for _, item := range includes {
+				c.IncludePath(item)
+			}
 
-		for _, item := range excludes {
-			c.ExcludePath(item)
+			for _, item := range excludes {
+				c.ExcludePath(item)
+			}
 		}
-	}
-	if err := c.Commit(); err != nil {
-		log.Warnf("failed to commit paths to cache: %s", err)
+		if err := c.Commit(); err != nil {
+			log.Warnf("failed to commit paths to cache: %s", err)
+		}
 	}
 }

@@ -54,3 +54,15 @@ inputs:
       value_options:
       - "yes"
       - "no"
+  - enable_cache: "yes"
+    opts:
+      title: "Enable collecting files to be included in the build cache"
+      description: |-
+        If enabled the step will add the following cache items (if they exist):  
+        - Pods -> Podfile.lock
+        - Carthage -> Cartfile.resolved
+        - Android dependencies
+      value_options:
+      - "yes"
+      - "no"
+      is_required: true
