@@ -1,13 +1,9 @@
 package main
 
 import (
-	"fmt"
-	"path/filepath"
-
 	"github.com/bitrise-io/go-utils/command/gems"
-	"github.com/bitrise-io/go-utils/fileutil"
 	"github.com/bitrise-io/go-utils/log"
-	"github.com/bitrise-io/go-utils/pathutil"
+	"os"
 )
 
 type gemVersions struct {
@@ -15,18 +11,12 @@ type gemVersions struct {
 }
 
 func parseGemfileLock(searchDir string) (gemVersions, error) {
-	gemfileLockPth := filepath.Join(searchDir, "Gemfile.lock")
-	log.Printf("Checking Gemfile.lock (%s) for fastlane and bundler gem", gemfileLockPth)
-
-	if exist, err := pathutil.IsPathExists(gemfileLockPth); err != nil {
-		return gemVersions{}, fmt.Errorf("failed to check if Gemfile.lock exist at (%s), error: %s", gemfileLockPth, err)
-	} else if !exist {
-		log.Printf("Gemfile.lock does not exist")
-		return gemVersions{}, nil
-	}
-
-	content, err := fileutil.ReadStringFromFile(gemfileLockPth)
+	content, err := gems.GemFileLockContent(searchDir)
 	if err != nil {
+		if os.IsNotExist(err) {
+			log.Printf("Gemfile.lock does not exist")
+			return gemVersions{}, nil
+		}
 		return gemVersions{}, err
 	}
 
