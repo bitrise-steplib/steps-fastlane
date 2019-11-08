@@ -3,7 +3,6 @@ package main
 import (
 	"github.com/bitrise-io/go-utils/command/gems"
 	"github.com/bitrise-io/go-utils/log"
-	"os"
 )
 
 type gemVersions struct {
@@ -13,7 +12,7 @@ type gemVersions struct {
 func parseGemfileLock(searchDir string) (gemVersions, error) {
 	content, err := gems.GemFileLockContent(searchDir)
 	if err != nil {
-		if os.IsNotExist(err) {
+		if err == gems.ErrGemLockNotFound {
 			log.Printf("Gemfile.lock does not exist")
 			return gemVersions{}, nil
 		}
