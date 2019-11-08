@@ -13,7 +13,7 @@ func parseGemfileLock(searchDir string) (gemVersions, error) {
 	content, err := gems.GemFileLockContent(searchDir)
 	if err != nil {
 		if err == gems.ErrGemLockNotFound {
-			log.Printf("Gemfile.lock does not exist")
+			log.Printf("Gem lockfile does not exist")
 			return gemVersions{}, nil
 		}
 		return gemVersions{}, err
@@ -26,9 +26,9 @@ func parseGemfileLock(searchDir string) (gemVersions, error) {
 		return gemVersions, err
 	}
 	if gemVersions.fastlane.Found {
-		log.Infof("Gemfile.lock defined fastlane version: %s", gemVersions.fastlane.Version)
+		log.Infof("Gem lockfile defined Fastlane version: %s", gemVersions.fastlane.Version)
 	} else {
-		log.Infof("No fastlane version defined in Gemfile.lock")
+		log.Infof("No Fastlane version defined in gem lockfile")
 	}
 
 	gemVersions.bundler, err = gems.ParseBundlerVersion(content)
@@ -36,9 +36,9 @@ func parseGemfileLock(searchDir string) (gemVersions, error) {
 		return gemVersions, err
 	}
 	if gemVersions.bundler.Found {
-		log.Infof("Gemfile.lock defined bundler version: %s", gemVersions.bundler.Version)
+		log.Infof("Gem lockfile defined bundler version: %s", gemVersions.bundler.Version)
 	} else {
-		log.Infof("No bundler version defined in Gemfile.lock")
+		log.Infof("No bundler version defined in gem lockfile")
 	}
 
 	return gemVersions, nil
