@@ -13,7 +13,7 @@ github.com/bitrise-io/envman/models
 github.com/bitrise-io/go-steputils/cache
 github.com/bitrise-io/go-steputils/stepconf
 github.com/bitrise-io/go-steputils/tools
-# github.com/bitrise-io/go-utils v0.0.0-20190814105345-ad86bf775472
+# github.com/bitrise-io/go-utils v0.0.0-20191108114511-5067a2a682f2
 github.com/bitrise-io/go-utils/command
 github.com/bitrise-io/go-utils/command/gems
 github.com/bitrise-io/go-utils/command/rubycommand

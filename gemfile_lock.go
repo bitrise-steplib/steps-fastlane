@@ -1,13 +1,8 @@
 package main
 
 import (
-	"fmt"
-	"path/filepath"
-
 	"github.com/bitrise-io/go-utils/command/gems"
-	"github.com/bitrise-io/go-utils/fileutil"
 	"github.com/bitrise-io/go-utils/log"
-	"github.com/bitrise-io/go-utils/pathutil"
 )
 
 type gemVersions struct {
@@ -15,18 +10,12 @@ type gemVersions struct {
 }
 
 func parseGemfileLock(searchDir string) (gemVersions, error) {
-	gemfileLockPth := filepath.Join(searchDir, "Gemfile.lock")
-	log.Printf("Checking Gemfile.lock (%s) for fastlane and bundler gem", gemfileLockPth)
-
-	if exist, err := pathutil.IsPathExists(gemfileLockPth); err != nil {
-		return gemVersions{}, fmt.Errorf("failed to check if Gemfile.lock exist at (%s), error: %s", gemfileLockPth, err)
-	} else if !exist {
-		log.Printf("Gemfile.lock does not exist")
-		return gemVersions{}, nil
-	}
-
-	content, err := fileutil.ReadStringFromFile(gemfileLockPth)
+	content, err := gems.GemFileLockContent(searchDir)
 	if err != nil {
+		if err == gems.ErrGemLockNotFound {
+			log.Printf("Gem lockfile does not exist")
+			return gemVersions{}, nil
+		}
 		return gemVersions{}, err
 	}
 
@@ -37,9 +26,9 @@ func parseGemfileLock(searchDir string) (gemVersions, error) {
 		return gemVersions, err
 	}
 	if gemVersions.fastlane.Found {
-		log.Infof("Gemfile.lock defined fastlane version: %s", gemVersions.fastlane.Version)
+		log.Infof("Gem lockfile defined Fastlane version: %s", gemVersions.fastlane.Version)
 	} else {
-		log.Infof("No fastlane version defined in Gemfile.lock")
+		log.Infof("No Fastlane version defined in gem lockfile")
 	}
 
 	gemVersions.bundler, err = gems.ParseBundlerVersion(content)
@@ -47,9 +36,9 @@ func parseGemfileLock(searchDir string) (gemVersions, error) {
 		return gemVersions, err
 	}
 	if gemVersions.bundler.Found {
-		log.Infof("Gemfile.lock defined bundler version: %s", gemVersions.bundler.Version)
+		log.Infof("Gem lockfile defined bundler version: %s", gemVersions.bundler.Version)
 	} else {
-		log.Infof("No bundler version defined in Gemfile.lock")
+		log.Infof("No bundler version defined in gem lockfile")
 	}
 
 	return gemVersions, nil
