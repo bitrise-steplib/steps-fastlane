@@ -7,7 +7,7 @@ workflows:
   ci:
     envs:
     - SAMPLE_APP_URL: "https://github.com/bitrise-io/sample-apps-flutter-veggieseasons.git"
-    - BRANCH: fastlane
+    - BRANCH: master
     before-run:
     - audit-this-step
     steps:
