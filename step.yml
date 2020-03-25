@@ -1,6 +1,6 @@
 title: "fastlane"
 summary: |-
-  Runs your fastlane lane [bitrise.io](https://www.bitrise.io).
+  Runs your fastlane lane on [bitrise.io](https://www.bitrise.io).
 description: |-
   fastlane is an open-source app automation tool for iOS, Android and for most cross-platform frameworks, for example, React Native, Xamarin and Flutter.
   **fastlane** Step helps you integrate your lane to your Bitrise Workflow and runs your lane based on the fastlane actions with minimal configuration.
