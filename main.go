@@ -13,7 +13,6 @@ import (
 
 	"github.com/bitrise-io/go-steputils/cache"
 	"github.com/bitrise-io/go-steputils/stepconf"
-	"github.com/bitrise-io/go-steputils/tools"
 	"github.com/bitrise-io/go-utils/command"
 	"github.com/bitrise-io/go-utils/command/gems"
 	"github.com/bitrise-io/go-utils/command/rubycommand"
@@ -138,27 +137,17 @@ func main() {
 		handleSessionDataError(err)
 	}
 
+	fastlaneSession := ""
 	if conn != nil {
 		fmt.Println()
 		log.Infof("Connected Apple Developer Portal Account found")
 
 		if conn.IsExpired() {
 			log.Warnf("Apple Developer connection expired")
+		} else if session, err := conn.TFASession(); err != nil {
+			handleSessionDataError(err)
 		} else {
-			session, err := conn.TFASession()
-			if err != nil {
-				handleSessionDataError(err)
-			}
-
-			if err := tools.ExportEnvironmentWithEnvman("FASTLANE_SESSION", session); err != nil {
-				failf("Failed to export FASTLANE_SESSION, error: %s", err)
-			}
-
-			if err := os.Setenv("FASTLANE_SESSION", session); err != nil {
-				failf("Failed to set FASTLANE_SESSION env, error: %s", err)
-			}
-
-			log.Donef("Session exported")
+			fastlaneSession = session
 		}
 	}
 
@@ -281,8 +270,14 @@ func main() {
 		failf("Failed to create command model, error: %s", err)
 	}
 
+	envs := []string{}
+	if fastlaneSession != "" {
+		envs = append(envs, "FASTLANE_SESSION="+fastlaneSession)
+	}
+
 	cmd.SetStdout(os.Stdout).SetStderr(os.Stderr)
 	cmd.SetDir(workDir)
+	cmd.AppendEnvs(envs...)
 
 	buildlogPth := ""
 
