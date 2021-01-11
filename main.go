@@ -130,22 +130,36 @@ func main() {
 
 	//
 	// Fastlane session
-	fs, err := devportalservice.SessionData()
+	var provider devportalservice.AppleDeveloperConnectionProvider
+	provider = devportalservice.NewBitriseClient(http.DefaultClient)
+
+	conn, err := provider.GetAppleDeveloperConnection(os.Getenv("BITRISE_BUILD_URL"), os.Getenv("BITRISE_BUILD_API_TOKEN"))
 	if err != nil {
 		handleSessionDataError(err)
-	} else {
+	}
+
+	if conn != nil {
 		fmt.Println()
-		log.Infof("Connected Apple Developer Portal Account found, exposing FASTLANE_SESSION env var")
+		log.Infof("Connected Apple Developer Portal Account found")
 
-		if err := tools.ExportEnvironmentWithEnvman("FASTLANE_SESSION", fs); err != nil {
-			failf("Failed to export FASTLANE_SESSION, error: %s", err)
+		if conn.IsExpired() {
+			log.Warnf("Apple Developer connection expired")
+		} else {
+			session, err := conn.TFASession()
+			if err != nil {
+				handleSessionDataError(err)
+			}
+
+			if err := tools.ExportEnvironmentWithEnvman("FASTLANE_SESSION", session); err != nil {
+				failf("Failed to export FASTLANE_SESSION, error: %s", err)
+			}
+
+			if err := os.Setenv("FASTLANE_SESSION", session); err != nil {
+				failf("Failed to set FASTLANE_SESSION env, error: %s", err)
+			}
+
+			log.Donef("Session exported")
 		}
-
-		if err := os.Setenv("FASTLANE_SESSION", fs); err != nil {
-			failf("Failed to set FASTLANE_SESSION env, error: %s", err)
-		}
-
-		log.Donef("Session exported")
 	}
 
 	// Split lane option
@@ -209,7 +223,7 @@ func main() {
 	} else if config.UpdateFastlane {
 		log.Infof("Update system installed Fastlane")
 
-		cmds, err := rubycommand.GemInstall("fastlane", "")
+		cmds, err := rubycommand.GemInstall("fastlane", "", false)
 		if err != nil {
 			failf("Failed to create command model, error: %s", err)
 		}
