@@ -27,12 +27,12 @@ type AppleDeveloperConnectionProvider interface {
 	GetAppleDeveloperConnection(buildURL, buildAPIToken string) (*AppleDeveloperConnection, error)
 }
 
-// BitriseClient ...
+// BitriseClient implements AppleDeveloperConnectionProvider through the Bitrise.io API.
 type BitriseClient struct {
 	httpClient httpClient
 }
 
-// NewBitriseClient ...
+// NewBitriseClient creates a new instance of BitriseClient.
 func NewBitriseClient(client httpClient) *BitriseClient {
 	return &BitriseClient{
 		httpClient: client,
@@ -41,7 +41,7 @@ func NewBitriseClient(client httpClient) *BitriseClient {
 
 const appleDeveloperConnectionPath = "apple_developer_portal_data.json"
 
-// GetAppleDeveloperConnection ...
+// GetAppleDeveloperConnection fetches the Bitrise.io session-based Apple Developer connection.
 func (c *BitriseClient) GetAppleDeveloperConnection(buildURL, buildAPIToken string) (*AppleDeveloperConnection, error) {
 	req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("%s/%s", buildURL, appleDeveloperConnectionPath), nil)
 	if err != nil {
@@ -79,7 +79,6 @@ func (c *BitriseClient) GetAppleDeveloperConnection(buildURL, buildAPIToken stri
 	return &connection, nil
 }
 
-// cookie ...
 type cookie struct {
 	Name      string `json:"name"`
 	Path      string `json:"path"`
@@ -92,7 +91,8 @@ type cookie struct {
 	ForDomain *bool  `json:"for_domain,omitempty"`
 }
 
-// AppleDeveloperConnection ...
+// AppleDeveloperConnection represents a Bitrise.io session-based Apple Developer connection.
+// https://devcenter.bitrise.io/getting-started/configuring-bitrise-steps-that-require-apple-developer-account-data/
 type AppleDeveloperConnection struct {
 	AppleID              string              `json:"apple_id"`
 	Password             string              `json:"password"`
@@ -100,16 +100,17 @@ type AppleDeveloperConnection struct {
 	SessionCookies       map[string][]cookie `json:"session_cookies"`
 }
 
-// Expiry ...
+// Expiry returns the expiration of the Bitrise session-based Apple Developer connection.
 func (c *AppleDeveloperConnection) Expiry() *time.Time {
 	t, err := time.Parse(time.RFC3339, c.ConnectionExpiryDate)
 	if err != nil {
+		log.Warnf("Could not parse session-based connection expiry date: %s", err)
 		return nil
 	}
 	return &t
 }
 
-// Expired ...
+// Expired returns whether the Bitrise session-based Apple Developer connection is expired.
 func (c *AppleDeveloperConnection) Expired() bool {
 	expiry := c.Expiry()
 	if expiry == nil {
@@ -118,8 +119,9 @@ func (c *AppleDeveloperConnection) Expired() bool {
 	return expiry.Before(time.Now())
 }
 
-// TFASession ...
-func (c *AppleDeveloperConnection) TFASession() (string, error) {
+// FastlaneLoginSession returns the Apple ID login session in a ruby/object:HTTP::Cookie format.
+// The session can be used as a value for FASTLANE_SESSION environment variable: https://docs.fastlane.tools/best-practices/continuous-integration/#two-step-or-two-factor-auth.
+func (c *AppleDeveloperConnection) FastlaneLoginSession() (string, error) {
 	var rubyCookies []string
 	for _, cookie := range c.SessionCookies["https://idmsa.apple.com"] {
 		if rubyCookies == nil {
