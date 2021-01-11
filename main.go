@@ -138,12 +138,12 @@ func main() {
 	}
 
 	fastlaneSession := ""
-	if conn != nil {
+	if conn != nil && conn.AppleID != "" {
 		fmt.Println()
-		log.Infof("Connected Apple Developer Portal Account found")
+		log.Infof("Connected session-based Apple Developer Portal Account found")
 
 		if conn.IsExpired() {
-			log.Warnf("Apple Developer connection expired")
+			log.Warnf("TFA session expired")
 		} else if session, err := conn.TFASession(); err != nil {
 			handleSessionDataError(err)
 		} else {
