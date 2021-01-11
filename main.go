@@ -72,11 +72,11 @@ func handleSessionDataError(err error) {
 		log.Debugf("")
 		log.Debugf("Connected Apple Developer Portal Account not found")
 		log.Debugf("Most likely because there is no Apple Developer Portal Account connected to the build, or the build is running locally.")
-		log.Debugf("Read more: https://devcenter.bitrise.io/getting-started/connecting-apple-dev-account/")
+		log.Debugf("Read more: https://devcenter.bitrise.io/getting-started/configuring-bitrise-steps-that-require-apple-developer-account-data/")
 	} else {
 		fmt.Println()
 		log.Errorf("Failed to activate Bitrise Apple Developer Portal connection: %s", err)
-		log.Warnf("Read more: https://devcenter.bitrise.io/getting-started/connecting-apple-dev-account/")
+		log.Warnf("Read more: https://devcenter.bitrise.io/getting-started/configuring-bitrise-steps-that-require-apple-developer-account-data/")
 	}
 }
 
@@ -129,26 +129,31 @@ func main() {
 
 	//
 	// Fastlane session
-	var provider devportalservice.AppleDeveloperConnectionProvider
-	provider = devportalservice.NewBitriseClient(http.DefaultClient)
-
-	conn, err := provider.GetAppleDeveloperConnection(os.Getenv("BITRISE_BUILD_URL"), os.Getenv("BITRISE_BUILD_API_TOKEN"))
-	if err != nil {
-		handleSessionDataError(err)
-	}
-
 	fastlaneSession := ""
-	if conn != nil && conn.AppleID != "" {
-		fmt.Println()
-		log.Infof("Connected session-based Apple Developer Portal Account found")
+	buildURL, buildAPIToken := os.Getenv("BITRISE_BUILD_URL"), os.Getenv("BITRISE_BUILD_API_TOKEN")
+	if buildURL != "" && buildAPIToken != "" {
+		var provider devportalservice.AppleDeveloperConnectionProvider
+		provider = devportalservice.NewBitriseClient(http.DefaultClient)
 
-		if expiry := conn.Expiry(); expiry != nil && conn.Expired() {
-			log.Warnf("TFA session expired on %s", expiry.String())
-		} else if session, err := conn.TFASession(); err != nil {
+		conn, err := provider.GetAppleDeveloperConnection(buildURL, buildAPIToken)
+		if err != nil {
 			handleSessionDataError(err)
-		} else {
-			fastlaneSession = session
 		}
+
+		if conn != nil && conn.AppleID != "" {
+			fmt.Println()
+			log.Infof("Connected session-based Apple Developer Portal Account found")
+
+			if expiry := conn.Expiry(); expiry != nil && conn.Expired() {
+				log.Warnf("Connection expired on %s", expiry.String())
+			} else if session, err := conn.FastlaneLoginSession(); err != nil {
+				handleSessionDataError(err)
+			} else {
+				fastlaneSession = session
+			}
+		}
+	} else {
+		log.Warnf("Step is not running on bitrise.io: BITRISE_BUILD_URL and BITRISE_BUILD_API_TOKEN envs are not set")
 	}
 
 	// Split lane option
