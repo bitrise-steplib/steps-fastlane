@@ -142,8 +142,8 @@ func main() {
 		fmt.Println()
 		log.Infof("Connected session-based Apple Developer Portal Account found")
 
-		if conn.IsExpired() {
-			log.Warnf("TFA session expired")
+		if expiry := conn.Expiry(); expiry != nil && conn.Expired() {
+			log.Warnf("TFA session expired on %s", expiry.String())
 		} else if session, err := conn.TFASession(); err != nil {
 			handleSessionDataError(err)
 		} else {

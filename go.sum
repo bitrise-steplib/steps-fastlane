@@ -14,8 +14,8 @@ github.com/bitrise-io/stepman v0.0.0-20190813144014-10564a4888a6 h1:/GnB2kEaO/6K
 github.com/bitrise-io/stepman v0.0.0-20190813144014-10564a4888a6/go.mod h1:hGCjd8leP411yt5QkQi+VBNWGxIZ4H02LNIVeKBeMUk=
 github.com/bitrise-steplib/bitrise-step-android-unit-test v0.0.0-20190902203028-ff8e682d8645 h1:9molXzIAxnKStwV78lt7MSgUQwxIWl4+r9/oYTQA7no=
 github.com/bitrise-steplib/bitrise-step-android-unit-test v0.0.0-20190902203028-ff8e682d8645/go.mod h1:0yqqJw+MqwsfHKq4pL90IoSYskLF91oDCyyZYnIehWA=
-github.com/bitrise-steplib/steps-deploy-to-itunesconnect-deliver v0.0.0-20210110231711-067853bfd500 h1:AciTa6LmO7iwrtTTjzqVddRbgMSE13JiqmuXAAYByMA=
-github.com/bitrise-steplib/steps-deploy-to-itunesconnect-deliver v0.0.0-20210110231711-067853bfd500/go.mod h1:mm5WIhfyTnf89pNO+4ylSsUAbEh8JGSpV3F7V0XWB4U=
+github.com/bitrise-steplib/steps-deploy-to-itunesconnect-deliver v0.0.0-20210111101846-6957ffcc520b h1:5CJP8CNao4+0fDBOQEpPfuj19T+3RVRuFUcyqhw9yD4=
+github.com/bitrise-steplib/steps-deploy-to-itunesconnect-deliver v0.0.0-20210111101846-6957ffcc520b/go.mod h1:mm5WIhfyTnf89pNO+4ylSsUAbEh8JGSpV3F7V0XWB4U=
 github.com/davecgh/go-spew v1.1.0 h1:ZDRjVQ15GmhC3fiQ8ni8+OwkZQO4DARzQgrnXU1Liz8=
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
