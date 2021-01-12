@@ -13,7 +13,6 @@ import (
 
 	"github.com/bitrise-io/go-steputils/cache"
 	"github.com/bitrise-io/go-steputils/stepconf"
-	"github.com/bitrise-io/go-steputils/tools"
 	"github.com/bitrise-io/go-utils/command"
 	"github.com/bitrise-io/go-utils/command/gems"
 	"github.com/bitrise-io/go-utils/command/rubycommand"
@@ -73,11 +72,11 @@ func handleSessionDataError(err error) {
 		log.Debugf("")
 		log.Debugf("Connected Apple Developer Portal Account not found")
 		log.Debugf("Most likely because there is no Apple Developer Portal Account connected to the build, or the build is running locally.")
-		log.Debugf("Read more: https://devcenter.bitrise.io/getting-started/connecting-apple-dev-account/")
+		log.Debugf("Read more: https://devcenter.bitrise.io/getting-started/configuring-bitrise-steps-that-require-apple-developer-account-data/")
 	} else {
 		fmt.Println()
 		log.Errorf("Failed to activate Bitrise Apple Developer Portal connection: %s", err)
-		log.Warnf("Read more: https://devcenter.bitrise.io/getting-started/connecting-apple-dev-account/")
+		log.Warnf("Read more: https://devcenter.bitrise.io/getting-started/configuring-bitrise-steps-that-require-apple-developer-account-data/")
 	}
 }
 
@@ -130,22 +129,31 @@ func main() {
 
 	//
 	// Fastlane session
-	fs, err := devportalservice.SessionData()
-	if err != nil {
-		handleSessionDataError(err)
+	fastlaneSession := ""
+	buildURL, buildAPIToken := os.Getenv("BITRISE_BUILD_URL"), os.Getenv("BITRISE_BUILD_API_TOKEN")
+	if buildURL != "" && buildAPIToken != "" {
+		var provider devportalservice.AppleDeveloperConnectionProvider
+		provider = devportalservice.NewBitriseClient(http.DefaultClient)
+
+		conn, err := provider.GetAppleDeveloperConnection(buildURL, buildAPIToken)
+		if err != nil {
+			handleSessionDataError(err)
+		}
+
+		if conn != nil && conn.AppleID != "" {
+			fmt.Println()
+			log.Infof("Connected session-based Apple Developer Portal Account found")
+
+			if expiry := conn.Expiry(); expiry != nil && conn.Expired() {
+				log.Warnf("Connection expired on %s", expiry.String())
+			} else if session, err := conn.FastlaneLoginSession(); err != nil {
+				handleSessionDataError(err)
+			} else {
+				fastlaneSession = session
+			}
+		}
 	} else {
-		fmt.Println()
-		log.Infof("Connected Apple Developer Portal Account found, exposing FASTLANE_SESSION env var")
-
-		if err := tools.ExportEnvironmentWithEnvman("FASTLANE_SESSION", fs); err != nil {
-			failf("Failed to export FASTLANE_SESSION, error: %s", err)
-		}
-
-		if err := os.Setenv("FASTLANE_SESSION", fs); err != nil {
-			failf("Failed to set FASTLANE_SESSION env, error: %s", err)
-		}
-
-		log.Donef("Session exported")
+		log.Warnf("Step is not running on bitrise.io: BITRISE_BUILD_URL and BITRISE_BUILD_API_TOKEN envs are not set")
 	}
 
 	// Split lane option
@@ -209,7 +217,7 @@ func main() {
 	} else if config.UpdateFastlane {
 		log.Infof("Update system installed Fastlane")
 
-		cmds, err := rubycommand.GemInstall("fastlane", "")
+		cmds, err := rubycommand.GemInstall("fastlane", "", false)
 		if err != nil {
 			failf("Failed to create command model, error: %s", err)
 		}
@@ -267,8 +275,14 @@ func main() {
 		failf("Failed to create command model, error: %s", err)
 	}
 
+	envs := []string{}
+	if fastlaneSession != "" {
+		envs = append(envs, "FASTLANE_SESSION="+fastlaneSession)
+	}
+
 	cmd.SetStdout(os.Stdout).SetStderr(os.Stderr)
 	cmd.SetDir(workDir)
+	cmd.AppendEnvs(envs...)
 
 	buildlogPth := ""
 

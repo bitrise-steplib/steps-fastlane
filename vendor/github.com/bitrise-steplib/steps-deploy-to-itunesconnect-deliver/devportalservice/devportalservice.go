@@ -3,46 +3,82 @@ package devportalservice
 import (
 	"bytes"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io/ioutil"
 	"net/http"
-	"os"
 	"strings"
 	"text/template"
+	"time"
 
 	"github.com/bitrise-io/go-utils/log"
 )
 
-// NetworkError represents a networking issue.
-type NetworkError struct {
-	Status int
-	Body   string
+const (
+	bitriseBuildURLKey      = "BITRISE_BUILD_URL"
+	bitriseBuildAPITokenKey = "BITRISE_BUILD_API_TOKEN"
+)
+
+type httpClient interface {
+	Do(req *http.Request) (*http.Response, error)
 }
 
-func (e NetworkError) Error() string {
-	return fmt.Sprintf("response %d %s", e.Status, e.Body)
+// AppleDeveloperConnectionProvider ...
+type AppleDeveloperConnectionProvider interface {
+	GetAppleDeveloperConnection(buildURL, buildAPIToken string) (*AppleDeveloperConnection, error)
 }
 
-// CIEnvMissingError represents an issue caused by missing environment variables,
-// which environment variables are exposed in builds on Bitrise.io.
-type CIEnvMissingError struct {
-	Key string
+// BitriseClient implements AppleDeveloperConnectionProvider through the Bitrise.io API.
+type BitriseClient struct {
+	httpClient httpClient
 }
 
-func (e CIEnvMissingError) Error() string {
-	return fmt.Sprintf("%s env is not exported", e.Key)
+// NewBitriseClient creates a new instance of BitriseClient.
+func NewBitriseClient(client httpClient) *BitriseClient {
+	return &BitriseClient{
+		httpClient: client,
+	}
 }
 
-// portalData ...
-type portalData struct {
-	AppleID              string              `json:"apple_id"`
-	Password             string              `json:"password"`
-	ConnectionExpiryDate string              `json:"connection_expiry_date"`
-	SessionCookies       map[string][]cookie `json:"session_cookies"`
+const appleDeveloperConnectionPath = "apple_developer_portal_data.json"
+
+// GetAppleDeveloperConnection fetches the Bitrise.io session-based Apple Developer connection.
+func (c *BitriseClient) GetAppleDeveloperConnection(buildURL, buildAPIToken string) (*AppleDeveloperConnection, error) {
+	req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("%s/%s", buildURL, appleDeveloperConnectionPath), nil)
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Add("BUILD_API_TOKEN", buildAPIToken)
+
+	resp, err := c.httpClient.Do(req)
+	if err != nil {
+		// On error, any Response can be ignored
+		return nil, fmt.Errorf("failed to perform request, error: %s", err)
+	}
+
+	// The client must close the response body when finished with it
+	defer func() {
+		if cerr := resp.Body.Close(); cerr != nil {
+			log.Warnf("Failed to close response body, error: %s", cerr)
+		}
+	}()
+
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read response body, error: %s", err)
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, NetworkError{Status: resp.StatusCode, Body: string(body)}
+	}
+
+	var connection AppleDeveloperConnection
+	if err := json.Unmarshal([]byte(body), &connection); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal response (%s), error: %s", body, err)
+	}
+
+	return &connection, nil
 }
 
-// cookie ...
 type cookie struct {
 	Name      string `json:"name"`
 	Path      string `json:"path"`
@@ -55,61 +91,46 @@ type cookie struct {
 	ForDomain *bool  `json:"for_domain,omitempty"`
 }
 
-// SessionData will fetch the session from Bitrise for the connected Apple developer account
-// If the BITRISE_PORTAL_DATA_JSON is provided (for debug purposes) it will use that instead.
-func SessionData() (string, error) {
-	p, err := getDeveloperPortalData(os.Getenv("BITRISE_BUILD_URL"), os.Getenv("BITRISE_BUILD_API_TOKEN"))
-	if err != nil {
-		return "", err
-	}
-
-	cookies, err := convertDesCookie(p.SessionCookies["https://idmsa.apple.com"])
-	if err != nil {
-		return "", err
-	}
-	return strings.Join(cookies, ""), nil
+// AppleDeveloperConnection represents a Bitrise.io session-based Apple Developer connection.
+// https://devcenter.bitrise.io/getting-started/configuring-bitrise-steps-that-require-apple-developer-account-data/
+type AppleDeveloperConnection struct {
+	AppleID              string              `json:"apple_id"`
+	Password             string              `json:"password"`
+	ConnectionExpiryDate string              `json:"connection_expiry_date"`
+	SessionCookies       map[string][]cookie `json:"session_cookies"`
 }
 
-func getDeveloperPortalData(buildURL, buildAPIToken string) (portalData, error) {
-	var p portalData
-
-	j, exists := os.LookupEnv("BITRISE_PORTAL_DATA_JSON")
-	if exists && j != "" {
-		return p, json.Unmarshal([]byte(j), &p)
-	}
-
-	if buildURL == "" {
-		return portalData{}, CIEnvMissingError{Key: "BITRISE_BUILD_URL"}
-	}
-
-	if buildAPIToken == "" {
-		return portalData{}, CIEnvMissingError{Key: "BITRISE_BUILD_API_TOKEN env is not exported"}
-	}
-
-	req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("%s/apple_developer_portal_data.json", buildURL), nil)
+// Expiry returns the expiration of the Bitrise session-based Apple Developer connection.
+func (c *AppleDeveloperConnection) Expiry() *time.Time {
+	t, err := time.Parse(time.RFC3339, c.ConnectionExpiryDate)
 	if err != nil {
-		return portalData{}, err
+		log.Warnf("Could not parse session-based connection expiry date: %s", err)
+		return nil
 	}
-
-	req.Header.Add("BUILD_API_TOKEN", buildAPIToken)
-
-	if _, err := performRequest(req, &p); err != nil {
-		return portalData{}, err
-	}
-	return p, nil
+	return &t
 }
 
-func convertDesCookie(cookies []cookie) ([]string, error) {
-	var convertedCookies []string
-	var errs []string
-	for _, c := range cookies {
-		if convertedCookies == nil {
-			convertedCookies = append(convertedCookies, "---"+"\n")
+// Expired returns whether the Bitrise session-based Apple Developer connection is expired.
+func (c *AppleDeveloperConnection) Expired() bool {
+	expiry := c.Expiry()
+	if expiry == nil {
+		return false
+	}
+	return expiry.Before(time.Now())
+}
+
+// FastlaneLoginSession returns the Apple ID login session in a ruby/object:HTTP::Cookie format.
+// The session can be used as a value for FASTLANE_SESSION environment variable: https://docs.fastlane.tools/best-practices/continuous-integration/#two-step-or-two-factor-auth.
+func (c *AppleDeveloperConnection) FastlaneLoginSession() (string, error) {
+	var rubyCookies []string
+	for _, cookie := range c.SessionCookies["https://idmsa.apple.com"] {
+		if rubyCookies == nil {
+			rubyCookies = append(rubyCookies, "---"+"\n")
 		}
 
-		if c.ForDomain == nil {
+		if cookie.ForDomain == nil {
 			b := true
-			c.ForDomain = &b
+			cookie.ForDomain = &b
 		}
 
 		tmpl, err := template.New("").Parse(`- !ruby/object:HTTP::Cookie
@@ -120,58 +141,16 @@ func convertDesCookie(cookies []cookie) ([]string, error) {
   path: "{{.Path}}"
 `)
 		if err != nil {
-			errs = append(errs, fmt.Sprintf("Failed to create golang template for the cookie: %v", c))
-			continue
+			return "", fmt.Errorf("failed to parse template: %s", err)
 		}
 
 		var b bytes.Buffer
-		err = tmpl.Execute(&b, c)
+		err = tmpl.Execute(&b, cookie)
 		if err != nil {
-			errs = append(errs, fmt.Sprintf("Failed to parse cookie: %v", c))
-			continue
+			return "", fmt.Errorf("failed to execute template on cookie: %s: %s", cookie.Name, err)
 		}
 
-		convertedCookies = append(convertedCookies, b.String()+"\n")
+		rubyCookies = append(rubyCookies, b.String()+"\n")
 	}
-
-	if len(errs) > 0 {
-		return nil, errors.New(strings.Join(errs, "\n"))
-	}
-	return convertedCookies, nil
-}
-
-func performRequest(req *http.Request, requestResponse interface{}) ([]byte, error) {
-	client := http.Client{}
-	response, err := client.Do(req)
-	if err != nil {
-		// On error, any Response can be ignored
-		return nil, fmt.Errorf("failed to perform request, error: %s", err)
-	}
-
-	// The client must close the response body when finished with it
-	defer func() {
-		if cerr := response.Body.Close(); cerr != nil {
-			log.Warnf("Failed to close response body, error: %s", cerr)
-		}
-	}()
-
-	body, err := ioutil.ReadAll(response.Body)
-	if err != nil {
-		return nil, fmt.Errorf("failed to read response body, error: %s", err)
-	}
-
-	if response.StatusCode != http.StatusOK {
-		return nil, NetworkError{Status: response.StatusCode, Body: string(body)}
-	}
-
-	// Parse JSON body
-	if requestResponse != nil {
-		if err := json.Unmarshal([]byte(body), &requestResponse); err != nil {
-			return nil, fmt.Errorf("failed to unmarshal response (%s), error: %s", body, err)
-		}
-	}
-	return body, nil
-}
-
-func main() {
+	return strings.Join(rubyCookies, ""), nil
 }
