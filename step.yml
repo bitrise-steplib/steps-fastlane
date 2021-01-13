@@ -26,8 +26,8 @@ description: |-
   - [Running fastlane on Bitrise](https://devcenter.bitrise.io/tutorials/fastlane/fastlane-index/)
 
   ### Related Steps
-  - [Deploy to iTunes Connect/Deliver](https://www.bitrise.io/integrations/steps/yarn)
-  - [iOS Auto Provision](https://www.bitrise.io/integrations/steps/bundler)
+  - [Deploy to iTunes Connect/Deliver](https://www.bitrise.io/integrations/steps/deploy-to-itunesconnect-deliver)
+  - [iOS Auto Provision](https://www.bitrise.io/integrations/steps/ios-auto-provision)
   - [Fastlane Match](https://www.bitrise.io/integrations/steps/fastlane-match)
 website: https://github.com/bitrise-io/steps-fastlane
 source_code_url: https://github.com/bitrise-io/steps-fastlane
