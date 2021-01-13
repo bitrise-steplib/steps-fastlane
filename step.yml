@@ -22,12 +22,12 @@ description: |-
 
   ### Useful links
   - [About fastlane](https://docs.fastlane.tools)
-  - [Connecting your Apple Developer Account to Bitrise](https://devcenter.bitrise.io/getting-started/connecting-apple-dev-account/)
+  - [Connecting your Apple Developer Account to Bitrise](https://devcenter.bitrise.io/getting-started/configuring-bitrise-steps-that-require-apple-developer-account-data/)
   - [Running fastlane on Bitrise](https://devcenter.bitrise.io/tutorials/fastlane/fastlane-index/)
 
   ### Related Steps
-  - [Deploy to iTunes Connect/Deliver](https://www.bitrise.io/integrations/steps/yarn)
-  - [iOS Auto Provision](https://www.bitrise.io/integrations/steps/bundler)
+  - [Deploy to iTunes Connect/Deliver](https://www.bitrise.io/integrations/steps/deploy-to-itunesconnect-deliver)
+  - [iOS Auto Provision](https://www.bitrise.io/integrations/steps/ios-auto-provision)
   - [Fastlane Match](https://www.bitrise.io/integrations/steps/fastlane-match)
 website: https://github.com/bitrise-io/steps-fastlane
 source_code_url: https://github.com/bitrise-io/steps-fastlane
