@@ -7,7 +7,7 @@ workflows:
   ci:
     envs:
     - SAMPLE_APP_URL: "https://github.com/bitrise-io/sample-apps-flutter-veggieseasons.git"
-    - BRANCH: master
+    - BRANCH: fastlane-session
     before-run:
     - audit-this-step
     steps:
@@ -48,6 +48,12 @@ workflows:
                 echo "BITRISE_CACHE_INCLUDE_PATHS is empty"
                 exit 1
             fi
+    - path::./:
+        title: Test if Fastlane receives session-based Apple Developer connection
+        inputs:
+        - lane: test_fastlane_session
+        - work_dir: ./
+        - verbose_log: "yes"
 
   fastlane-session-test:
     envs:
