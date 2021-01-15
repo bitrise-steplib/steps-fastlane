@@ -282,7 +282,6 @@ func main() {
 
 	cmd.SetStdout(os.Stdout).SetStderr(os.Stderr)
 	cmd.SetDir(workDir)
-	cmd.AppendEnvs(envs...)
 
 	buildlogPth := ""
 
@@ -290,8 +289,10 @@ func main() {
 		log.Errorf("Failed to create temp dir for fastlane logs, error: %s", err)
 	} else {
 		buildlogPth = tempDir
-		cmd.AppendEnvs("FL_BUILDLOG_PATH=" + buildlogPth)
+		envs = append(envs, "FL_BUILDLOG_PATH="+buildlogPth)
 	}
+
+	cmd.AppendEnvs(envs...)
 
 	deployDir := os.Getenv("BITRISE_DEPLOY_DIR")
 	if deployDir == "" {

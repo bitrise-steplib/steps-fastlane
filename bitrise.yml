@@ -29,8 +29,15 @@ workflows:
         - content: |-
             set -ex
             git clone $SAMPLE_APP_URL -b $BRANCH .
+    - path::./:
+        title: Test if Fastlane receives session-based Apple Developer connection
+        inputs:
+        - lane: test_fastlane_session
+        - work_dir: ./
+        - verbose_log: "yes"
     - certificate-and-profile-installer:
     - path::./:
+        title: Test building a Flutter project
         inputs:
         - lane: build
         - work_dir: ./
