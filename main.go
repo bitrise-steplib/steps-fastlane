@@ -273,7 +273,7 @@ func main() {
 		failf("Failed to set up Apple Service authentication for Fastlane: %s", err)
 	}
 	envs = params.Envs
-	laneOptions = params.Args
+	laneOptions = append(params.Args, laneOptions...)
 
 	fastlaneCmd := []string{"fastlane"}
 	fastlaneCmd = append(fastlaneCmd, laneOptions...)
