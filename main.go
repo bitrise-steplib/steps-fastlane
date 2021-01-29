@@ -4,7 +4,6 @@ import (
 	"bufio"
 	"bytes"
 	"fmt"
-	"net/http"
 	"os"
 	"path/filepath"
 	"reflect"
@@ -19,19 +18,52 @@ import (
 	"github.com/bitrise-io/go-utils/fileutil"
 	"github.com/bitrise-io/go-utils/log"
 	"github.com/bitrise-io/go-utils/pathutil"
-	"github.com/bitrise-steplib/steps-deploy-to-itunesconnect-deliver/devportalservice"
+	"github.com/bitrise-steplib/steps-deploy-to-itunesconnect-deliver/appleauth"
 	"github.com/kballard/go-shellquote"
 )
 
 // Config contains inputs parsed from environment variables
 type Config struct {
-	WorkDir        string `env:"work_dir,dir"`
-	Lane           string `env:"lane,required"`
-	UpdateFastlane bool   `env:"update_fastlane,opt[true,false]"`
-	VerboseLog     bool   `env:"verbose_log,opt[yes,no]"`
-	EnableCache    bool   `env:"enable_cache,opt[yes,no]"`
+	WorkDir string `env:"work_dir,dir"`
+	Lane    string `env:"lane,required"`
+
+	BitriseConnection string          `env:"connection,opt[automatic,api_key,apple_id,off]"`
+	APIKeyPath        string          `env:"api_key_path"`
+	APIIssuer         string          `env:"api_issuer"`
+	ItunesConnectUser string          `env:"itunescon_user"`
+	Password          stepconf.Secret `env:"password"`
+	AppPassword       stepconf.Secret `env:"app_password"`
+	TeamID            string          `env:"team_id"`
+	TeamName          string          `env:"team_name"`
+
+	UpdateFastlane bool `env:"update_fastlane,opt[true,false]"`
+	VerboseLog     bool `env:"verbose_log,opt[yes,no]"`
+	EnableCache    bool `env:"enable_cache,opt[yes,no]"`
 
 	GemHome string `env:"GEM_HOME"`
+}
+
+func parseAuthSources(bitriseConnection string) ([]appleauth.Source, error) {
+	switch bitriseConnection {
+	case "automatic":
+		return []appleauth.Source{
+			&appleauth.ConnectionAPIKeySource{},
+			&appleauth.ConnectionAppleIDSource{},
+			&appleauth.InputAPIKeySource{},
+			&appleauth.InputAppleIDSource{},
+		}, nil
+	case "api_key":
+		return []appleauth.Source{&appleauth.ConnectionAPIKeySource{}}, nil
+	case "apple_id":
+		return []appleauth.Source{&appleauth.ConnectionAppleIDSource{}}, nil
+	case "off":
+		return []appleauth.Source{
+			&appleauth.InputAPIKeySource{},
+			&appleauth.InputAppleIDSource{},
+		}, nil
+	default:
+		return nil, fmt.Errorf("invalid connection input: %s", bitriseConnection)
+	}
 }
 
 func failf(format string, v ...interface{}) {
@@ -61,23 +93,6 @@ func fastlaneDebugInfo(workDir string, useBundler bool, bundlerVersion gems.Vers
 	}
 
 	return outBuffer.String(), nil
-}
-
-func handleSessionDataError(err error) {
-	if err == nil {
-		return
-	}
-
-	if networkErr, ok := err.(devportalservice.NetworkError); ok && networkErr.Status == http.StatusNotFound {
-		log.Debugf("")
-		log.Debugf("Connected Apple Developer Portal Account not found")
-		log.Debugf("Most likely because there is no Apple Developer Portal Account connected to the build, or the build is running locally.")
-		log.Debugf("Read more: https://devcenter.bitrise.io/getting-started/configuring-bitrise-steps-that-require-apple-developer-account-data/")
-	} else {
-		fmt.Println()
-		log.Errorf("Failed to activate Bitrise Apple Developer Portal connection: %s", err)
-		log.Warnf("Read more: https://devcenter.bitrise.io/getting-started/configuring-bitrise-steps-that-require-apple-developer-account-data/")
-	}
 }
 
 func functionName(i interface{}) string {
@@ -128,32 +143,22 @@ func main() {
 	}
 
 	//
-	// Fastlane session
-	fastlaneSession := ""
-	buildURL, buildAPIToken := os.Getenv("BITRISE_BUILD_URL"), os.Getenv("BITRISE_BUILD_API_TOKEN")
-	if buildURL != "" && buildAPIToken != "" {
-		var provider devportalservice.AppleDeveloperConnectionProvider
-		provider = devportalservice.NewBitriseClient(http.DefaultClient)
-
-		conn, err := provider.GetAppleDeveloperConnection(buildURL, buildAPIToken)
-		if err != nil {
-			handleSessionDataError(err)
-		}
-
-		if conn != nil && conn.AppleID != "" {
-			fmt.Println()
-			log.Infof("Connected session-based Apple Developer Portal Account found")
-
-			if expiry := conn.Expiry(); expiry != nil && conn.Expired() {
-				log.Warnf("Connection expired on %s", expiry.String())
-			} else if session, err := conn.FastlaneLoginSession(); err != nil {
-				handleSessionDataError(err)
-			} else {
-				fastlaneSession = session
-			}
-		}
-	} else {
-		log.Warnf("Step is not running on bitrise.io: BITRISE_BUILD_URL and BITRISE_BUILD_API_TOKEN envs are not set")
+	// Select and fetch Apple authenication source
+	authSources, err := parseAuthSources(config.BitriseConnection)
+	if err != nil {
+		failf("Input error: unexpected value for Bitrise Apple Developer Connection (%s)", config.BitriseConnection)
+	}
+	authConfig, err := appleauth.Fetch(authSources, appleauth.Inputs{
+		Username:            config.ItunesConnectUser,
+		Password:            string(config.Password),
+		AppSpecificPassword: string(config.AppPassword),
+		APIIssuer:           config.APIIssuer,
+		APIKeyPath:          config.APIKeyPath,
+		TeamID:              config.TeamID,
+		TeamName:            config.TeamName,
+	})
+	if err != nil {
+		failf("Could not configure Apple Service authentication: %v", err)
 	}
 
 	// Split lane option
@@ -262,6 +267,11 @@ func main() {
 	fmt.Println()
 	log.Infof("Run Fastlane")
 
+	envs := []string{}
+	if err := appleauth.AppendFastlaneCredentials(appleauth.FastlaneParams{Envs: envs, Args: laneOptions}, authConfig); err != nil {
+		failf("Failed to set up Apple Service authentication for Fastlane: %s", err)
+	}
+
 	fastlaneCmd := []string{"fastlane"}
 	fastlaneCmd = append(fastlaneCmd, laneOptions...)
 	if useBundler {
@@ -273,11 +283,6 @@ func main() {
 	cmd, err = rubycommand.NewFromSlice(fastlaneCmd)
 	if err != nil {
 		failf("Failed to create command model, error: %s", err)
-	}
-
-	envs := []string{}
-	if fastlaneSession != "" {
-		envs = append(envs, "FASTLANE_SESSION="+fastlaneSession)
 	}
 
 	cmd.SetStdout(os.Stdout).SetStderr(os.Stderr)
