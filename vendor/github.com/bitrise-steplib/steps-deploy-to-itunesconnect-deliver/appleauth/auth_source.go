@@ -86,7 +86,7 @@ func (*InputAPIKeySource) Fetch(conn *devportalservice.AppleDeveloperConnection,
 
 // Description ...
 func (*ConnectionAppleIDSource) Description() string {
-	return "Connected session-based Apple Developer Portal Account found"
+	return "Connected session-based Apple Developer Portal Account found. It is Reccomended to use an API Key (App Store Connect API) instead."
 }
 
 // RequiresConnection ...
@@ -127,7 +127,7 @@ func (*ConnectionAppleIDSource) Fetch(conn *devportalservice.AppleDeveloperConne
 
 // Description ...
 func (*InputAppleIDSource) Description() string {
-	return "Authenticating using Step inputs (session-based). This method does not support 2FA."
+	return "Authenticating using Step inputs (session-based). This method does not support 2FA. It is Reccomended to use an API Key (App Store Connect API) instead."
 }
 
 // RequiresConnection ...

@@ -268,9 +268,12 @@ func main() {
 	log.Infof("Run Fastlane")
 
 	envs := []string{}
-	if err := appleauth.AppendFastlaneCredentials(appleauth.FastlaneParams{Envs: envs, Args: laneOptions}, authConfig); err != nil {
+	params, err := appleauth.AppendFastlaneCredentials(appleauth.FastlaneParams{Envs: envs, Args: laneOptions}, authConfig)
+	if err != nil {
 		failf("Failed to set up Apple Service authentication for Fastlane: %s", err)
 	}
+	envs = params.Envs
+	laneOptions = params.Args
 
 	fastlaneCmd := []string{"fastlane"}
 	fastlaneCmd = append(fastlaneCmd, laneOptions...)

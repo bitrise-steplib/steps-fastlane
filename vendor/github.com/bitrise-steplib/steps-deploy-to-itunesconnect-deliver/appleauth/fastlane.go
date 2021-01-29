@@ -25,7 +25,8 @@ type FastlaneParams struct {
 }
 
 // AppendFastlaneCredentials adds auth credentials to Fastlane envs and args
-func AppendFastlaneCredentials(p FastlaneParams, authConfig Credentials) error {
+func AppendFastlaneCredentials(inParams FastlaneParams, authConfig Credentials) (FastlaneParams, error) {
+	p := inParams
 	if authConfig.AppleID != nil {
 		// Set as environment variables
 		if authConfig.AppleID.Password != "" {
@@ -68,7 +69,7 @@ func AppendFastlaneCredentials(p FastlaneParams, authConfig Credentials) error {
 			PrivateKey: authConfig.APIKey.PrivateKey,
 		})
 		if err != nil {
-			return fmt.Errorf("failed to write Fastane API Key configuration to file: %v", err)
+			return FastlaneParams{}, fmt.Errorf("failed to write Fastane API Key configuration to file: %v", err)
 		}
 
 		apiKeyPathKey := "--api_key_path"
@@ -80,7 +81,7 @@ func AppendFastlaneCredentials(p FastlaneParams, authConfig Credentials) error {
 		}
 	}
 
-	return nil
+	return p, nil
 }
 
 // writeFastlaneAPIKeyToFile writes a Fastlane-specific JSON file to disk, containing Apple Service authentication details

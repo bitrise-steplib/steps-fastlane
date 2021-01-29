@@ -9,7 +9,7 @@ github.com/bitrise-io/bitrise-init/steps
 github.com/bitrise-io/bitrise-init/utility
 # github.com/bitrise-io/envman v0.0.0-20190813133714-27a300a1ed43
 github.com/bitrise-io/envman/models
-# github.com/bitrise-io/go-steputils v0.0.0-20190806143347-f540824d77df
+# github.com/bitrise-io/go-steputils v0.0.0-20201016102104-03ae3a6ded35
 github.com/bitrise-io/go-steputils/cache
 github.com/bitrise-io/go-steputils/stepconf
 github.com/bitrise-io/go-steputils/tools
@@ -28,7 +28,7 @@ github.com/bitrise-io/go-utils/sliceutil
 github.com/bitrise-io/stepman/models
 # github.com/bitrise-steplib/bitrise-step-android-unit-test v0.0.0-20190902203028-ff8e682d8645
 github.com/bitrise-steplib/bitrise-step-android-unit-test/cache
-# github.com/bitrise-steplib/steps-deploy-to-itunesconnect-deliver v0.0.0-20210129102242-e8de8b2c89ad
+# github.com/bitrise-steplib/steps-deploy-to-itunesconnect-deliver v0.0.0-20210129115208-72a291c6e532
 github.com/bitrise-steplib/steps-deploy-to-itunesconnect-deliver/appleauth
 github.com/bitrise-steplib/steps-deploy-to-itunesconnect-deliver/devportalservice
 # github.com/kballard/go-shellquote v0.0.0-20180428030007-95032a82bc51
