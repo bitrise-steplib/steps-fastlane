@@ -9,11 +9,10 @@ import (
 
 // Inputs is Apple Service authentication configuration provided by end user
 type Inputs struct {
-	// Apple ID (legacy)
+	// Apple ID
 	Username, Password, AppSpecificPassword string
 	// API key (JWT)
 	APIIssuer, APIKeyPath string
-	TeamID, TeamName      string
 }
 
 // Validate trims extra spaces and checks input grouping
@@ -27,15 +26,10 @@ func (cfg *Inputs) Validate() error {
 		isAppleIDAuthType = (cfg.AppSpecificPassword != "" || cfg.Username != "" || cfg.Password != "")
 	)
 
-	if cfg.TeamName != "" && cfg.TeamID != "" {
-		log.Warnf("TeamName parameter specified, TeamID will be ignored")
-		cfg.TeamID = ""
-	}
-
 	switch {
 	case isAppleIDAuthType && isAPIKeyAuthType:
 		log.Warnf("Either provide Apple ID, Password (and  App-specific password if available) OR API Key Path and API Issuer")
-		return fmt.Errorf("both Apple ID (legacy) and API key related configuration provided, but only one of them expected")
+		return fmt.Errorf("both Apple ID and API key related configuration provided, but only one of them expected")
 
 	case isAppleIDAuthType:
 		if cfg.AppSpecificPassword != "" {

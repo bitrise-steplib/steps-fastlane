@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"bytes"
 	"fmt"
+	"net/http"
 	"os"
 	"path/filepath"
 	"reflect"
@@ -19,6 +20,7 @@ import (
 	"github.com/bitrise-io/go-utils/log"
 	"github.com/bitrise-io/go-utils/pathutil"
 	"github.com/bitrise-steplib/steps-deploy-to-itunesconnect-deliver/appleauth"
+	"github.com/bitrise-steplib/steps-deploy-to-itunesconnect-deliver/devportalservice"
 	"github.com/kballard/go-shellquote"
 )
 
@@ -28,19 +30,21 @@ type Config struct {
 	Lane    string `env:"lane,required"`
 
 	BitriseConnection string          `env:"connection,opt[automatic,api_key,apple_id,off]"`
-	APIKeyPath        string          `env:"api_key_path"`
-	APIIssuer         string          `env:"api_issuer"`
-	ItunesConnectUser string          `env:"itunescon_user"`
+	AppleIDUser       string          `env:"apple_id"`
 	Password          stepconf.Secret `env:"password"`
 	AppPassword       stepconf.Secret `env:"app_password"`
-	TeamID            string          `env:"team_id"`
-	TeamName          string          `env:"team_name"`
+	APIKeyPath        string          `env:"api_key_path"`
+	APIIssuer         string          `env:"api_issuer"`
 
 	UpdateFastlane bool `env:"update_fastlane,opt[true,false]"`
 	VerboseLog     bool `env:"verbose_log,opt[yes,no]"`
 	EnableCache    bool `env:"enable_cache,opt[yes,no]"`
 
 	GemHome string `env:"GEM_HOME"`
+
+	// Used to get Bitrise Apple Developer Portal Connection
+	BuildURL      string          `env:"BITRISE_BUILD_URL"`
+	BuildAPIToken stepconf.Secret `env:"BITRISE_BUILD_API_TOKEN"`
 }
 
 func parseAuthSources(bitriseConnection string) ([]appleauth.Source, error) {
@@ -48,18 +52,18 @@ func parseAuthSources(bitriseConnection string) ([]appleauth.Source, error) {
 	case "automatic":
 		return []appleauth.Source{
 			&appleauth.ConnectionAPIKeySource{},
-			&appleauth.ConnectionAppleIDSource{},
+			&appleauth.ConnectionAppleIDFastlaneSource{},
 			&appleauth.InputAPIKeySource{},
-			&appleauth.InputAppleIDSource{},
+			&appleauth.InputAppleIDFastlaneSource{},
 		}, nil
 	case "api_key":
 		return []appleauth.Source{&appleauth.ConnectionAPIKeySource{}}, nil
 	case "apple_id":
-		return []appleauth.Source{&appleauth.ConnectionAppleIDSource{}}, nil
+		return []appleauth.Source{&appleauth.ConnectionAppleIDFastlaneSource{}}, nil
 	case "off":
 		return []appleauth.Source{
 			&appleauth.InputAPIKeySource{},
-			&appleauth.InputAppleIDSource{},
+			&appleauth.InputAppleIDFastlaneSource{},
 		}, nil
 	default:
 		return nil, fmt.Errorf("invalid connection input: %s", bitriseConnection)
@@ -99,6 +103,25 @@ func functionName(i interface{}) string {
 	return runtime.FuncForPC(reflect.ValueOf(i).Pointer()).Name()
 }
 
+const notConnected = `Connected Apple Developer Portal Account not found.
+Most likely because there is no Apple Developer Portal Account connected to the build, or the build is running locally.
+Read more: https://devcenter.bitrise.io/getting-started/configuring-bitrise-steps-that-require-apple-developer-account-data/`
+
+func handleSessionDataError(err error) {
+	if err == nil {
+		return
+	}
+
+	if networkErr, ok := err.(devportalservice.NetworkError); ok && networkErr.Status == http.StatusNotFound {
+		log.Debugf("")
+		log.Debugf("%s", notConnected)
+	} else {
+		fmt.Println()
+		log.Errorf("Failed to activate Bitrise Apple Developer Portal connection: %s", err)
+		log.Warnf("Read more: https://devcenter.bitrise.io/getting-started/configuring-bitrise-steps-that-require-apple-developer-account-data/")
+	}
+}
+
 func main() {
 	var config Config
 	if err := stepconf.Parse(&config); err != nil {
@@ -108,6 +131,22 @@ func main() {
 	stepconf.Print(config)
 	log.SetEnableDebugLog(config.VerboseLog)
 	fmt.Println()
+
+	// Validate inputs
+	authInputs := appleauth.Inputs{
+		Username:            config.AppleIDUser,
+		Password:            string(config.Password),
+		AppSpecificPassword: string(config.AppPassword),
+		APIIssuer:           config.APIIssuer,
+		APIKeyPath:          config.APIKeyPath,
+	}
+	if err := authInputs.Validate(); err != nil {
+		failf("Issue with authentication related inputs: %v", err)
+	}
+	authSources, err := parseAuthSources(config.BitriseConnection)
+	if err != nil {
+		failf("Invalid Input: unexpected value for Bitrise Apple Developer Connection (%s)", config.BitriseConnection)
+	}
 
 	if strings.TrimSpace(config.GemHome) != "" {
 		log.Warnf("Custom value (%s) is set for GEM_HOME environment variable. This can lead to errors as gem lookup path may not contain GEM_HOME.")
@@ -142,23 +181,33 @@ func main() {
 		}
 	}
 
-	//
 	// Select and fetch Apple authenication source
-	authSources, err := parseAuthSources(config.BitriseConnection)
-	if err != nil {
-		failf("Input error: unexpected value for Bitrise Apple Developer Connection (%s)", config.BitriseConnection)
+	var devportalConnectionProvider *devportalservice.BitriseClient
+	if config.BuildURL != "" && config.BuildAPIToken != "" {
+		devportalConnectionProvider = devportalservice.NewBitriseClient(http.DefaultClient, config.BuildURL, string(config.BuildAPIToken))
+	} else {
+		log.Warnf("Step is not running on bitrise.io: BITRISE_BUILD_URL and BITRISE_BUILD_API_TOKEN envs are not set")
 	}
-	authConfig, err := appleauth.Fetch(authSources, appleauth.Inputs{
-		Username:            config.ItunesConnectUser,
-		Password:            string(config.Password),
-		AppSpecificPassword: string(config.AppPassword),
-		APIIssuer:           config.APIIssuer,
-		APIKeyPath:          config.APIKeyPath,
-		TeamID:              config.TeamID,
-		TeamName:            config.TeamName,
-	})
+	var conn *devportalservice.AppleDeveloperConnection
+	if config.BitriseConnection != "off" && devportalConnectionProvider != nil {
+		var err error
+		conn, err = devportalConnectionProvider.GetAppleDeveloperConnection()
+		if err != nil {
+			handleSessionDataError(err)
+		}
+
+		if conn == nil || (conn.JWTConnection == nil && conn.SessionConnection == nil) {
+			fmt.Println()
+			log.Debugf("%s", notConnected)
+		}
+	}
+
+	authConfig, err := appleauth.Select(conn, authSources, authInputs)
 	if err != nil {
 		failf("Could not configure Apple Service authentication: %v", err)
+	}
+	if authConfig.AppleID != nil && authConfig.AppleID.AppSpecificPassword == "" {
+		log.Warnf("If 2FA enabled Apple ID is used, Application-specific password may be required.")
 	}
 
 	// Split lane option
@@ -267,15 +316,21 @@ func main() {
 	fmt.Println()
 	log.Infof("Run Fastlane")
 
-	envs := []string{}
-	params, err := appleauth.AppendFastlaneCredentials(appleauth.FastlaneParams{Envs: envs, Args: laneOptions}, authConfig)
+	var envs []string
+	var authArgs []string
+	authParams, err := FastlaneAuthParams(authConfig)
 	if err != nil {
-		failf("Failed to set up Apple Service authentication for Fastlane: %s", err)
+		failf("Failed to set up Fastlane authentication paramteres: %v", err)
 	}
-	envs = params.Envs
-	laneOptions = append(params.Args, laneOptions...)
+	for envKey, envValue := range authParams.Envs {
+		envs = append(envs, fmt.Sprintf("%s=%s", envKey, envValue))
+	}
+	for _, arg := range authParams.Args {
+		authArgs = append(authArgs, []string{arg.Key, arg.Value}...)
+	}
 
 	fastlaneCmd := []string{"fastlane"}
+	fastlaneCmd = append(fastlaneCmd, authArgs...)
 	fastlaneCmd = append(fastlaneCmd, laneOptions...)
 	if useBundler {
 		fastlaneCmd = append(gems.BundleExecPrefix(gemVersions.bundler), fastlaneCmd...)

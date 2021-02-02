@@ -61,15 +61,15 @@ inputs:
   - connection: "automatic"
     opts:
       title: Bitrise Apple Developer Connection
-      summary: By default any enabled Bitrise Apple Developer Connection is used, inputs for Apple Service authentication are used as a fallback only.
+      summary: The Apple Service authentication method the Step uses. By default, any enabled Bitrise Apple Developer connection is used and other authentication-related Step inputs are ignored.
       description: |-
-        By default any enabled Bitrise Apple Developer Connection is used, inputs for Apple Service authentication are used as a fallback only.
-
-        You can choose which type of Bitrise Apple Developer Connection to use, or use Step inputs for configuring authentication:
-        - `automatic`: Use Apple Developer Connection if found, Step inputs are used as a fallback. Both cases API key (App Store Connect API) authentication has priority over Apple ID (legacy), if set.
-        - `api_key`: Use Apple Developer Connection. Only API key (App Store Connect API) authentication is used. Authentication related Step inputs are ignored.
-        - `apple_id`: Use Apple Developer Connection. Only Apple ID (legacy) authentication is used. Other authentication related Step inputs are ignored.
-        - `off`: Do not use Apple Developer Connection. Only authentication related Step inputs are considered.
+        The input determines the method used for Apple Service authentication. By default, any enabled Bitrise Apple Developer connection is used and other authentication-related Step inputs are ignored.
+        
+        There are two types of Apple Developer connection you can enable on Bitrise: one is based on an API key of the App Store Connect API, the other is the legacy method of session-based authentication with an Apple ID. You can choose which type of Bitrise Apple Developer connection to use or you can tell the Step to only use Step inputs for authentication:
+        - `automatic`: Use any enabled Apple Developer connection, either based on Apple ID authentication or API key authentication.  Step inputs are only used as a fallback. API key authentication has priority over Apple ID authentication in both cases.
+        - `api_key`: Use the Apple Developer connection based on API key authentication. Authentication-related Step inputs are ignored.
+        - `apple_id`: Use the Apple Developer connection based on Apple ID authentication and **Application-specific password** Step input. Other authentication-related Step inputs are ignored.
+        - `off`: Do not use any Apple Developer Connection. Only authentication-related Step inputs are considered.
       is_required: true
       value_options:
       - "automatic"
@@ -93,21 +93,22 @@ inputs:
       description: |-
         Issuer ID. Required if API Key URL (api_key_path) is specified.
         **NOTE:** Only available from XCode 11.0 and above.
-  - itunescon_user: ""
+  - apple_id: ""
     opts:
-      title: "Apple ID (legacy): Apple ID"
-      description: Login Apple ID for iTunes Connect.
+      title: "Apple ID"
+      summary: Email for Apple ID login.
+      description: Email for Apple ID login.
       is_required: false
       is_sensitive: true
   - password: ""
     opts:
-      title: "Apple ID (legacy): Password"
+      title: "Apple ID: Password"
       description: Password for the specified Apple ID.
       is_required: false
       is_sensitive: true
   - app_password: ""
     opts:
-      title: "Apple ID (legacy): Application-specific password (Required if using legacy Bitrise Apple Developer Connection)"
+      title: "Apple ID: Application-specific password (Required if using legacy Bitrise Apple Developer Connection)"
       description: |-
         An application-specific password for the Apple ID.
         **NOTE:** Application-specific passwords can be created on the

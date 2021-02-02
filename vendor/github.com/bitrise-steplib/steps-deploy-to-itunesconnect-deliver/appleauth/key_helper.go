@@ -2,11 +2,9 @@ package appleauth
 
 import (
 	"fmt"
-	"io"
 	"io/ioutil"
 	"net/http"
 	"net/url"
-	"os"
 	"path/filepath"
 	"regexp"
 
@@ -19,59 +17,46 @@ func fetchPrivateKey(privateKeyURL string) ([]byte, string, error) {
 		return nil, "", err
 	}
 
-	keyID := getKeyID(fileURL)
-	// .appstoreconnect/private_keys is a  path searched by altool (see altool's man page)
-	keyFile := filepath.Join(os.Getenv("HOME"), ".appstoreconnect/private_keys", fmt.Sprintf("AuthKey_%s.p8", keyID))
-	if err := copyOrDownloadFile(fileURL, keyFile); err != nil {
-		return nil, "", err
-	}
-
-	key, err := ioutil.ReadFile(keyFile)
+	key, err := copyOrDownloadFile(fileURL)
 	if err != nil {
 		return nil, "", err
 	}
 
-	return key, keyID, nil
+	return key, getKeyID(fileURL), nil
 }
 
-func copyOrDownloadFile(u *url.URL, pth string) error {
-	if err := os.MkdirAll(filepath.Dir(pth), 0777); err != nil {
-		return err
-	}
-
-	certFile, err := os.Create(pth)
-	if err != nil {
-		return err
-	}
-	defer func() {
-		if err := certFile.Close(); err != nil {
-			log.Errorf("Failed to close file, error: %s", err)
-		}
-	}()
-
+func copyOrDownloadFile(u *url.URL) ([]byte, error) {
 	// if file -> copy
 	if u.Scheme == "file" {
 		b, err := ioutil.ReadFile(u.Path)
 		if err != nil {
-			return err
+			return nil, err
 		}
-		_, err = certFile.Write(b)
-		return err
+
+		return b, err
 	}
 
 	// otherwise download
-	f, err := http.Get(u.String())
+	resp, err := http.Get(u.String())
 	if err != nil {
-		return err
+		return nil, err
 	}
 	defer func() {
-		if err := f.Body.Close(); err != nil {
-			log.Errorf("Failed to close file, error: %s", err)
+		if err := resp.Body.Close(); err != nil {
+			log.Errorf("Failed to close file: %s", err)
 		}
 	}()
 
-	_, err = io.Copy(certFile, f.Body)
-	return err
+	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+		return nil, fmt.Errorf("request failed with status %d", resp.StatusCode)
+	}
+
+	contentBytes, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read response body: %s", err)
+	}
+
+	return contentBytes, nil
 }
 
 func getKeyID(u *url.URL) string {

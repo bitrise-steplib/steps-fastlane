@@ -10,6 +10,7 @@ import (
 	"text/template"
 	"time"
 
+	"github.com/bitrise-io/go-utils/fileutil"
 	"github.com/bitrise-io/go-utils/log"
 )
 
@@ -19,51 +20,41 @@ type httpClient interface {
 
 // AppleDeveloperConnectionProvider ...
 type AppleDeveloperConnectionProvider interface {
-	GetAppleDeveloperConnection(buildURL, buildAPIToken string) (*AppleDeveloperConnection, error)
+	GetAppleDeveloperConnection() (*AppleDeveloperConnection, error)
 }
 
 // BitriseClient implements AppleDeveloperConnectionProvider through the Bitrise.io API.
 type BitriseClient struct {
-	httpClient httpClient
+	httpClient              httpClient
+	buildURL, buildAPIToken string
+
+	readBytesFromFile func(pth string) ([]byte, error)
 }
 
 // NewBitriseClient creates a new instance of BitriseClient.
-func NewBitriseClient(client httpClient) *BitriseClient {
+func NewBitriseClient(client httpClient, buildURL, buildAPIToken string) *BitriseClient {
 	return &BitriseClient{
-		httpClient: client,
+		httpClient:        client,
+		buildURL:          buildURL,
+		buildAPIToken:     buildAPIToken,
+		readBytesFromFile: fileutil.ReadBytesFromFile,
 	}
 }
 
 const appleDeveloperConnectionPath = "apple_developer_portal_data.json"
 
 // GetAppleDeveloperConnection fetches the Bitrise.io session-based Apple Developer connection.
-func (c *BitriseClient) GetAppleDeveloperConnection(buildURL, buildAPIToken string) (*AppleDeveloperConnection, error) {
-	req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("%s/%s", buildURL, appleDeveloperConnectionPath), nil)
-	if err != nil {
-		return nil, err
+func (c *BitriseClient) GetAppleDeveloperConnection() (*AppleDeveloperConnection, error) {
+	var rawCreds []byte
+	var err error
+
+	if strings.HasPrefix(c.buildURL, "file://") {
+		rawCreds, err = c.readBytesFromFile(strings.TrimPrefix(c.buildURL, "file://"))
+	} else {
+		rawCreds, err = c.download()
 	}
-	req.Header.Add("BUILD_API_TOKEN", buildAPIToken)
-
-	resp, err := c.httpClient.Do(req)
 	if err != nil {
-		// On error, any Response can be ignored
-		return nil, fmt.Errorf("failed to perform request, error: %s", err)
-	}
-
-	// The client must close the response body when finished with it
-	defer func() {
-		if cerr := resp.Body.Close(); cerr != nil {
-			log.Warnf("Failed to close response body, error: %s", cerr)
-		}
-	}()
-
-	body, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return nil, fmt.Errorf("failed to read response body, error: %s", err)
-	}
-
-	if resp.StatusCode != http.StatusOK {
-		return nil, NetworkError{Status: resp.StatusCode, Body: string(body)}
+		return nil, fmt.Errorf("failed to fetch authentication credentials: %v", err)
 	}
 
 	type data struct {
@@ -72,8 +63,20 @@ func (c *BitriseClient) GetAppleDeveloperConnection(buildURL, buildAPIToken stri
 		TestDevices []TestDevice `json:"test_devices"`
 	}
 	var d data
-	if err := json.Unmarshal([]byte(body), &d); err != nil {
-		return nil, fmt.Errorf("failed to unmarshal response (%s), error: %s", body, err)
+	if err := json.Unmarshal([]byte(rawCreds), &d); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal authentication credentials from response (%s): %s", rawCreds, err)
+	}
+
+	if d.JWTConnection != nil {
+		if d.JWTConnection.IssuerID == "" {
+			return nil, fmt.Errorf("invalid authentication credentials, empty issuer_id in response (%s)", rawCreds)
+		}
+		if d.JWTConnection.KeyID == "" {
+			return nil, fmt.Errorf("invalid authentication credentials, empty key_id in response (%s)", rawCreds)
+		}
+		if d.JWTConnection.PrivateKey == "" {
+			return nil, fmt.Errorf("invalid authentication credentials, empty private_key in response (%s)", rawCreds)
+		}
 	}
 
 	return &AppleDeveloperConnection{
@@ -81,6 +84,39 @@ func (c *BitriseClient) GetAppleDeveloperConnection(buildURL, buildAPIToken stri
 		JWTConnection:     d.JWTConnection,
 		TestDevices:       d.TestDevices,
 	}, nil
+}
+
+func (c *BitriseClient) download() ([]byte, error) {
+	url := fmt.Sprintf("%s/%s", c.buildURL, appleDeveloperConnectionPath)
+	req, err := http.NewRequest(http.MethodGet, url, nil)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create request for URL (%s): %s", url, err)
+	}
+	req.Header.Add("BUILD_API_TOKEN", c.buildAPIToken)
+
+	resp, err := c.httpClient.Do(req)
+	if err != nil {
+		// On error, any Response can be ignored
+		return nil, fmt.Errorf("failed to perform request: %s", err)
+	}
+
+	// The client must close the response body when finished with it
+	defer func() {
+		if cerr := resp.Body.Close(); cerr != nil {
+			log.Warnf("Failed to close response body: %s", cerr)
+		}
+	}()
+
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read response body: %s", err)
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, NetworkError{Status: resp.StatusCode, Body: string(body)}
+	}
+
+	return body, nil
 }
 
 type cookie struct {
@@ -127,6 +163,19 @@ type AppleDeveloperConnection struct {
 	SessionConnection *SessionConnection
 	JWTConnection     *JWTConnection
 	TestDevices       []TestDevice `json:"test_devices"`
+}
+
+// PrivateKeyWithHeader adds header and footer if needed
+func (cred *JWTConnection) PrivateKeyWithHeader() string {
+	if strings.HasPrefix(cred.PrivateKey, "-----BEGIN PRIVATE KEY----") {
+		return cred.PrivateKey
+	}
+
+	return fmt.Sprint(
+		"-----BEGIN PRIVATE KEY-----\n",
+		cred.PrivateKey,
+		"\n-----END PRIVATE KEY-----",
+	)
 }
 
 // Expiry returns the expiration of the Bitrise session-based Apple Developer connection.
