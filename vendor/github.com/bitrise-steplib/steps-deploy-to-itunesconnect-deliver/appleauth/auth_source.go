@@ -37,12 +37,12 @@ func (*ConnectionAPIKeySource) Description() string {
 
 // Fetch ...
 func (*ConnectionAPIKeySource) Fetch(conn *devportalservice.AppleDeveloperConnection, inputs Inputs) (*Credentials, error) {
-	if conn == nil || conn.JWTConnection == nil { // Not configured
+	if conn == nil || conn.APIKeyConnection == nil { // Not configured
 		return nil, nil
 	}
 
 	return &Credentials{
-		APIKey: conn.JWTConnection,
+		APIKey: conn.APIKeyConnection,
 	}, nil
 }
 
@@ -68,7 +68,7 @@ func (*InputAPIKeySource) Fetch(conn *devportalservice.AppleDeveloperConnection,
 	}
 
 	return &Credentials{
-		APIKey: &devportalservice.JWTConnection{
+		APIKey: &devportalservice.APIKeyConnection{
 			IssuerID:   inputs.APIIssuer,
 			KeyID:      keyID,
 			PrivateKey: string(privateKey),
@@ -85,14 +85,14 @@ func (*ConnectionAppleIDSource) Description() string {
 
 // Fetch ...
 func (*ConnectionAppleIDSource) Fetch(conn *devportalservice.AppleDeveloperConnection, inputs Inputs) (*Credentials, error) {
-	if conn == nil || conn.SessionConnection == nil { // No Apple ID configured
+	if conn == nil || conn.AppleIDConnection == nil { // No Apple ID configured
 		return nil, nil
 	}
 
 	return &Credentials{
 		AppleID: &AppleID{
-			Username:            conn.SessionConnection.AppleID,
-			Password:            conn.SessionConnection.Password,
+			Username:            conn.AppleIDConnection.AppleID,
+			Password:            conn.AppleIDConnection.Password,
 			Session:             "",
 			AppSpecificPassword: inputs.AppSpecificPassword,
 		},
@@ -130,23 +130,23 @@ func (*ConnectionAppleIDFastlaneSource) Description() string {
 
 // Fetch ...
 func (*ConnectionAppleIDFastlaneSource) Fetch(conn *devportalservice.AppleDeveloperConnection, inputs Inputs) (*Credentials, error) {
-	if conn == nil || conn.SessionConnection == nil { // No Apple ID configured
+	if conn == nil || conn.AppleIDConnection == nil { // No Apple ID configured
 		return nil, nil
 	}
 
-	sessionConn := conn.SessionConnection
-	if expiry := sessionConn.Expiry(); expiry != nil && sessionConn.Expired() {
+	appleIDConn := conn.AppleIDConnection
+	if expiry := appleIDConn.Expiry(); expiry != nil && appleIDConn.Expired() {
 		return nil, fmt.Errorf("2FA session saved in Bitrise Developer Connection is expired, was valid until %s", expiry.String())
 	}
-	session, err := sessionConn.FastlaneLoginSession()
+	session, err := appleIDConn.FastlaneLoginSession()
 	if err != nil {
 		return nil, fmt.Errorf("could not prepare Fastlane session cookie object: %v", err)
 	}
 
 	return &Credentials{
 		AppleID: &AppleID{
-			Username:            conn.SessionConnection.AppleID,
-			Password:            conn.SessionConnection.Password,
+			Username:            conn.AppleIDConnection.AppleID,
+			Password:            conn.AppleIDConnection.Password,
 			Session:             session,
 			AppSpecificPassword: inputs.AppSpecificPassword,
 		},

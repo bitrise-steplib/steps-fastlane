@@ -10,7 +10,7 @@ import (
 // Credentials contains either Apple ID or APIKey auth info
 type Credentials struct {
 	AppleID *AppleID
-	APIKey  *devportalservice.JWTConnection
+	APIKey  *devportalservice.APIKeyConnection
 }
 
 // AppleID contains Apple ID auth info

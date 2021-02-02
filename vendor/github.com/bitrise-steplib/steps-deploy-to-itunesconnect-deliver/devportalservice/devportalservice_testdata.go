@@ -46,12 +46,12 @@ var testDevices = []TestDevice{
 }
 
 var testConnectionOnlyDevices = AppleDeveloperConnection{
-	SessionConnection: nil,
-	JWTConnection:     nil,
+	AppleIDConnection: nil,
+	APIKeyConnection:  nil,
 	TestDevices:       testDevices,
 }
 
-const testSessionConnectionResponseBody = `{
+const testAppleIDConnectionResponseBody = `{
     "apple_id": "example@example.io",
     "password": "highSecurityPassword",
     "connection_expiry_date": "2019-04-06T12:04:59.000Z",
@@ -96,7 +96,7 @@ const testFastlaneSession = `---
 
 `
 
-var testSessionConnection = SessionConnection{
+var testAppleIDConnection = AppleIDConnection{
 	AppleID:              "example@example.io",
 	Password:             "highSecurityPassword",
 	ConnectionExpiryDate: "2019-04-06T12:04:59.000Z",
@@ -124,31 +124,31 @@ var testSessionConnection = SessionConnection{
 	},
 }
 
-var testConnectionWithSessionConnection = AppleDeveloperConnection{
-	SessionConnection: &testSessionConnection,
-	JWTConnection:     nil,
+var testConnectionWithAppleIDConnection = AppleDeveloperConnection{
+	AppleIDConnection: &testAppleIDConnection,
+	APIKeyConnection:  nil,
 	TestDevices:       nil,
 }
 
-const testJWTConnectionResponseBody = `{
+const testAPIKeyConnectionResponseBody = `{
     "key_id": "ASDF4H9LNQ",
     "issuer_id": "asdf1234-7325-47e3-e053-5b8c7c11a4d1",
     "private_key": "-----BEGIN PRIVATE KEY-----\nASdf1234MBMGByqGSM49AgEGCCqGSM49AwEHBHkwdwIBAQQg9O4G/HVLgSqc2i7x\nasDF12346UNzKCEwOfQ1ixC0G9agCgYIKoZIzj0DAQehRANCAARcJQItGFcefLRc\naSDf1234ka9BMpRjjr3NWyCWl817HCdXXckuc22RjnKxRnYMBBDv8zPDX0k9TbST\nacgZ04Gg\n-----END PRIVATE KEY-----"
 }`
 
-var testJWTConnection = JWTConnection{
+var testAPIKeyConnection = APIKeyConnection{
 	KeyID:      "ASDF4H9LNQ",
 	IssuerID:   "asdf1234-7325-47e3-e053-5b8c7c11a4d1",
 	PrivateKey: "-----BEGIN PRIVATE KEY-----\nASdf1234MBMGByqGSM49AgEGCCqGSM49AwEHBHkwdwIBAQQg9O4G/HVLgSqc2i7x\nasDF12346UNzKCEwOfQ1ixC0G9agCgYIKoZIzj0DAQehRANCAARcJQItGFcefLRc\naSDf1234ka9BMpRjjr3NWyCWl817HCdXXckuc22RjnKxRnYMBBDv8zPDX0k9TbST\nacgZ04Gg\n-----END PRIVATE KEY-----",
 }
 
-var testConnectionWithJWTConnection = AppleDeveloperConnection{
-	SessionConnection: nil,
-	JWTConnection:     &testJWTConnection,
+var testConnectionWithAPIKeyConnection = AppleDeveloperConnection{
+	AppleIDConnection: nil,
+	APIKeyConnection:  &testAPIKeyConnection,
 	TestDevices:       nil,
 }
 
-const testSessionAndJWTConnectionResponseBody = `{
+const testAppleIDAndAPIKeyConnectionResponseBody = `{
     "apple_id": "example@example.io",
     "password": "highSecurityPassword",
     "connection_expiry_date": "2019-04-06T12:04:59.000Z",
@@ -200,8 +200,8 @@ const testSessionAndJWTConnectionResponseBody = `{
 }
 `
 
-var testConnectionWithSessionAndJWTConnection = AppleDeveloperConnection{
-	SessionConnection: &testSessionConnection,
-	JWTConnection:     &testJWTConnection,
+var testConnectionWithAppleIDAndAPIKeyConnection = AppleDeveloperConnection{
+	AppleIDConnection: &testAppleIDConnection,
+	APIKeyConnection:  &testAPIKeyConnection,
 	TestDevices:       testDevices,
 }

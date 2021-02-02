@@ -18,6 +18,8 @@ github.com/bitrise-steplib/steps-deploy-to-itunesconnect-deliver v0.0.0-20210129
 github.com/bitrise-steplib/steps-deploy-to-itunesconnect-deliver v0.0.0-20210129115208-72a291c6e532/go.mod h1:mG5kKjSyK3sZNp7e5QpFBAtxJRWeA+4PSMh3ZfwggNs=
 github.com/bitrise-steplib/steps-deploy-to-itunesconnect-deliver v0.0.0-20210202085830-d9e2b193cdd9 h1:TUqp/ME7YJBK3/OgeBN0c93+1dIgmnT+J6X4L4seUUc=
 github.com/bitrise-steplib/steps-deploy-to-itunesconnect-deliver v0.0.0-20210202085830-d9e2b193cdd9/go.mod h1:mG5kKjSyK3sZNp7e5QpFBAtxJRWeA+4PSMh3ZfwggNs=
+github.com/bitrise-steplib/steps-deploy-to-itunesconnect-deliver v0.0.0-20210202131141-60bc9fc816c7 h1:+bJZKyPWA75DynhwROWZ2xZ7bsz8FbIv+Qik6ApGSSo=
+github.com/bitrise-steplib/steps-deploy-to-itunesconnect-deliver v0.0.0-20210202131141-60bc9fc816c7/go.mod h1:mG5kKjSyK3sZNp7e5QpFBAtxJRWeA+4PSMh3ZfwggNs=
 github.com/davecgh/go-spew v1.1.0 h1:ZDRjVQ15GmhC3fiQ8ni8+OwkZQO4DARzQgrnXU1Liz8=
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=

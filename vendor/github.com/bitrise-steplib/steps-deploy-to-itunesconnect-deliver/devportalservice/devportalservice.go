@@ -43,7 +43,19 @@ func NewBitriseClient(client httpClient, buildURL, buildAPIToken string) *Bitris
 
 const appleDeveloperConnectionPath = "apple_developer_portal_data.json"
 
-// GetAppleDeveloperConnection fetches the Bitrise.io session-based Apple Developer connection.
+func privateKeyWithHeader(privateKey string) string {
+	if strings.HasPrefix(privateKey, "-----BEGIN PRIVATE KEY----") {
+		return privateKey
+	}
+
+	return fmt.Sprint(
+		"-----BEGIN PRIVATE KEY-----\n",
+		privateKey,
+		"\n-----END PRIVATE KEY-----",
+	)
+}
+
+// GetAppleDeveloperConnection fetches the Bitrise.io Apple Developer connection.
 func (c *BitriseClient) GetAppleDeveloperConnection() (*AppleDeveloperConnection, error) {
 	var rawCreds []byte
 	var err error
@@ -58,8 +70,8 @@ func (c *BitriseClient) GetAppleDeveloperConnection() (*AppleDeveloperConnection
 	}
 
 	type data struct {
-		*SessionConnection
-		*JWTConnection
+		*AppleIDConnection
+		*APIKeyConnection
 		TestDevices []TestDevice `json:"test_devices"`
 	}
 	var d data
@@ -67,21 +79,23 @@ func (c *BitriseClient) GetAppleDeveloperConnection() (*AppleDeveloperConnection
 		return nil, fmt.Errorf("failed to unmarshal authentication credentials from response (%s): %s", rawCreds, err)
 	}
 
-	if d.JWTConnection != nil {
-		if d.JWTConnection.IssuerID == "" {
+	if d.APIKeyConnection != nil {
+		if d.APIKeyConnection.IssuerID == "" {
 			return nil, fmt.Errorf("invalid authentication credentials, empty issuer_id in response (%s)", rawCreds)
 		}
-		if d.JWTConnection.KeyID == "" {
+		if d.APIKeyConnection.KeyID == "" {
 			return nil, fmt.Errorf("invalid authentication credentials, empty key_id in response (%s)", rawCreds)
 		}
-		if d.JWTConnection.PrivateKey == "" {
+		if d.APIKeyConnection.PrivateKey == "" {
 			return nil, fmt.Errorf("invalid authentication credentials, empty private_key in response (%s)", rawCreds)
 		}
+
+		d.APIKeyConnection.PrivateKey = privateKeyWithHeader(d.APIKeyConnection.PrivateKey)
 	}
 
 	return &AppleDeveloperConnection{
-		SessionConnection: d.SessionConnection,
-		JWTConnection:     d.JWTConnection,
+		AppleIDConnection: d.AppleIDConnection,
+		APIKeyConnection:  d.APIKeyConnection,
 		TestDevices:       d.TestDevices,
 	}, nil
 }
@@ -131,16 +145,16 @@ type cookie struct {
 	ForDomain *bool  `json:"for_domain,omitempty"`
 }
 
-// SessionConnection represents a Bitrise.io session-based Apple Developer connection.
-type SessionConnection struct {
+// AppleIDConnection represents a Bitrise.io Apple ID-based Apple Developer connection.
+type AppleIDConnection struct {
 	AppleID              string              `json:"apple_id"`
 	Password             string              `json:"password"`
 	ConnectionExpiryDate string              `json:"connection_expiry_date"`
 	SessionCookies       map[string][]cookie `json:"session_cookies"`
 }
 
-// JWTConnection ...
-type JWTConnection struct {
+// APIKeyConnection represents a Bitrise.io API key-based Apple Developer connection.
+type APIKeyConnection struct {
 	KeyID      string `json:"key_id"`
 	IssuerID   string `json:"issuer_id"`
 	PrivateKey string `json:"private_key"`
@@ -160,36 +174,23 @@ type TestDevice struct {
 // AppleDeveloperConnection represents a Bitrise.io Apple Developer connection.
 // https://devcenter.bitrise.io/getting-started/configuring-bitrise-steps-that-require-apple-developer-account-data/
 type AppleDeveloperConnection struct {
-	SessionConnection *SessionConnection
-	JWTConnection     *JWTConnection
+	AppleIDConnection *AppleIDConnection
+	APIKeyConnection  *APIKeyConnection
 	TestDevices       []TestDevice `json:"test_devices"`
 }
 
-// PrivateKeyWithHeader adds header and footer if needed
-func (cred *JWTConnection) PrivateKeyWithHeader() string {
-	if strings.HasPrefix(cred.PrivateKey, "-----BEGIN PRIVATE KEY----") {
-		return cred.PrivateKey
-	}
-
-	return fmt.Sprint(
-		"-----BEGIN PRIVATE KEY-----\n",
-		cred.PrivateKey,
-		"\n-----END PRIVATE KEY-----",
-	)
-}
-
-// Expiry returns the expiration of the Bitrise session-based Apple Developer connection.
-func (c *SessionConnection) Expiry() *time.Time {
+// Expiry returns the expiration of the Bitrise Apple ID-based Apple Developer connection.
+func (c *AppleIDConnection) Expiry() *time.Time {
 	t, err := time.Parse(time.RFC3339, c.ConnectionExpiryDate)
 	if err != nil {
-		log.Warnf("Could not parse session-based connection expiry date: %s", err)
+		log.Warnf("Could not parse Apple ID session expiry date: %s", err)
 		return nil
 	}
 	return &t
 }
 
-// Expired returns whether the Bitrise session-based Apple Developer connection is expired.
-func (c *SessionConnection) Expired() bool {
+// Expired returns whether the Bitrise Apple ID-based Apple Developer connection is expired.
+func (c *AppleIDConnection) Expired() bool {
 	expiry := c.Expiry()
 	if expiry == nil {
 		return false
@@ -199,7 +200,7 @@ func (c *SessionConnection) Expired() bool {
 
 // FastlaneLoginSession returns the Apple ID login session in a ruby/object:HTTP::Cookie format.
 // The session can be used as a value for FASTLANE_SESSION environment variable: https://docs.fastlane.tools/best-practices/continuous-integration/#two-step-or-two-factor-auth.
-func (c *SessionConnection) FastlaneLoginSession() (string, error) {
+func (c *AppleIDConnection) FastlaneLoginSession() (string, error) {
 	var rubyCookies []string
 	for _, cookie := range c.SessionCookies["https://idmsa.apple.com"] {
 		if rubyCookies == nil {

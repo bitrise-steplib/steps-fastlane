@@ -104,7 +104,7 @@ func functionName(i interface{}) string {
 }
 
 const notConnected = `Connected Apple Developer Portal Account not found.
-Most likely because there is no Apple Developer Portal Account connected to the build, or the build is running locally.
+Most likely because there is no Apple Developer Portal Account connected to the build.
 Read more: https://devcenter.bitrise.io/getting-started/configuring-bitrise-steps-that-require-apple-developer-account-data/`
 
 func handleSessionDataError(err error) {
@@ -112,14 +112,16 @@ func handleSessionDataError(err error) {
 		return
 	}
 
-	if networkErr, ok := err.(devportalservice.NetworkError); ok && networkErr.Status == http.StatusNotFound {
-		log.Debugf("")
-		log.Debugf("%s", notConnected)
-	} else {
+	if networkErr, ok := err.(devportalservice.NetworkError); ok && networkErr.Status == http.StatusUnauthorized {
 		fmt.Println()
-		log.Errorf("Failed to activate Bitrise Apple Developer Portal connection: %s", err)
-		log.Warnf("Read more: https://devcenter.bitrise.io/getting-started/configuring-bitrise-steps-that-require-apple-developer-account-data/")
+		log.Warnf("%s", "Unauthorized to query Connected Apple Developer Portal Account. This happens by design, with a public app's PR build, to protect secrets.")
+
+		return
 	}
+
+	fmt.Println()
+	log.Errorf("Failed to activate Bitrise Apple Developer Portal connection: %s", err)
+	log.Warnf("Read more: https://devcenter.bitrise.io/getting-started/configuring-bitrise-steps-that-require-apple-developer-account-data/")
 }
 
 func main() {
@@ -186,7 +188,8 @@ func main() {
 	if config.BuildURL != "" && config.BuildAPIToken != "" {
 		devportalConnectionProvider = devportalservice.NewBitriseClient(http.DefaultClient, config.BuildURL, string(config.BuildAPIToken))
 	} else {
-		log.Warnf("Step is not running on bitrise.io: BITRISE_BUILD_URL and BITRISE_BUILD_API_TOKEN envs are not set")
+		fmt.Println()
+		log.Warnf("Connected Apple Developer Portal Account not found. Step is not running on bitrise.io: BITRISE_BUILD_URL and BITRISE_BUILD_API_TOKEN envs are not set")
 	}
 	var conn *devportalservice.AppleDeveloperConnection
 	if config.BitriseConnection != "off" && devportalConnectionProvider != nil {
@@ -196,9 +199,9 @@ func main() {
 			handleSessionDataError(err)
 		}
 
-		if conn == nil || (conn.JWTConnection == nil && conn.SessionConnection == nil) {
+		if conn != nil && (conn.APIKeyConnection == nil && conn.AppleIDConnection == nil) {
 			fmt.Println()
-			log.Debugf("%s", notConnected)
+			log.Warnf("%s", notConnected)
 		}
 	}
 
@@ -207,7 +210,7 @@ func main() {
 		failf("Could not configure Apple Service authentication: %v", err)
 	}
 	if authConfig.AppleID != nil && authConfig.AppleID.AppSpecificPassword == "" {
-		log.Warnf("If 2FA enabled Apple ID is used, Application-specific password may be required.")
+		log.Warnf("If 2FA enabled Apple ID is used, Application-specific password is required.")
 	}
 
 	// Split lane option
