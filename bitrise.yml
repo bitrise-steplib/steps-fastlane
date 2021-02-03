@@ -1,4 +1,4 @@
-format_version: 7
+format_version: "7"
 default_step_lib_source: https://github.com/bitrise-io/bitrise-steplib.git
 
 workflows:
@@ -8,19 +8,19 @@ workflows:
     envs:
     - SAMPLE_APP_URL: "https://github.com/bitrise-io/sample-apps-flutter-veggieseasons.git"
     - BRANCH: master
-    before-run:
+    before_run:
     - audit-this-step
     steps:
-    - go-list:
-    - golint:
-    - errcheck:
-    - go-test:
+    - go-list: {}
+    - golint: {}
+    - errcheck: {}
+    - go-test: {}
     - script:
         inputs:
         - content: rm -rf ./_tmp
     - change-workdir:
         title: Switch working dir to test/_tmp dir
-        run_if: true
+        run_if: "true"
         inputs:
         - path: ./_tmp
         - is_create_path: true
@@ -35,7 +35,7 @@ workflows:
         - lane: test_fastlane_session
         - work_dir: ./
         - verbose_log: "yes"
-    - certificate-and-profile-installer:
+    - certificate-and-profile-installer: {}
     - path::./:
         title: Test building a Flutter project
         inputs:
@@ -56,7 +56,49 @@ workflows:
                 exit 1
             fi
 
-  fastlane-session-test:
+  auth-all:
+    before_run:
+      - auth-test-apple-id-connection
+      - auth-test-api-key-connection
+      - auth-test-api-key-input
+
+  auth-test-apple-id-connection:
+    before_run:
+    - _auth_prepare
+    steps:
+    - path::./:
+        inputs:
+        - lane: release
+        - work_dir: ./
+        - verbose_log: "yes"
+        - connection: apple_id
+        - app_password: $FASTLANE_APPLE_APPLICATION_SPECIFIC_PASSWORD
+
+  auth-test-api-key-connection:
+    before_run:
+    - _auth_prepare
+    steps:
+    - path::./:
+        inputs:
+        - lane: release
+        - work_dir: ./
+        - verbose_log: "yes"
+        - connection: api_key
+
+  auth-test-api-key-input:
+    before_run:
+    - _auth_prepare
+    steps:
+    - path::./:
+        inputs:
+        - lane: release
+        - work_dir: ./
+        - verbose_log: "yes"
+        - connection: "off"
+        - api_issuer: $AUTH_API_ISSUER
+        - api_key_path: $BITRISEIO_AUTH_API_KEY_PATH_URL
+
+  _auth_prepare:
     envs:
     - SAMPLE_APP_URL: "https://github.com/bitrise-samples/sample-apps-fastlane-test.git"
     - BITRISE_PROJECT_PATH: ./sample-apps-fastlane-test.xcodeproj
@@ -81,9 +123,7 @@ workflows:
         - repository_url: $SAMPLE_APP_URL
         - branch: signing-update
         - clone_into_dir: "."
-    - ios-auto-provision-appstoreconnect:
-        inputs:
-        - distribution_type: app-store
+    - certificate-and-profile-installer: {}
     - script:
         inputs:
         - content: |-
@@ -106,15 +146,7 @@ workflows:
         - build_version: $BITRISE_BUILD_NUMBER
         - plist_path: $INFO_PLIST_PATH
         - build_version_offset: $BITRISE_BUILD_VERSION_OFFSET
-    - path::./:
-        inputs:
-        - lane: release
-        - work_dir: ./
-        - verbose_log: "yes"
-        - connection: $AUTH_CONNECTION
-        - api_key_path: $AUTH_API_KEY_PATH
-        - api_issuer: $AUTH_API_ISSUER
-        - app_password: $AUTH_APP_PASSWORD
+
 
   # ----------------------------------------------------------------
   # --- Utility workflows

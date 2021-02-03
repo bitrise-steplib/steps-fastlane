@@ -34,7 +34,7 @@ type Config struct {
 	AppleIDUser       string          `env:"apple_id"`
 	Password          stepconf.Secret `env:"password"`
 	AppPassword       stepconf.Secret `env:"app_password"`
-	APIKeyPath        string          `env:"api_key_path"`
+	APIKeyPath        stepconf.Secret `env:"api_key_path"`
 	APIIssuer         string          `env:"api_issuer"`
 
 	UpdateFastlane bool `env:"update_fastlane,opt[true,false]"`
@@ -144,7 +144,7 @@ func main() {
 		Password:            string(config.Password),
 		AppSpecificPassword: string(config.AppPassword),
 		APIIssuer:           config.APIIssuer,
-		APIKeyPath:          config.APIKeyPath,
+		APIKeyPath:          string(config.APIKeyPath),
 	}
 	if err := authInputs.Validate(); err != nil {
 		failf("Issue with authentication related inputs: %v", err)
