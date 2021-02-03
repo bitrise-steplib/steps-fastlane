@@ -34,7 +34,7 @@ type MissingAuthConfigError struct {
 }
 
 func (*MissingAuthConfigError) Error() string {
-	return "Apple Service authentication not configured"
+	return "no credentials provided"
 }
 
 // Select return valid Apple ID or API Key based authentication data, from the provided Bitrise Apple Developer Connection or Inputs

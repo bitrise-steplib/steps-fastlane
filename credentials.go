@@ -19,26 +19,31 @@ type fastlaneAPIKey struct {
 	PrivateKey string `json:"key"`
 }
 
-// Arg is a Fastlane argument
-type Arg struct {
-	Key, Value string
-}
-
-// FastlaneParams are Fastlane command arguments and environment variables
-type FastlaneParams struct {
-	Envs map[string]string
-	Args []Arg
+var fastlaneAuthEnvKeys = [...]string{
+	"DELIVER_USERNAME",
+	"FASTLANE_USERNAME",
+	"DELIVER_PASSWORD",
+	"FASTLANE_PASSWORD",
+	"FASTLANE_SESSION",
+	"FASTLANE_APPLE_APPLICATION_SPECIFIC_PASSWORD",
+	"DELIVER_API_KEY_PATH",
+	"DELIVER_API_KEY",
 }
 
 // FastlaneAuthParams converts Apple credentials to Fastlane env vars and arguments
-func FastlaneAuthParams(authConfig appleauth.Credentials) (FastlaneParams, error) {
+func FastlaneAuthParams(authConfig appleauth.Credentials) (map[string]string, error) {
 	envs := make(map[string]string)
-	var args []Arg
 	if authConfig.AppleID != nil {
 		// Set as environment variables
+		if authConfig.AppleID.Username != "" {
+			envs["DELIVER_USERNAME"] = authConfig.AppleID.Username
+		}
+		// FASTLANE_USER
+
 		if authConfig.AppleID.Password != "" {
 			envs["DELIVER_PASSWORD"] = authConfig.AppleID.Password
 		}
+		// FASTLANE_PASSWORD
 
 		if authConfig.AppleID.Session != "" {
 			envs["FASTLANE_SESSION"] = authConfig.AppleID.Session
@@ -47,45 +52,31 @@ func FastlaneAuthParams(authConfig appleauth.Credentials) (FastlaneParams, error
 		if authConfig.AppleID.AppSpecificPassword != "" {
 			envs["FASTLANE_APPLE_APPLICATION_SPECIFIC_PASSWORD"] = authConfig.AppleID.AppSpecificPassword
 		}
-
-		// Add as an argument
-		if authConfig.AppleID.Username != "" {
-			args = append(args, Arg{
-				Key:   "--username",
-				Value: authConfig.AppleID.Username,
-			})
-		}
 	}
 
 	if authConfig.APIKey != nil {
-		privateKey, err := json.Marshal(fastlaneAPIKey{
+		fastlaneAPIKeyParams, err := json.Marshal(fastlaneAPIKey{
 			IssuerID:   authConfig.APIKey.IssuerID,
 			KeyID:      authConfig.APIKey.KeyID,
 			PrivateKey: authConfig.APIKey.PrivateKey,
 		})
 		if err != nil {
-			return FastlaneParams{}, fmt.Errorf("failed to marshal Fastane API Key configuration: %v", err)
+			return envs, fmt.Errorf("failed to marshal Fastane API Key configuration: %v", err)
 		}
 
 		tmpDir, err := pathutil.NormalizedOSTempDirPath("apiKey")
 		if err != nil {
-			return FastlaneParams{}, err
+			return envs, err
 		}
 		fastlaneAuthFile := filepath.Join(tmpDir, "api_key.json")
-		if err := ioutil.WriteFile(fastlaneAuthFile, privateKey, os.ModePerm); err != nil {
-			return FastlaneParams{}, err
+		if err := ioutil.WriteFile(fastlaneAuthFile, fastlaneAPIKeyParams, os.ModePerm); err != nil {
+			return envs, err
 		}
 
-		args = append(args, Arg{
-			Key:   "--api_key_path",
-			Value: fastlaneAuthFile,
-		})
+		envs["DELIVER_API_KEY_PATH"] = fastlaneAuthFile
 		// deliver: "Precheck cannot check In-app purchases with the App Store Connect API Key (yet). Exclude In-app purchases from precheck"
-		args = append(args, Arg{
-			Key:   "--precheck_include_in_app_purchases",
-			Value: "false",
-		})
+		envs["PRECHECK_INCLUDE_IN_APP_PURCHASES"] = "false"
 	}
 
-	return FastlaneParams{Envs: envs, Args: args}, nil
+	return envs, nil
 }

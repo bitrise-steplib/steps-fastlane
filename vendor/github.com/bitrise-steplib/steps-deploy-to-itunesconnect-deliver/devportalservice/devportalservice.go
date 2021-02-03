@@ -127,7 +127,7 @@ func (c *BitriseClient) download() ([]byte, error) {
 	}
 
 	if resp.StatusCode != http.StatusOK {
-		return nil, NetworkError{Status: resp.StatusCode, Body: string(body)}
+		return nil, NetworkError{Status: resp.StatusCode}
 	}
 
 	return body, nil

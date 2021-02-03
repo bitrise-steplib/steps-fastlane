@@ -16,6 +16,7 @@ import (
 	"github.com/bitrise-io/go-utils/command"
 	"github.com/bitrise-io/go-utils/command/gems"
 	"github.com/bitrise-io/go-utils/command/rubycommand"
+	"github.com/bitrise-io/go-utils/errorutil"
 	"github.com/bitrise-io/go-utils/fileutil"
 	"github.com/bitrise-io/go-utils/log"
 	"github.com/bitrise-io/go-utils/pathutil"
@@ -93,7 +94,10 @@ func fastlaneDebugInfo(workDir string, useBundler bool, bundlerVersion gems.Vers
 
 	log.Debugf("$ %s", cmd.PrintableCommandArgs())
 	if err := cmd.Run(); err != nil {
-		return "", fmt.Errorf("Fastlane command: (%s) failed", cmd.PrintableCommandArgs())
+		if errorutil.IsExitStatusError(err) {
+			return "", fmt.Errorf("Fastlane command (%s) failed, output: %s", cmd.PrintableCommandArgs(), outBuffer.String())
+		}
+		return "", fmt.Errorf("Fastlane command (%s) failed: %v", cmd.PrintableCommandArgs(), err)
 	}
 
 	return outBuffer.String(), nil
@@ -207,10 +211,9 @@ func main() {
 
 	authConfig, err := appleauth.Select(conn, authSources, authInputs)
 	if err != nil {
-		failf("Could not configure Apple Service authentication: %v", err)
-	}
-	if authConfig.AppleID != nil && authConfig.AppleID.AppSpecificPassword == "" {
-		log.Warnf("If 2FA enabled Apple ID is used, Application-specific password is required.")
+		if _, ok := err.(*appleauth.MissingAuthConfigError); !ok {
+			failf("Could not configure Apple Service authentication: %v", err)
+		}
 	}
 
 	// Split lane option
@@ -320,20 +323,26 @@ func main() {
 	log.Infof("Run Fastlane")
 
 	var envs []string
-	var authArgs []string
-	authParams, err := FastlaneAuthParams(authConfig)
+	authEnvs, err := FastlaneAuthParams(authConfig)
 	if err != nil {
 		failf("Failed to set up Fastlane authentication paramteres: %v", err)
 	}
-	for envKey, envValue := range authParams.Envs {
-		envs = append(envs, fmt.Sprintf("%s=%s", envKey, envValue))
+	authEnvsUnset := true
+	for _, envKey := range fastlaneAuthEnvKeys {
+		if _, set := os.LookupEnv(envKey); set {
+			log.Warnf("Fastlane environment varibale (%s) is already set", envKey)
+			log.Warnf("Apple Service authentication credentials will not be applied.")
+			authEnvsUnset = false
+			break
+		}
 	}
-	for _, arg := range authParams.Args {
-		authArgs = append(authArgs, []string{arg.Key, arg.Value}...)
+	if authEnvsUnset {
+		for envKey, envValue := range authEnvs {
+			envs = append(envs, fmt.Sprintf("%s=%s", envKey, envValue))
+		}
 	}
 
 	fastlaneCmd := []string{"fastlane"}
-	fastlaneCmd = append(fastlaneCmd, authArgs...)
 	fastlaneCmd = append(fastlaneCmd, laneOptions...)
 	if useBundler {
 		fastlaneCmd = append(gems.BundleExecPrefix(gemVersions.bundler), fastlaneCmd...)

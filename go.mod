@@ -11,7 +11,7 @@ require (
 	github.com/bitrise-io/go-utils v0.0.0-20201211082830-859032e9adf0
 	github.com/bitrise-io/stepman v0.0.0-20190813144014-10564a4888a6 // indirect
 	github.com/bitrise-steplib/bitrise-step-android-unit-test v0.0.0-20190902203028-ff8e682d8645
-	github.com/bitrise-steplib/steps-deploy-to-itunesconnect-deliver v0.0.0-20210202131141-60bc9fc816c7
+	github.com/bitrise-steplib/steps-deploy-to-itunesconnect-deliver v0.0.0-20210202154324-7c20293c7cf0
 	github.com/google/go-cmp v0.5.4 // indirect
 	github.com/kballard/go-shellquote v0.0.0-20180428030007-95032a82bc51
 	github.com/kr/pretty v0.1.0 // indirect
