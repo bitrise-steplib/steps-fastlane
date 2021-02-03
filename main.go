@@ -327,19 +327,16 @@ func main() {
 	if err != nil {
 		failf("Failed to set up Fastlane authentication paramteres: %v", err)
 	}
-	authEnvsUnset := true
-	for _, envKey := range fastlaneAuthEnvKeys {
+	authEnvsSet := false
+	for envKey, envValue := range authEnvs {
 		if _, set := os.LookupEnv(envKey); set {
-			log.Warnf("Fastlane environment varibale (%s) is already set", envKey)
-			log.Warnf("Apple Service authentication credentials will not be applied.")
-			authEnvsUnset = false
-			break
+			log.Warnf("Fastlane authentication-related environment varibale (%s) is set, overriding.", envKey)
+			authEnvsSet = true
 		}
+		envs = append(envs, fmt.Sprintf("%s=%s", envKey, envValue))
 	}
-	if authEnvsUnset {
-		for envKey, envValue := range authEnvs {
-			envs = append(envs, fmt.Sprintf("%s=%s", envKey, envValue))
-		}
+	if authEnvsSet {
+		log.Warnf("To stop overriding authentication-related environment variables, please set Bitrise Apple Developer Connection input to 'off' and leave authentication-related inputs empty.")
 	}
 
 	fastlaneCmd := []string{"fastlane"}

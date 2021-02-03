@@ -19,17 +19,6 @@ type fastlaneAPIKey struct {
 	PrivateKey string `json:"key"`
 }
 
-var fastlaneAuthEnvKeys = [...]string{
-	"DELIVER_USERNAME",
-	"FASTLANE_USERNAME",
-	"DELIVER_PASSWORD",
-	"FASTLANE_PASSWORD",
-	"FASTLANE_SESSION",
-	"FASTLANE_APPLE_APPLICATION_SPECIFIC_PASSWORD",
-	"DELIVER_API_KEY_PATH",
-	"DELIVER_API_KEY",
-}
-
 // FastlaneAuthParams converts Apple credentials to Fastlane env vars and arguments
 func FastlaneAuthParams(authConfig appleauth.Credentials) (map[string]string, error) {
 	envs := make(map[string]string)
