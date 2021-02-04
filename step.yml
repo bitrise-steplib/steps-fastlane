@@ -105,7 +105,7 @@ inputs:
       title: "Apple ID: Password"
       description: Password for the specified Apple ID.
       is_sensitive: true
-  - app_password: ""
+  - app_password: $FASTLANE_APPLE_APPLICATION_SPECIFIC_PASSWORD
     opts:
       title: "Apple ID: Application-specific password"
       summary: Required if using Apple ID
