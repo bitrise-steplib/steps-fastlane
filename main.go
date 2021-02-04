@@ -30,12 +30,12 @@ type Config struct {
 	WorkDir string `env:"work_dir,dir"`
 	Lane    string `env:"lane,required"`
 
-	BitriseConnection string          `env:"connection,opt[automatic,api_key,apple_id,off]"`
-	AppleIDUser       string          `env:"apple_id"`
-	Password          stepconf.Secret `env:"password"`
-	AppPassword       stepconf.Secret `env:"app_password"`
-	APIKeyPath        stepconf.Secret `env:"api_key_path"`
-	APIIssuer         string          `env:"api_issuer"`
+	BitriseConnection   string          `env:"connection,opt[automatic,api_key,apple_id,off]"`
+	AppleID             string          `env:"apple_id"`
+	Password            stepconf.Secret `env:"password"`
+	AppSpecificPassword stepconf.Secret `env:"app_password"`
+	APIKeyPath          stepconf.Secret `env:"api_key_path"`
+	APIIssuer           string          `env:"api_issuer"`
 
 	UpdateFastlane bool `env:"update_fastlane,opt[true,false]"`
 	VerboseLog     bool `env:"verbose_log,opt[yes,no]"`
@@ -140,9 +140,9 @@ func main() {
 
 	// Validate inputs
 	authInputs := appleauth.Inputs{
-		Username:            config.AppleIDUser,
+		Username:            config.AppleID,
 		Password:            string(config.Password),
-		AppSpecificPassword: string(config.AppPassword),
+		AppSpecificPassword: string(config.AppSpecificPassword),
 		APIIssuer:           config.APIIssuer,
 		APIKeyPath:          string(config.APIKeyPath),
 	}
@@ -151,7 +151,7 @@ func main() {
 	}
 	authSources, err := parseAuthSources(config.BitriseConnection)
 	if err != nil {
-		failf("Invalid Input: unexpected value for Bitrise Apple Developer Connection (%s)", config.BitriseConnection)
+		failf("Invalid Input: %v", err)
 	}
 
 	if strings.TrimSpace(config.GemHome) != "" {
@@ -327,16 +327,17 @@ func main() {
 	if err != nil {
 		failf("Failed to set up Fastlane authentication paramteres: %v", err)
 	}
-	authEnvsSet := false
+	var globallySetAuthEnvs []string
 	for envKey, envValue := range authEnvs {
 		if _, set := os.LookupEnv(envKey); set {
-			log.Warnf("Fastlane authentication-related environment varibale (%s) is set, overriding.", envKey)
-			authEnvsSet = true
+			globallySetAuthEnvs = append(globallySetAuthEnvs, envKey)
 		}
+
 		envs = append(envs, fmt.Sprintf("%s=%s", envKey, envValue))
 	}
-	if authEnvsSet {
-		log.Warnf("To stop overriding authentication-related environment variables, please set Bitrise Apple Developer Connection input to 'off' and leave authentication-related inputs empty.")
+	if len(globallySetAuthEnvs) != 0 {
+		log.Warnf("Fastlane authentication-related environment varibale(s) (%s) are set, overriding.", globallySetAuthEnvs)
+		log.Infof("To stop overriding authentication-related environment variables, please set Bitrise Apple Developer Connection input to 'off' and leave authentication-related inputs empty.")
 	}
 
 	fastlaneCmd := []string{"fastlane"}

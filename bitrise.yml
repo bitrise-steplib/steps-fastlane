@@ -1,22 +1,38 @@
-format_version: "7"
+format_version: "11"
 default_step_lib_source: https://github.com/bitrise-io/bitrise-steplib.git
 
 workflows:
-  # ----------------------------------------------------------------
-  # --- workflow to test this step
   ci:
-    envs:
-    - SAMPLE_APP_URL: "https://github.com/bitrise-io/sample-apps-flutter-veggieseasons.git"
-    - BRANCH: master
     before_run:
     - audit-this-step
+    - go-tests
     after_run:
-    - auth-all
+    - test
+    
+  go-tests:
     steps:
     - go-list: {}
     - golint: {}
     - errcheck: {}
     - go-test: {}
+
+  test:
+    before_run:
+    - cache
+    - auth-all
+
+  auth-all:
+    before_run:
+      - auth-test-apple-id-connection-globally-set-app-specific-password
+      - auth-test-apple-id-connection
+      - auth-test-api-key-connection
+      - auth-test-api-key-input
+
+  cache:  
+    envs:
+    - SAMPLE_APP_URL: "https://github.com/bitrise-io/sample-apps-flutter-veggieseasons.git"
+    - BRANCH: master
+    steps:
     - script:
         inputs:
         - content: rm -rf ./_tmp
@@ -26,13 +42,13 @@ workflows:
         inputs:
         - path: ./_tmp
         - is_create_path: true
-    - script:
+    - git::https://github.com/bitrise-steplib/bitrise-step-simple-git-clone:
         inputs:
-        - content: |-
-            set -ex
-            git clone $SAMPLE_APP_URL -b $BRANCH .
+        - repository_url: $SAMPLE_APP_URL
+        - branch: $BRANCH
+        - clone_into_dir: "."
     - path::./:
-        title: Test if Fastlane receives session-based Apple Developer connection
+        title: Smoke test to check if Fastlane receives session-based Apple Developer connection
         inputs:
         - lane: test_fastlane_session
         - work_dir: ./
@@ -59,12 +75,6 @@ workflows:
                 exit 1
             fi
 
-  auth-all:
-    before_run:
-      - auth-test-apple-id-connection
-      - auth-test-api-key-connection
-      - auth-test-api-key-input
-
   auth-test-apple-id-connection:
     before_run:
     - _auth_prepare
@@ -76,6 +86,18 @@ workflows:
         - verbose_log: "yes"
         - connection: apple_id
         - app_password: $FASTLANE_APPLE_APPLICATION_SPECIFIC_PASSWORD
+
+  auth-test-apple-id-connection-globally-set-app-specific-password:
+    before_run:
+    - _auth_prepare
+    steps:
+    - path::./:
+        inputs:
+        - lane: release
+        - work_dir: ./
+        - verbose_log: "yes"
+        - connection: apple_id
+        - app_password: ""
 
   auth-test-api-key-connection:
     before_run:
@@ -104,8 +126,7 @@ workflows:
   _auth_prepare:
     envs:
     - SAMPLE_APP_URL: "https://github.com/bitrise-samples/sample-apps-fastlane-test.git"
-    - BITRISE_PROJECT_PATH: ./sample-apps-fastlane-test.xcodeproj
-    - BITRISE_SCHEME: sample-apps-fastlane-test
+    - BRANCH: master
     - INFO_PLIST_PATH: ./sample-apps-fastlane-test/Info.plist
     steps:
     - script:
@@ -124,7 +145,7 @@ workflows:
     - git::https://github.com/bitrise-steplib/bitrise-step-simple-git-clone:
         inputs:
         - repository_url: $SAMPLE_APP_URL
-        - branch: signing-update
+        - branch: $BRANCH
         - clone_into_dir: "."
     - certificate-and-profile-installer: {}
     - script:
@@ -151,23 +172,6 @@ workflows:
         - build_version_offset: $BITRISE_BUILD_VERSION_OFFSET
 
 
-  # ----------------------------------------------------------------
-  # --- Utility workflows
-  vendor-update:
-    title: Vendor update
-    description: |
-      Used for updating the vendored dependencies
-    steps:
-    - script:
-        title: Vendor update
-        inputs:
-        - content: |-
-            #!/bin/bash
-            set -ex
-            go mod vendor
-
-  # ----------------------------------------------------------------
-  # --- workflows to Share this step into a Step Library
   audit-this-step:
     title: Audit the step
     steps:
