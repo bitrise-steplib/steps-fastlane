@@ -23,9 +23,9 @@ workflows:
 
   auth-all:
     before_run:
-      - auth-test-apple-id-connection-globally-set-app-specific-password
-      - auth-test-apple-id-connection
       - auth-test-api-key-connection
+      - auth-test-apple-id-connection
+      - auth-test-apple-id-connection-globally-set-app-specific-password
       - auth-test-api-key-input
 
   cache:  
