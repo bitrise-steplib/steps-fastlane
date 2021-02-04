@@ -10,6 +10,8 @@ workflows:
     - BRANCH: master
     before_run:
     - audit-this-step
+    after_run:
+    - auth-all
     steps:
     - go-list: {}
     - golint: {}
@@ -35,6 +37,7 @@ workflows:
         - lane: test_fastlane_session
         - work_dir: ./
         - verbose_log: "yes"
+        - connection: apple_id
     - certificate-and-profile-installer: {}
     - path::./:
         title: Test building a Flutter project
