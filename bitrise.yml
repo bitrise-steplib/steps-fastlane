@@ -61,6 +61,7 @@ workflows:
         - lane: build
         - work_dir: ./
         - verbose_log: "yes"
+        - connection: "off"
     - script:
         inputs:
         - content: |-
