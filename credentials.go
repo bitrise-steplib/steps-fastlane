@@ -27,17 +27,12 @@ func FastlaneAuthParams(authConfig appleauth.Credentials) (map[string]string, er
 		if authConfig.AppleID.Username != "" {
 			envs["DELIVER_USERNAME"] = authConfig.AppleID.Username
 		}
-		// FASTLANE_USER
-
 		if authConfig.AppleID.Password != "" {
 			envs["DELIVER_PASSWORD"] = authConfig.AppleID.Password
 		}
-		// FASTLANE_PASSWORD
-
 		if authConfig.AppleID.Session != "" {
 			envs["FASTLANE_SESSION"] = authConfig.AppleID.Session
 		}
-
 		if authConfig.AppleID.AppSpecificPassword != "" {
 			envs["FASTLANE_APPLE_APPLICATION_SPECIFIC_PASSWORD"] = authConfig.AppleID.AppSpecificPassword
 		}
