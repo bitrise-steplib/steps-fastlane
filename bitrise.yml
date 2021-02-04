@@ -1,47 +1,67 @@
-format_version: 7
+format_version: "11"
 default_step_lib_source: https://github.com/bitrise-io/bitrise-steplib.git
 
 workflows:
-  # ----------------------------------------------------------------
-  # --- workflow to test this step
   ci:
+    before_run:
+    - audit-this-step
+    - go-tests
+    after_run:
+    - test
+    
+  go-tests:
+    steps:
+    - go-list: {}
+    - golint: {}
+    - errcheck: {}
+    - go-test: {}
+
+  test:
+    before_run:
+    - auth-all
+    - cache
+
+  auth-all:
+    before_run:
+      - auth-test-api-key-connection
+      - auth-test-apple-id-connection
+      - auth-test-apple-id-connection-globally-set-app-specific-password
+      - auth-test-api-key-input
+
+  cache:  
     envs:
     - SAMPLE_APP_URL: "https://github.com/bitrise-io/sample-apps-flutter-veggieseasons.git"
     - BRANCH: master
-    before-run:
-    - audit-this-step
     steps:
-    - go-list:
-    - golint:
-    - errcheck:
-    - go-test:
     - script:
         inputs:
         - content: rm -rf ./_tmp
     - change-workdir:
         title: Switch working dir to test/_tmp dir
-        run_if: true
+        run_if: "true"
         inputs:
         - path: ./_tmp
         - is_create_path: true
-    - script:
+    - git::https://github.com/bitrise-steplib/bitrise-step-simple-git-clone:
         inputs:
-        - content: |-
-            set -ex
-            git clone $SAMPLE_APP_URL -b $BRANCH .
+        - repository_url: $SAMPLE_APP_URL
+        - branch: $BRANCH
+        - clone_into_dir: "."
     - path::./:
-        title: Test if Fastlane receives session-based Apple Developer connection
+        title: Smoke test to check if Fastlane receives session-based Apple Developer connection
         inputs:
         - lane: test_fastlane_session
         - work_dir: ./
         - verbose_log: "yes"
-    - certificate-and-profile-installer:
+        - connection: apple_id
+    - certificate-and-profile-installer: {}
     - path::./:
         title: Test building a Flutter project
         inputs:
         - lane: build
         - work_dir: ./
         - verbose_log: "yes"
+        - connection: "off"
     - script:
         inputs:
         - content: |-
@@ -56,51 +76,103 @@ workflows:
                 exit 1
             fi
 
-  fastlane-session-test:
-    envs:
-    - SAMPLE_APP_URL: "https://github.com/bitrise-samples/sample-apps-fastlane-test.git"
-    - BITRISE_PROJECT_PATH: ./sample-apps-fastlane-test.xcodeproj
-    - BITRISE_SCHEME: sample-apps-fastlane-test
+  auth-test-apple-id-connection:
+    before_run:
+    - _auth_prepare
     steps:
-    - script:
-        inputs:
-        - content: rm -rf ./_tmp
-    - change-workdir:
-        title: Switch working dir to test/_tmp dir
-        run_if: true
-        inputs:
-        - path: ./_tmp
-        - is_create_path: true
-    - script:
-        inputs:
-        - content: git clone $SAMPLE_APP_URL .
-    - ios-auto-provision@1.3.1:
-        inputs:
-        - generate_profiles: 'yes'
-        - distribution_type: app-store
     - path::./:
         inputs:
         - lane: release
         - work_dir: ./
         - verbose_log: "yes"
+        - connection: apple_id
+        - app_password: $FASTLANE_APPLE_APPLICATION_SPECIFIC_PASSWORD
 
-  # ----------------------------------------------------------------
-  # --- Utility workflows
-  vendor-update:
-    title: Vendor update
-    description: |
-      Used for updating the vendored dependencies
+  auth-test-apple-id-connection-globally-set-app-specific-password:
+    before_run:
+    - _auth_prepare
+    steps:
+    - path::./:
+        inputs:
+        - lane: release
+        - work_dir: ./
+        - verbose_log: "yes"
+        - connection: apple_id
+        - app_password: ""
+
+  auth-test-api-key-connection:
+    before_run:
+    - _auth_prepare
+    steps:
+    - path::./:
+        inputs:
+        - lane: release
+        - work_dir: ./
+        - verbose_log: "yes"
+        - connection: api_key
+
+  auth-test-api-key-input:
+    before_run:
+    - _auth_prepare
+    steps:
+    - path::./:
+        inputs:
+        - lane: release
+        - work_dir: ./
+        - verbose_log: "yes"
+        - connection: "off"
+        - api_issuer: $AUTH_API_ISSUER
+        - api_key_path: $BITRISEIO_AUTH_API_KEY_PATH_URL
+
+  _auth_prepare:
+    envs:
+    - SAMPLE_APP_URL: "https://github.com/bitrise-samples/sample-apps-fastlane-test.git"
+    - BRANCH: master
+    - INFO_PLIST_PATH: ./sample-apps-fastlane-test/Info.plist
     steps:
     - script:
-        title: Vendor update
+        title: Clean saved Fastlane session cookie
+        inputs:
+        - content: rm -rf ~/.fastlane
+    - script:
+        inputs:
+        - content: rm -rf ./_tmp
+    - change-workdir:
+        title: Switch working dir to test/_tmp dir
+        run_if: "true"
+        inputs:
+        - path: ./_tmp
+        - is_create_path: true
+    - git::https://github.com/bitrise-steplib/bitrise-step-simple-git-clone:
+        inputs:
+        - repository_url: $SAMPLE_APP_URL
+        - branch: $BRANCH
+        - clone_into_dir: "."
+    - certificate-and-profile-installer: {}
+    - script:
         inputs:
         - content: |-
-            #!/bin/bash
-            set -ex
-            go mod vendor
+            #!/usr/bin/env bash
+            CURRENT_BUILD_NUMBER=${BITRISE_BUILD_NUMBER}
+            BITRISE_BUILD_NUMBER=$((($(gdate +%Y%m%d%H%M%S)-20000000000000)*10000))
+            if [[ -z "${BITRISE_BUILD_NUMBER}" ]]; then
+              echo "error: failed to calculated build number"
+              exit 1
+            fi
+            if [[ -n "${CURRENT_BUILD_NUMBER}" ]]; then
+              BITRISE_BUILD_NUMBER=$((${BITRISE_BUILD_NUMBER}+${CURRENT_BUILD_NUMBER}))
+            fi
 
-  # ----------------------------------------------------------------
-  # --- workflows to Share this step into a Step Library
+            envman add --key BITRISE_BUILD_NUMBER --value "${BITRISE_BUILD_NUMBER}"
+    - set-xcode-build-number:
+        title: Set Build Number
+        run_if: "true"
+        inputs:
+        - build_version: $BITRISE_BUILD_NUMBER
+        - plist_path: $INFO_PLIST_PATH
+        - build_version_offset: $BITRISE_BUILD_VERSION_OFFSET
+
+
   audit-this-step:
     title: Audit the step
     steps:

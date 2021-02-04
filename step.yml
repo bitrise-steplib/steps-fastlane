@@ -58,6 +58,63 @@ inputs:
         * If the Fastfile path is `./here/is/my/fastlane/Fastfile`
         * Then the Fastfile's directory is `./here/is/my/fastlane`
         * So the Working Directory should be `./here/is/my`
+  - connection: "automatic"
+    opts:
+      title: Bitrise Apple Developer Connection
+      summary: The Apple Service authentication method the Step uses. By default, any enabled Bitrise Apple Developer connection is used and other authentication-related Step inputs are ignored.
+      description: |-
+        The input determines the method used for Apple Service authentication. By default, any enabled Bitrise Apple Developer connection is used and other authentication-related Step inputs are ignored.
+        
+        There are two types of Apple Developer connection you can enable on Bitrise: one is based on an API key of the App Store Connect API, the other is the session-based authentication with an Apple ID. You can choose which type of Bitrise Apple Developer connection to use or you can tell the Step to only use the Step inputs for authentication:
+        - `automatic`: Use any enabled Apple Developer connection, either based on Apple ID authentication or API key authentication.  Step inputs are only used as a fallback. API key authentication has priority over Apple ID authentication in both cases.
+        - `api_key`: Use the Apple Developer connection based on API key authentication. Authentication-related Step inputs are ignored.
+        - `apple_id`: Use the Apple Developer connection based on Apple ID authentication and **Application-specific password** Step input. Other authentication-related Step inputs are ignored.
+        - `off`: Do not use any already configured Apple Developer Connection. Only authentication-related Step inputs are considered.
+      is_required: true
+      value_options:
+      - "automatic"
+      - "api_key"
+      - "apple_id"
+      - "off"
+  - api_key_path: ""
+    opts:
+      title: "API Key: URL"
+      summary: Path to local or remote file
+      description: |-
+        Specify the path in an URL format where your API key is stored.
+        For example: `https://URL/TO/AuthKey_something.p8` or `file:///PATH/TO/AuthKey_something.p8`.
+
+
+        You can upload your key on the **Generic File Storage** tab in the Workflow Editor and set the Environment Variable for the file here.
+
+
+        For example: `$BITRISEIO_MYKEY_URL`
+  - api_issuer: ""
+    opts:
+      title: "API Key: Issuer ID"
+      description: |-
+        Issuer ID. Required if **API Key: URL** (`api_key_path`) is specified.
+  - apple_id: ""
+    opts:
+      title: "Apple ID: Email"
+      summary: Email for Apple ID login.
+      description: Email for Apple ID login.
+      is_sensitive: true
+  - password: ""
+    opts:
+      title: "Apple ID: Password"
+      description: Password for the specified Apple ID.
+      is_sensitive: true
+  - app_password: ""
+    opts:
+      title: "Apple ID: Application-specific password"
+      summary: Required if using Apple ID
+      description: |-
+        An application-specific password for the Apple ID.
+        **NOTE:** Application-specific passwords can be created on the
+        [AppleID Website](https://appleid.apple.com). It can be used to
+        bypass two-factor authentication.
+      is_sensitive: true
   - update_fastlane: "true"
     opts:
       title: "Should update fastlane gem before run?"
