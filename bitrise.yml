@@ -18,8 +18,8 @@ workflows:
 
   test:
     before_run:
-    - cache
     - auth-all
+    - cache
 
   auth-all:
     before_run:
