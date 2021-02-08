@@ -24,6 +24,8 @@ func FastlaneAuthParams(authConfig appleauth.Credentials) (map[string]string, er
 	envs := make(map[string]string)
 	if authConfig.AppleID != nil {
 		// Set as environment variables
+		envs["SPACESHIP_SKIP_2FA_UPGRADE"] = "1"
+
 		if authConfig.AppleID.Username != "" {
 			envs["FASTLANE_USER"] = authConfig.AppleID.Username
 			envs["DELIVER_USERNAME"] = authConfig.AppleID.Username

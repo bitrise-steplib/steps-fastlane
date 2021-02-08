@@ -124,6 +124,20 @@ workflows:
         - api_issuer: $AUTH_API_ISSUER
         - api_key_path: $BITRISEIO_AUTH_API_KEY_PATH_URL
 
+  auth-test-apple-id-tfa-prompt:
+    description: |-
+      Intended to be run manually, by changing the Apple ID connection to an account where TFA is not yet enabled.
+    before_run:
+    - _auth_prepare
+    steps:
+    - path::./:
+        inputs:
+        - lane: release
+        - work_dir: ./
+        - verbose_log: "yes"
+        - connection: "apple_id"
+        - app_password: ""
+
   _auth_prepare:
     envs:
     - SAMPLE_APP_URL: "https://github.com/bitrise-samples/sample-apps-fastlane-test.git"
