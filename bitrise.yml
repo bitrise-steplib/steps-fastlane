@@ -124,6 +124,20 @@ workflows:
         - api_issuer: $AUTH_API_ISSUER
         - api_key_path: $BITRISEIO_AUTH_API_KEY_PATH_URL
 
+  auth-test-tfa-disabled-apple-id-connection:
+    title: Test Apple ID connection authentication using TFA disabled account
+    description: |-
+      Use this workflow for manual testing TFA disabled Apple ID.
+    before_run:
+    - _auth_prepare
+    steps:
+    - path::./:
+        inputs:
+        - lane: release
+        - work_dir: ./
+        - verbose_log: "yes"
+        - connection: apple_id
+
   _auth_prepare:
     envs:
     - SAMPLE_APP_URL: "https://github.com/bitrise-samples/sample-apps-fastlane-test.git"
