@@ -25,8 +25,8 @@ workflows:
     before_run:
       - auth-test-api-key-connection
       - auth-test-apple-id-connection
-      - auth-test-apple-id-connection-globally-set-app-specific-password
       - auth-test-api-key-input
+      - auth-test-apple-id-connection-globally-set-app-specific-password
 
   cache:  
     envs:
@@ -86,9 +86,11 @@ workflows:
         - work_dir: ./
         - verbose_log: "yes"
         - connection: apple_id
-        - app_password: $FASTLANE_APPLE_APPLICATION_SPECIFIC_PASSWORD
+        - app_password: $APP_SPECIFIC_PASSWORD
 
   auth-test-apple-id-connection-globally-set-app-specific-password:
+    envs:
+    - FASTLANE_APPLE_APPLICATION_SPECIFIC_PASSWORD: $APP_SPECIFIC_PASSWORD
     before_run:
     - _auth_prepare
     steps:
@@ -123,6 +125,20 @@ workflows:
         - connection: "off"
         - api_issuer: $AUTH_API_ISSUER
         - api_key_path: $BITRISEIO_AUTH_API_KEY_PATH_URL
+
+  auth-test-tfa-disabled-apple-id-connection:
+    title: Test Apple ID connection authentication using TFA disabled account
+    description: |-
+      Use this workflow for manual testing TFA disabled Apple ID.
+    before_run:
+    - _auth_prepare
+    steps:
+    - path::./:
+        inputs:
+        - lane: release
+        - work_dir: ./
+        - verbose_log: "yes"
+        - connection: apple_id
 
   _auth_prepare:
     envs:

@@ -1,5 +1,20 @@
 package devportalservice
 
+import (
+	"time"
+)
+
+func toTime(str string) *time.Time {
+	if str == "" {
+		return nil
+	}
+	t, err := time.Parse(time.RFC3339, str)
+	if err != nil {
+		panic(err)
+	}
+	return &t
+}
+
 const testDevicesResponseBody = `{
    "test_devices":[
       {
@@ -30,8 +45,8 @@ var testDevices = []TestDevice{
 		UserID:     4,
 		DeviceID:   "asdf12345ad9b298cb9a9f28555c49573d8bc322",
 		Title:      "iPhone 6",
-		CreatedAt:  "2015-03-13T16:16:13.665Z",
-		UpdatedAt:  "2015-03-13T16:16:13.665Z",
+		CreatedAt:  *toTime("2015-03-13T16:16:13.665Z"),
+		UpdatedAt:  *toTime("2015-03-13T16:16:13.665Z"),
 		DeviceType: "ios",
 	},
 	{
@@ -39,8 +54,8 @@ var testDevices = []TestDevice{
 		UserID:     4,
 		DeviceID:   "asdf12341e73b76df6e99d0d713133c3e078418f",
 		Title:      "iPad mini 2 (Wi-Fi)",
-		CreatedAt:  "2015-03-19T13:25:43.487Z",
-		UpdatedAt:  "2015-03-19T13:25:43.487Z",
+		CreatedAt:  *toTime("2015-03-19T13:25:43.487Z"),
+		UpdatedAt:  *toTime("2015-03-19T13:25:43.487Z"),
 		DeviceType: "ios",
 	},
 }
@@ -97,9 +112,9 @@ const testFastlaneSession = `---
 `
 
 var testAppleIDConnection = AppleIDConnection{
-	AppleID:              "example@example.io",
-	Password:             "highSecurityPassword",
-	ConnectionExpiryDate: "2019-04-06T12:04:59.000Z",
+	AppleID:           "example@example.io",
+	Password:          "highSecurityPassword",
+	SessionExpiryDate: toTime("2019-04-06T12:04:59.000Z"),
 	SessionCookies: map[string][]cookie{
 		"https://idmsa.apple.com": {
 			{
