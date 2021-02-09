@@ -2,6 +2,7 @@ package appleauth
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/bitrise-steplib/steps-deploy-to-itunesconnect-deliver/devportalservice"
 )
@@ -135,8 +136,8 @@ func (*ConnectionAppleIDFastlaneSource) Fetch(conn *devportalservice.AppleDevelo
 	}
 
 	appleIDConn := conn.AppleIDConnection
-	if expiry := appleIDConn.Expiry(); expiry != nil && appleIDConn.Expired() {
-		return nil, fmt.Errorf("2FA session saved in Bitrise Developer Connection is expired, was valid until %s", expiry.String())
+	if appleIDConn.SessionExpiryDate != nil && appleIDConn.SessionExpiryDate.Before(time.Now()) {
+		return nil, fmt.Errorf("2FA session saved in Bitrise Developer Connection is expired, was valid until %s", appleIDConn.SessionExpiryDate.String())
 	}
 	session, err := appleIDConn.FastlaneLoginSession()
 	if err != nil {

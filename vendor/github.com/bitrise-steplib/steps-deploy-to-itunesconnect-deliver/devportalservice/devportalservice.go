@@ -147,10 +147,10 @@ type cookie struct {
 
 // AppleIDConnection represents a Bitrise.io Apple ID-based Apple Developer connection.
 type AppleIDConnection struct {
-	AppleID              string              `json:"apple_id"`
-	Password             string              `json:"password"`
-	ConnectionExpiryDate string              `json:"connection_expiry_date"`
-	SessionCookies       map[string][]cookie `json:"session_cookies"`
+	AppleID           string              `json:"apple_id"`
+	Password          string              `json:"password"`
+	SessionExpiryDate *time.Time          `json:"connection_expiry_date"`
+	SessionCookies    map[string][]cookie `json:"session_cookies"`
 }
 
 // APIKeyConnection represents a Bitrise.io API key-based Apple Developer connection.
@@ -162,13 +162,13 @@ type APIKeyConnection struct {
 
 // TestDevice ...
 type TestDevice struct {
-	ID         int    `json:"id"`
-	UserID     int    `json:"user_id"`
-	DeviceID   string `json:"device_identifier"`
-	Title      string `json:"title"`
-	CreatedAt  string `json:"created_at"`
-	UpdatedAt  string `json:"updated_at"`
-	DeviceType string `json:"device_type"`
+	ID         int       `json:"id"`
+	UserID     int       `json:"user_id"`
+	DeviceID   string    `json:"device_identifier"`
+	Title      string    `json:"title"`
+	CreatedAt  time.Time `json:"created_at"`
+	UpdatedAt  time.Time `json:"updated_at"`
+	DeviceType string    `json:"device_type"`
 }
 
 // AppleDeveloperConnection represents a Bitrise.io Apple Developer connection.
@@ -177,25 +177,6 @@ type AppleDeveloperConnection struct {
 	AppleIDConnection *AppleIDConnection
 	APIKeyConnection  *APIKeyConnection
 	TestDevices       []TestDevice `json:"test_devices"`
-}
-
-// Expiry returns the expiration of the Bitrise Apple ID-based Apple Developer connection.
-func (c *AppleIDConnection) Expiry() *time.Time {
-	t, err := time.Parse(time.RFC3339, c.ConnectionExpiryDate)
-	if err != nil {
-		log.Warnf("Could not parse Apple ID session expiry date: %s", err)
-		return nil
-	}
-	return &t
-}
-
-// Expired returns whether the Bitrise Apple ID-based Apple Developer connection is expired.
-func (c *AppleIDConnection) Expired() bool {
-	expiry := c.Expiry()
-	if expiry == nil {
-		return false
-	}
-	return expiry.Before(time.Now())
 }
 
 // FastlaneLoginSession returns the Apple ID login session in a ruby/object:HTTP::Cookie format.

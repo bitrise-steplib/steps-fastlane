@@ -29,7 +29,7 @@ github.com/bitrise-io/go-utils/sliceutil
 github.com/bitrise-io/stepman/models
 # github.com/bitrise-steplib/bitrise-step-android-unit-test v0.0.0-20190902203028-ff8e682d8645
 github.com/bitrise-steplib/bitrise-step-android-unit-test/cache
-# github.com/bitrise-steplib/steps-deploy-to-itunesconnect-deliver v0.0.0-20210204114640-c91fdc7c90cd
+# github.com/bitrise-steplib/steps-deploy-to-itunesconnect-deliver v0.0.0-20210209134909-4d779ddbe073
 github.com/bitrise-steplib/steps-deploy-to-itunesconnect-deliver/appleauth
 github.com/bitrise-steplib/steps-deploy-to-itunesconnect-deliver/devportalservice
 # github.com/kballard/go-shellquote v0.0.0-20180428030007-95032a82bc51
