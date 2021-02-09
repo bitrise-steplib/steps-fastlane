@@ -25,8 +25,8 @@ workflows:
     before_run:
       - auth-test-api-key-connection
       - auth-test-apple-id-connection
-      - auth-test-apple-id-connection-globally-set-app-specific-password
       - auth-test-api-key-input
+      - auth-test-apple-id-connection-globally-set-app-specific-password
 
   cache:  
     envs:
@@ -86,9 +86,11 @@ workflows:
         - work_dir: ./
         - verbose_log: "yes"
         - connection: apple_id
-        - app_password: $FASTLANE_APPLE_APPLICATION_SPECIFIC_PASSWORD
+        - app_password: $APP_SPECIFIC_PASSWORD
 
   auth-test-apple-id-connection-globally-set-app-specific-password:
+    envs:
+    - FASTLANE_APPLE_APPLICATION_SPECIFIC_PASSWORD: $APP_SPECIFIC_PASSWORD
     before_run:
     - _auth_prepare
     steps:
