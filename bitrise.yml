@@ -100,18 +100,7 @@ workflows:
         - verbose_log: "yes"
         - connection: apple_id
         - app_password: ""
-  
-  auth-test-apple-id-connection-without-app-specific-password:
-    before_run:
-    - _auth_prepare
-    steps:
-    - path::./:
-        inputs:
-        - lane: release
-        - work_dir: ./
-        - verbose_log: "yes"
-        - connection: apple_id
-
+        
   auth-test-api-key-connection:
     before_run:
     - _auth_prepare
