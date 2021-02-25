@@ -27,7 +27,6 @@ workflows:
       - auth-test-apple-id-connection
       - auth-test-api-key-input
       - auth-test-apple-id-connection-globally-set-app-specific-password
-      - auth-test-apple-id-connection-without-app-specific-password
 
   cache:  
     envs:
@@ -87,7 +86,6 @@ workflows:
         - work_dir: ./
         - verbose_log: "yes"
         - connection: apple_id
-        - app_password: $APP_SPECIFIC_PASSWORD
 
   auth-test-apple-id-connection-globally-set-app-specific-password:
     envs:
