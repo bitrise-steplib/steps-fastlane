@@ -63,6 +63,9 @@ func FastlaneAuthParams(authConfig appleauth.Credentials) (map[string]string, er
 		}
 
 		envs["APP_STORE_CONNECT_API_KEY_PATH"] = fastlaneAuthFile
+		// these seem redundant and might become obsolete soon
+		envs["DELIVER_API_KEY_PATH"] = fastlaneAuthFile
+		envs["PILOT_API_KEY_PATH"] = fastlaneAuthFile
 		// deliver: "Precheck cannot check In-app purchases with the App Store Connect API Key (yet). Exclude In-app purchases from precheck"
 		envs["PRECHECK_INCLUDE_IN_APP_PURCHASES"] = "false"
 	}
