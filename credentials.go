@@ -34,6 +34,7 @@ func FastlaneAuthParams(authConfig appleauth.Credentials) (map[string]string, er
 		if authConfig.AppleID.Password != "" {
 			envs["FASTLANE_PASSWORD"] = authConfig.AppleID.Password
 			envs["DELIVER_PASSWORD"] = authConfig.AppleID.Password
+			envs["PILOT_PASSWORD"] = authConfig.AppleID.Password
 		}
 		if authConfig.AppleID.Session != "" {
 			envs["FASTLANE_SESSION"] = authConfig.AppleID.Session
