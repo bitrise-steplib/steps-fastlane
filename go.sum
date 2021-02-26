@@ -14,12 +14,16 @@ github.com/bitrise-io/stepman v0.0.0-20190813144014-10564a4888a6 h1:/GnB2kEaO/6K
 github.com/bitrise-io/stepman v0.0.0-20190813144014-10564a4888a6/go.mod h1:hGCjd8leP411yt5QkQi+VBNWGxIZ4H02LNIVeKBeMUk=
 github.com/bitrise-steplib/bitrise-step-android-unit-test v0.0.0-20190902203028-ff8e682d8645 h1:9molXzIAxnKStwV78lt7MSgUQwxIWl4+r9/oYTQA7no=
 github.com/bitrise-steplib/bitrise-step-android-unit-test v0.0.0-20190902203028-ff8e682d8645/go.mod h1:0yqqJw+MqwsfHKq4pL90IoSYskLF91oDCyyZYnIehWA=
+github.com/bitrise-steplib/bitrise-step-export-universal-apk v0.0.0-20200729103519-a582681d23d6 h1:7UWHsApY8/iIGw1jVbDiL3FMnI70Y/t0BxG9nQupHhI=
+github.com/bitrise-steplib/bitrise-step-export-universal-apk v0.0.0-20200729103519-a582681d23d6/go.mod h1:WBGpmu+FXynGkpED0re/InExsBaRG7Y2tMabxnFgSuA=
 github.com/bitrise-steplib/steps-deploy-to-itunesconnect-deliver v0.0.0-20210204114640-c91fdc7c90cd h1:ieyOJ5xYu0nxVf9dpyRCg3RgS/Uhc3hfNBI6RUWms/Q=
 github.com/bitrise-steplib/steps-deploy-to-itunesconnect-deliver v0.0.0-20210204114640-c91fdc7c90cd/go.mod h1:mG5kKjSyK3sZNp7e5QpFBAtxJRWeA+4PSMh3ZfwggNs=
 github.com/bitrise-steplib/steps-deploy-to-itunesconnect-deliver v0.0.0-20210209130532-8386805c9389 h1:NQfjDuwNE/LhjTkMV7+PmRE/c+KFPxXJTZeW6TfEptY=
 github.com/bitrise-steplib/steps-deploy-to-itunesconnect-deliver v0.0.0-20210209130532-8386805c9389/go.mod h1:mG5kKjSyK3sZNp7e5QpFBAtxJRWeA+4PSMh3ZfwggNs=
 github.com/bitrise-steplib/steps-deploy-to-itunesconnect-deliver v0.0.0-20210209134909-4d779ddbe073 h1:348wxtooA7rjIe0pXLJwVPwddrURmq+6hCWcfE6hACQ=
 github.com/bitrise-steplib/steps-deploy-to-itunesconnect-deliver v0.0.0-20210209134909-4d779ddbe073/go.mod h1:mG5kKjSyK3sZNp7e5QpFBAtxJRWeA+4PSMh3ZfwggNs=
+github.com/bitrise-steplib/steps-deploy-to-itunesconnect-deliver v0.0.0-20210225084122-4a4d9384c633 h1:6Rw2tRuYzY5baiyAWDhX+psWihsOCZRX2TqtfHzq8TU=
+github.com/bitrise-steplib/steps-deploy-to-itunesconnect-deliver v0.0.0-20210225084122-4a4d9384c633/go.mod h1:+XuCsvAc2xcQpdVnCmQC4Ej+jMc0n60oTtg0oz/BkC4=
 github.com/davecgh/go-spew v1.1.0 h1:ZDRjVQ15GmhC3fiQ8ni8+OwkZQO4DARzQgrnXU1Liz8=
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
