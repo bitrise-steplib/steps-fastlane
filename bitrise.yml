@@ -86,7 +86,6 @@ workflows:
         - work_dir: ./
         - verbose_log: "yes"
         - connection: apple_id
-        - app_password: $APP_SPECIFIC_PASSWORD
 
   auth-test-apple-id-connection-globally-set-app-specific-password:
     envs:
@@ -101,7 +100,7 @@ workflows:
         - verbose_log: "yes"
         - connection: apple_id
         - app_password: ""
-
+        
   auth-test-api-key-connection:
     before_run:
     - _auth_prepare
