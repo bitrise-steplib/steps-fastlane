@@ -29,10 +29,12 @@ func FastlaneAuthParams(authConfig appleauth.Credentials) (map[string]string, er
 		if authConfig.AppleID.Username != "" {
 			envs["FASTLANE_USER"] = authConfig.AppleID.Username
 			envs["DELIVER_USERNAME"] = authConfig.AppleID.Username
+			envs["PILOT_USERNAME"] = authConfig.AppleID.Username
 		}
 		if authConfig.AppleID.Password != "" {
 			envs["FASTLANE_PASSWORD"] = authConfig.AppleID.Password
 			envs["DELIVER_PASSWORD"] = authConfig.AppleID.Password
+			envs["PILOT_PASSWORD"] = authConfig.AppleID.Password
 		}
 		if authConfig.AppleID.Session != "" {
 			envs["FASTLANE_SESSION"] = authConfig.AppleID.Session
@@ -61,7 +63,10 @@ func FastlaneAuthParams(authConfig appleauth.Credentials) (map[string]string, er
 			return envs, err
 		}
 
+		envs["APP_STORE_CONNECT_API_KEY_PATH"] = fastlaneAuthFile
+		// these seem redundant and might become obsolete soon
 		envs["DELIVER_API_KEY_PATH"] = fastlaneAuthFile
+		envs["PILOT_API_KEY_PATH"] = fastlaneAuthFile
 		// deliver: "Precheck cannot check In-app purchases with the App Store Connect API Key (yet). Exclude In-app purchases from precheck"
 		envs["PRECHECK_INCLUDE_IN_APP_PURCHASES"] = "false"
 	}
