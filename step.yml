@@ -82,7 +82,8 @@ inputs:
       summary: Path to local or remote file
       description: |-
         Specify the path in an URL format where your API key is stored.
-        For example: `https://URL/TO/AuthKey_something.p8` or `file:///PATH/TO/AuthKey_something.p8`.
+        For example: `https://URL/TO/AuthKey_[KEY_ID].p8` or `file:///PATH/TO/AuthKey_[KEY_ID].p8`.
+        **NOTE:** The Step will only recognize the API key if the filename includes the  `KEY_ID` value as shown on the examples above.
 
 
         You can upload your key on the **Generic File Storage** tab in the Workflow Editor and set the Environment Variable for the file here.
