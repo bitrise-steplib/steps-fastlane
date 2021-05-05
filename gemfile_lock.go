@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/bitrise-io/go-utils/command/gems"
+	"github.com/bitrise-io/go-steputils/command/gems"
 	"github.com/bitrise-io/go-utils/log"
 )
 
