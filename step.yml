@@ -4,9 +4,11 @@ summary: |-
 description: |-
   fastlane is an open-source app automation tool for iOS, Android and for most cross-platform frameworks, for example, React Native, Xamarin and Flutter.
   **fastlane** Step helps you integrate your lane to your Bitrise Workflow and runs your lane based on the fastlane actions with minimal configuration.
-  If your Apple Developer Portal account is connected to Bitrise, the `FASTLANE_SESSION` Environment Variable will pass on the session data to fastlane.
+  If your Apple Developer Portal account is [connected to Bitrise](https://devcenter.bitrise.io/getting-started/connecting-to-services/configuring-bitrise-steps-that-require-apple-developer-account-data/), the `FASTLANE_SESSION` Environment Variable will pass on the session data to fastlane.
   
   ### Configuring the Step
+  
+  Before you start configuring the Step, make sure you've [connected to Apple services either by API key, Apple ID or through Fastlane Step's input fields](https://devcenter.bitrise.io/getting-started/connecting-to-services/bitrise-steps-and-their-authentication-methods/#fastlane-step).
   1. Add the **fastlane** Step to your Workflow after the **Git Clone Repository** Step or any other dependency Step.
   1. Based on your project's fastlane setup, you can add your project's default lane or a custom lane in the **fastlane lane** input.
   2. If your fastlane directory is not available in your repository's root, then you can add the parent directory of fastlane directory in the **Working directory** input.
@@ -22,7 +24,7 @@ description: |-
 
   ### Useful links
   - [About fastlane](https://docs.fastlane.tools)
-  - [Connecting your Apple Developer Account to Bitrise](https://devcenter.bitrise.io/getting-started/configuring-bitrise-steps-that-require-apple-developer-account-data/)
+  - [Connecting your Apple Developer Account to Bitrise](https://devcenter.bitrise.io/getting-started/connecting-to-services/configuring-bitrise-steps-that-require-apple-developer-account-data/)
   - [Running fastlane on Bitrise](https://devcenter.bitrise.io/tutorials/fastlane/fastlane-index/)
 
   ### Related Steps
