@@ -7,8 +7,8 @@ require (
 	github.com/bitrise-io/bitrise v0.0.0-20190829132137-518e23eca82d // indirect
 	github.com/bitrise-io/bitrise-init v0.0.0-20190813135927-7ff42ba329cb
 	github.com/bitrise-io/envman v0.0.0-20190813133714-27a300a1ed43 // indirect
-	github.com/bitrise-io/go-steputils v0.0.0-20201016102104-03ae3a6ded35
-	github.com/bitrise-io/go-utils v0.0.0-20201211082830-859032e9adf0
+	github.com/bitrise-io/go-steputils v0.0.0-20210505101226-8536c460c5c1
+	github.com/bitrise-io/go-utils v0.0.0-20210505091801-98b7dc39ee61
 	github.com/bitrise-io/stepman v0.0.0-20190813144014-10564a4888a6 // indirect
 	github.com/bitrise-steplib/bitrise-step-android-unit-test v0.0.0-20190902203028-ff8e682d8645
 	github.com/bitrise-steplib/steps-deploy-to-itunesconnect-deliver v0.0.0-20210225084122-4a4d9384c633

@@ -8,8 +8,13 @@ github.com/bitrise-io/envman v0.0.0-20190813133714-27a300a1ed43 h1:BRhP0pS7NPK4i
 github.com/bitrise-io/envman v0.0.0-20190813133714-27a300a1ed43/go.mod h1:m8pTp1o3Sw9uzDxb1WRm5IBRnMau2iOvPMSnRCAhQNI=
 github.com/bitrise-io/go-steputils v0.0.0-20201016102104-03ae3a6ded35 h1:iKtx/RxSrA9xcjZ17W3yu3jMzwowNB6nxLF/1BwVYQ8=
 github.com/bitrise-io/go-steputils v0.0.0-20201016102104-03ae3a6ded35/go.mod h1:GXgBV3Frd3qcnsg+NryQTyx1CHjZHr/2w7Bx4WAcB4o=
+github.com/bitrise-io/go-steputils v0.0.0-20210505101226-8536c460c5c1 h1:LfMlk5YgEjYtkTBV2/7nWa65YyvWqVHQNsmdT+SHjhk=
+github.com/bitrise-io/go-steputils v0.0.0-20210505101226-8536c460c5c1/go.mod h1:gF9UfXaXyxkKLAKgo+RpZFsRemnTv6wAPTljpJXoxI8=
 github.com/bitrise-io/go-utils v0.0.0-20201211082830-859032e9adf0 h1:HR5o2gHKo0rAMfKogclAg4KOnEX8XniC7A3JFuEAXjY=
 github.com/bitrise-io/go-utils v0.0.0-20201211082830-859032e9adf0/go.mod h1:tTEsKvbz1LbzuN/KpVFHXnLtcAPdEgIdM41s0lL407s=
+github.com/bitrise-io/go-utils v0.0.0-20210323091856-00429d8e1e87/go.mod h1:tTEsKvbz1LbzuN/KpVFHXnLtcAPdEgIdM41s0lL407s=
+github.com/bitrise-io/go-utils v0.0.0-20210505091801-98b7dc39ee61 h1:c/qfKyJE8u2iAAYhz5KIHlBOwYTgzWhZIdYSAipfOaM=
+github.com/bitrise-io/go-utils v0.0.0-20210505091801-98b7dc39ee61/go.mod h1:nhdaDQFvaMny1CugVV6KjK92/q97ENo0RuKSW5I4fbA=
 github.com/bitrise-io/stepman v0.0.0-20190813144014-10564a4888a6 h1:/GnB2kEaO/6KSMfGpmntvohfacADpWFcf8iCPLsZqh4=
 github.com/bitrise-io/stepman v0.0.0-20190813144014-10564a4888a6/go.mod h1:hGCjd8leP411yt5QkQi+VBNWGxIZ4H02LNIVeKBeMUk=
 github.com/bitrise-steplib/bitrise-step-android-unit-test v0.0.0-20190902203028-ff8e682d8645 h1:9molXzIAxnKStwV78lt7MSgUQwxIWl4+r9/oYTQA7no=
@@ -43,6 +48,8 @@ github.com/pmezard/go-difflib v1.0.0/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZN
 github.com/ryanuber/go-glob v1.0.0 h1:iQh3xXAumdQ+4Ufa5b25cRpC5TYKlno6hsv6Cb3pkBk=
 github.com/ryanuber/go-glob v1.0.0/go.mod h1:807d1WSdnB0XRJzKNil9Om6lcp/3a0v4qIHxIXzX/Yc=
 github.com/stretchr/objx v0.1.0/go.mod h1:HFkY916IF+rwdDfMAkV7OtwuqBVzrE8GR6GFx+wExME=
+github.com/stretchr/objx v0.3.0/go.mod h1:qt09Ya8vawLte6SNmTgCsAVtYtaKzEcn8ATUoHMkEqE=
+github.com/stretchr/testify v1.3.0/go.mod h1:M5WIy9Dh21IEIfnGCwXGc5bZfKNJtfHm1UVUgZn+9EI=
 github.com/stretchr/testify v1.5.1 h1:nOGnQDM7FYENwehXlg/kFVnos3rEvtKTjRvOWSzb6H4=
 github.com/stretchr/testify v1.5.1/go.mod h1:5W2xD1RspED5o8YsWQXVCued0rvSQ+mT+I5cxcmMvtA=
 github.com/stretchr/testify v1.7.0 h1:nwc3DEeHmmLAfoZucVR881uASk0Mfjw8xYJ99tb5CcY=
@@ -74,3 +81,4 @@ gopkg.in/yaml.v2 v2.2.8 h1:obN1ZagJSUGI0Ek/LBmuj4SNLPfIny3KsKFopxRdj10=
 gopkg.in/yaml.v2 v2.2.8/go.mod h1:hI93XBmqTisBFMUTm0b8Fm+jr3Dg1NNxqwp+5A1VGuI=
 gopkg.in/yaml.v3 v3.0.0-20200313102051-9f266ea9e77c h1:dUUwHk2QECo/6vqA44rthZ8ie2QXMNeKRTHCNY2nXvo=
 gopkg.in/yaml.v3 v3.0.0-20200313102051-9f266ea9e77c/go.mod h1:K4uyk7z7BCEPqu6E+C64Yfv1cQ7kz7rIZviUmN+EgEM=
+gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b/go.mod h1:K4uyk7z7BCEPqu6E+C64Yfv1cQ7kz7rIZviUmN+EgEM=
