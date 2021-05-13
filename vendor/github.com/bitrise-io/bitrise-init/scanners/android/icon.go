@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/beevik/etree"
+	"github.com/bitrise-io/bitrise-init/analytics"
 	"github.com/bitrise-io/bitrise-init/models"
 	"github.com/bitrise-io/bitrise-init/utility"
 	"github.com/bitrise-io/go-utils/log"
@@ -25,30 +26,23 @@ func lookupIconName(manifestPth string) ([]icon, error) {
 	}
 
 	log.Debugf("Looking for app icons. Manifest path: %s", manifestPth)
-	parsedIcons, err := parseIconName(doc)
-	if err != nil {
-		return nil, err
-	}
-
-	return parsedIcons, nil
+	return parseIconName(doc)
 }
 
 // parseIconName fetches icon name from AndroidManifest.xml.
 func parseIconName(doc *etree.Document) ([]icon, error) {
 	man := doc.SelectElement("manifest")
 	if man == nil {
-		log.Debugf("Key manifest not found in manifest file")
-		return nil, nil
+		return nil, fmt.Errorf("key 'manifest' not found in AndroidManifest.xml")
 	}
 	app := man.SelectElement("application")
 	if app == nil {
-		log.Debugf("Key application not found in manifest file")
-		return nil, nil
+		return nil, fmt.Errorf("key 'application' not found in AndroidManifest.xml")
 	}
 	ic := app.SelectAttr("android:icon")
 	if ic == nil {
-		log.Debugf("Attribute not found in manifest file")
-		return nil, nil
+		// Gradle varaibles like ${appIcon} are not supported
+		return nil, fmt.Errorf("attribute 'android:icon' not found in AndroidManifest.xml")
 	}
 
 	iconPathParts := strings.Split(strings.TrimPrefix(ic.Value, "@"), "/")
@@ -105,8 +99,10 @@ func lookupIcons(projectDir string, basepath string) ([]string, error) {
 	for _, manifestPath := range manifestPaths {
 		icons, err := lookupIconName(manifestPath)
 		if err != nil {
-			return nil, err
+			analytics.LogInfo("android-icon-lookup", analytics.DetectorErrorData("android", err), "Failed to lookup android icon")
+			continue
 		}
+
 		iconNames = append(iconNames, icons...)
 	}
 
@@ -117,6 +113,7 @@ func lookupIcons(projectDir string, basepath string) ([]string, error) {
 			if err != nil {
 				return nil, err
 			}
+
 			iconPaths = append(iconPaths, foundIconPaths...)
 		}
 	}
