@@ -11,6 +11,8 @@ github.com/bitrise-io/bitrise-init/steps
 github.com/bitrise-io/bitrise-init/utility
 # github.com/bitrise-io/envman v0.0.0-20200512105748-919e33f391ee
 github.com/bitrise-io/envman/models
+# github.com/bitrise-io/go-android v0.0.0-20210513093524-63092a8cdbce
+github.com/bitrise-io/go-android/cache
 # github.com/bitrise-io/go-steputils v0.0.0-20210507072936-92fde382fb33
 github.com/bitrise-io/go-steputils/cache
 github.com/bitrise-io/go-steputils/command/gems
@@ -34,8 +36,8 @@ github.com/bitrise-io/go-xcode/appleauth
 github.com/bitrise-io/go-xcode/devportalservice
 # github.com/bitrise-io/stepman v0.0.0-20210505110307-5c2296bcc558
 github.com/bitrise-io/stepman/models
-# github.com/bitrise-steplib/bitrise-step-android-unit-test v0.0.0-20190902203028-ff8e682d8645
-github.com/bitrise-steplib/bitrise-step-android-unit-test/cache
+# github.com/hashicorp/go-version v1.3.0
+github.com/hashicorp/go-version
 # github.com/kballard/go-shellquote v0.0.0-20180428030007-95032a82bc51
 github.com/kballard/go-shellquote
 # github.com/ryanuber/go-glob v1.0.0
