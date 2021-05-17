@@ -1,6 +1,6 @@
 # github.com/beevik/etree v1.1.0
 github.com/beevik/etree
-# github.com/bitrise-io/bitrise v0.0.0-20210401073821-4ed3f06d26ae
+# github.com/bitrise-io/bitrise v0.0.0-20210513161711-09b1442cf3e0
 github.com/bitrise-io/bitrise/models
 # github.com/bitrise-io/bitrise-init v0.0.0-20210512085703-71cb279cf605
 github.com/bitrise-io/bitrise-init/analytics
@@ -11,16 +11,16 @@ github.com/bitrise-io/bitrise-init/steps
 github.com/bitrise-io/bitrise-init/utility
 # github.com/bitrise-io/envman v0.0.0-20200512105748-919e33f391ee
 github.com/bitrise-io/envman/models
-# github.com/bitrise-io/go-android v0.0.0-20210513093524-63092a8cdbce
+# github.com/bitrise-io/go-android v0.0.0-20210517091621-72f0eb7a5197
 github.com/bitrise-io/go-android/cache
-# github.com/bitrise-io/go-steputils v0.0.0-20210507072936-92fde382fb33
+# github.com/bitrise-io/go-steputils v0.0.0-20210514150206-5b6261447e77
 github.com/bitrise-io/go-steputils/cache
 github.com/bitrise-io/go-steputils/command/gems
 github.com/bitrise-io/go-steputils/command/rubycommand
 github.com/bitrise-io/go-steputils/input
 github.com/bitrise-io/go-steputils/stepconf
 github.com/bitrise-io/go-steputils/tools
-# github.com/bitrise-io/go-utils v0.0.0-20210507100250-37de47dfa6ce
+# github.com/bitrise-io/go-utils v0.0.0-20210514133945-9dd14e1c514a
 github.com/bitrise-io/go-utils/colorstring
 github.com/bitrise-io/go-utils/command
 github.com/bitrise-io/go-utils/errorutil
