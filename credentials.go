@@ -8,7 +8,7 @@ import (
 	"path/filepath"
 
 	"github.com/bitrise-io/go-utils/pathutil"
-	"github.com/bitrise-steplib/steps-deploy-to-itunesconnect-deliver/appleauth"
+	"github.com/bitrise-io/go-xcode/appleauth"
 )
 
 // fastlaneAPIKey is used to serialize App Store Connect API Key into JSON for fastlane
