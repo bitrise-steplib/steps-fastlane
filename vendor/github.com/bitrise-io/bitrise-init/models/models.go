@@ -1,7 +1,7 @@
 package models
 
 import (
-	"github.com/bitrise-io/bitrise-init/step"
+	"github.com/bitrise-io/go-steputils/step"
 )
 
 // BitriseConfigMap ...

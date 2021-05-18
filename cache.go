@@ -6,7 +6,6 @@ import (
 	"strings"
 
 	"github.com/bitrise-io/bitrise-init/scanners/android"
-	"github.com/bitrise-io/bitrise-init/utility"
 	androidCache "github.com/bitrise-io/go-android/cache"
 	"github.com/bitrise-io/go-steputils/cache"
 	"github.com/bitrise-io/go-utils/log"
@@ -22,12 +21,12 @@ var depsFuncs = []depsFunc{
 }
 
 func iosDeps(dir string, buildDirName, lockFileName string) ([]string, []string, error) {
-	files, err := utility.ListPathInDirSortedByComponents(dir, false)
+	files, err := pathutil.ListPathInDirSortedByComponents(dir, false)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to search for files in (%s), error: %s", dir, err)
 	}
 
-	locks, err := utility.FilterPaths(files, utility.BaseFilter(lockFileName, true))
+	locks, err := pathutil.FilterPaths(files, pathutil.BaseFilter(lockFileName, true))
 	if err != nil {
 		return nil, nil, err
 	}

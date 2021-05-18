@@ -2,14 +2,13 @@
 github.com/beevik/etree
 # github.com/bitrise-io/bitrise v0.0.0-20210513161711-09b1442cf3e0
 github.com/bitrise-io/bitrise/models
-# github.com/bitrise-io/bitrise-init v0.0.0-20210512085703-71cb279cf605
+# github.com/bitrise-io/bitrise-init v0.0.0-20210518124036-0b2b7f91bdb1
 github.com/bitrise-io/bitrise-init/analytics
 github.com/bitrise-io/bitrise-init/models
 github.com/bitrise-io/bitrise-init/scanners/android
-github.com/bitrise-io/bitrise-init/step
 github.com/bitrise-io/bitrise-init/steps
 github.com/bitrise-io/bitrise-init/utility
-# github.com/bitrise-io/envman v0.0.0-20200512105748-919e33f391ee
+# github.com/bitrise-io/envman v0.0.0-20210517135508-b2b4fe89eac5
 github.com/bitrise-io/envman/models
 # github.com/bitrise-io/go-android v0.0.0-20210517091621-72f0eb7a5197
 github.com/bitrise-io/go-android/cache
@@ -18,9 +17,10 @@ github.com/bitrise-io/go-steputils/cache
 github.com/bitrise-io/go-steputils/command/gems
 github.com/bitrise-io/go-steputils/command/rubycommand
 github.com/bitrise-io/go-steputils/input
+github.com/bitrise-io/go-steputils/step
 github.com/bitrise-io/go-steputils/stepconf
 github.com/bitrise-io/go-steputils/tools
-# github.com/bitrise-io/go-utils v0.0.0-20210514133945-9dd14e1c514a
+# github.com/bitrise-io/go-utils v0.0.0-20210517140706-aa64fd88ca49
 github.com/bitrise-io/go-utils/colorstring
 github.com/bitrise-io/go-utils/command
 github.com/bitrise-io/go-utils/errorutil
@@ -31,10 +31,10 @@ github.com/bitrise-io/go-utils/parseutil
 github.com/bitrise-io/go-utils/pathutil
 github.com/bitrise-io/go-utils/pointers
 github.com/bitrise-io/go-utils/sliceutil
-# github.com/bitrise-io/go-xcode v0.0.0-20210512084902-047d3c3d372a
+# github.com/bitrise-io/go-xcode v0.0.0-20210517092111-792daa927657
 github.com/bitrise-io/go-xcode/appleauth
 github.com/bitrise-io/go-xcode/devportalservice
-# github.com/bitrise-io/stepman v0.0.0-20210505110307-5c2296bcc558
+# github.com/bitrise-io/stepman v0.0.0-20210517135458-203f7a48d37a
 github.com/bitrise-io/stepman/models
 # github.com/hashicorp/go-version v1.3.0
 github.com/hashicorp/go-version
