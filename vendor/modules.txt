@@ -1,8 +1,8 @@
 # github.com/beevik/etree v1.1.0
 github.com/beevik/etree
-# github.com/bitrise-io/bitrise v0.0.0-20210513161711-09b1442cf3e0
+# github.com/bitrise-io/bitrise v0.0.0-20210519130014-380842fb41c1
 github.com/bitrise-io/bitrise/models
-# github.com/bitrise-io/bitrise-init v0.0.0-20210518124036-0b2b7f91bdb1
+# github.com/bitrise-io/bitrise-init v0.0.0-20210520122036-d213de321eb8
 github.com/bitrise-io/bitrise-init/analytics
 github.com/bitrise-io/bitrise-init/models
 github.com/bitrise-io/bitrise-init/scanners/android
@@ -10,9 +10,9 @@ github.com/bitrise-io/bitrise-init/steps
 github.com/bitrise-io/bitrise-init/utility
 # github.com/bitrise-io/envman v0.0.0-20210517135508-b2b4fe89eac5
 github.com/bitrise-io/envman/models
-# github.com/bitrise-io/go-android v0.0.0-20210517091621-72f0eb7a5197
+# github.com/bitrise-io/go-android v0.0.0-20210527143215-3ad22ad02e2e
 github.com/bitrise-io/go-android/cache
-# github.com/bitrise-io/go-steputils v0.0.0-20210514150206-5b6261447e77
+# github.com/bitrise-io/go-steputils v0.0.0-20210527075147-910ce7a105a1
 github.com/bitrise-io/go-steputils/cache
 github.com/bitrise-io/go-steputils/command/gems
 github.com/bitrise-io/go-steputils/command/rubycommand
@@ -20,7 +20,7 @@ github.com/bitrise-io/go-steputils/input
 github.com/bitrise-io/go-steputils/step
 github.com/bitrise-io/go-steputils/stepconf
 github.com/bitrise-io/go-steputils/tools
-# github.com/bitrise-io/go-utils v0.0.0-20210517140706-aa64fd88ca49
+# github.com/bitrise-io/go-utils v0.0.0-20210520073355-367fa34178f5
 github.com/bitrise-io/go-utils/colorstring
 github.com/bitrise-io/go-utils/command
 github.com/bitrise-io/go-utils/errorutil
@@ -31,7 +31,7 @@ github.com/bitrise-io/go-utils/parseutil
 github.com/bitrise-io/go-utils/pathutil
 github.com/bitrise-io/go-utils/pointers
 github.com/bitrise-io/go-utils/sliceutil
-# github.com/bitrise-io/go-xcode v0.0.0-20210517092111-792daa927657
+# github.com/bitrise-io/go-xcode v0.0.0-20210521101355-fb6a1eb6e05b
 github.com/bitrise-io/go-xcode/appleauth
 github.com/bitrise-io/go-xcode/devportalservice
 # github.com/bitrise-io/stepman v0.0.0-20210517135458-203f7a48d37a
