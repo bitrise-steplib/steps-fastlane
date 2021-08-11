@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/bitrise-io/bitrise-init/scanners/android"
+	"github.com/bitrise-io/bitrise-init/utility"
 	androidCache "github.com/bitrise-io/go-android/cache"
 	"github.com/bitrise-io/go-steputils/cache"
 	"github.com/bitrise-io/go-utils/log"
@@ -78,8 +79,9 @@ func androidDeps(dir string) ([]string, []string, error) {
 
 	var include []string
 	var exclude []string
+	collector := androidCache.NewAndroidGradleCacheItemCollector()
 	for _, dir := range scanner.ProjectRoots {
-		i, e, err := androidCache.NewAndroidGradleCacheItemCollector().Collect(dir, cache.LevelDeps)
+		i, e, err := collector.Collect(dir, cache.LevelDeps)
 		if err != nil {
 			return nil, nil, err
 		}
