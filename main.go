@@ -210,7 +210,8 @@ func main() {
 		if _, ok := err.(*appleauth.MissingAuthConfigError); !ok {
 			failf("Could not configure Apple Service authentication: %v", err)
 		}
-		log.Infof("No authentication data found matching the selected Apple Service authentication method: %s", config.BitriseConnection)
+		fmt.Println()
+		log.Warnf("No authentication data found matching the selected Apple Service authentication method (%s).", config.BitriseConnection)
 		if conn != nil && (conn.APIKeyConnection == nil && conn.AppleIDConnection == nil) {
 			fmt.Println()
 			log.Warnf("%s", notConnected)
