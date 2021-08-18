@@ -77,7 +77,7 @@ workflows:
     - path::./:
         title: Test building a Flutter project
         inputs:
-        - lane: build
+        - lane: buildDebug
         - work_dir: ./
         - verbose_log: "yes"
         - connection: "off"
