@@ -31,7 +31,7 @@ workflows:
   cache:  
     envs:
     - SAMPLE_APP_URL: "https://github.com/bitrise-io/sample-apps-flutter-veggieseasons.git"
-    - BRANCH: STEP-1322-update-sample
+    - BRANCH: master
     - XCODE_SCHEME: Runner
     steps:
     - script:
@@ -60,24 +60,17 @@ workflows:
         inputs:
         - project_path: ./ios/Runner.xcworkspace
         - scheme: $XCODE_SCHEME
-        - configuration: Debug
-        - distribution_type: development
-    - ios-auto-provision-appstoreconnect:
-        run_if: "true"
-        inputs:
-        - project_path: ./ios/Runner.xcworkspace
-        - scheme: $XCODE_SCHEME
         - configuration: Release
         - distribution_type: development
     - flutter-installer:
         run_if: "true"
         title: Install Flutter
         inputs:
-        - installation_bundle_url: https://storage.googleapis.com/flutter_infra_release/releases/stable/macos/flutter_macos_2.0.6-stable.zip
+        - installation_bundle_url: https://storage.googleapis.com/flutter_infra_release/releases/stable/macos/flutter_macos_2.2.3-stable.zip
     - path::./:
         title: Test building a Flutter project
         inputs:
-        - lane: buildDebug
+        - lane: build
         - work_dir: ./
         - verbose_log: "yes"
         - connection: "off"
