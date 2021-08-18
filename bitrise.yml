@@ -31,7 +31,7 @@ workflows:
   cache:  
     envs:
     - SAMPLE_APP_URL: "https://github.com/bitrise-io/sample-apps-flutter-veggieseasons.git"
-    - BRANCH: STEP-1322-update-sample
+    - BRANCH: master
     steps:
     - script:
         inputs:
@@ -54,38 +54,6 @@ workflows:
         - work_dir: ./
         - verbose_log: "yes"
         - connection: apple_id
-    - certificate-and-profile-installer: {}
-    - ios-auto-provision-appstoreconnect:
-        run_if: "true"
-        inputs:
-        - project_path: ./ios/Runner.xcworkspace
-        - scheme: Runner
-        - distribution_type: development
-    - flutter-installer:
-        run_if: "true"
-        title: Install Flutter
-        inputs:
-        - installation_bundle_url: https://storage.googleapis.com/flutter_infra_release/releases/stable/macos/flutter_macos_2.0.6-stable.zip
-    - path::./:
-        title: Test building a Flutter project
-        inputs:
-        - lane: build
-        - work_dir: ./
-        - verbose_log: "yes"
-        - connection: "off"
-    - script:
-        inputs:
-        - content: |-
-            set -ex
-            if [[ -z "$BITRISE_CACHE_EXCLUDE_PATHS" ]] ; then
-                echo "BITRISE_CACHE_EXCLUDE_PATHS is empty"
-                exit 1
-            fi
-
-            if [[ -z "$BITRISE_CACHE_INCLUDE_PATHS" ]] ; then
-                echo "BITRISE_CACHE_INCLUDE_PATHS is empty"
-                exit 1
-            fi
 
   auth-test-apple-id-connection:
     before_run:
