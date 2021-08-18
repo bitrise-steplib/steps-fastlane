@@ -20,6 +20,7 @@ import (
 	"github.com/bitrise-io/go-utils/fileutil"
 	"github.com/bitrise-io/go-utils/log"
 	"github.com/bitrise-io/go-utils/pathutil"
+	"github.com/bitrise-io/go-utils/retry"
 	"github.com/bitrise-io/go-xcode/appleauth"
 	"github.com/bitrise-io/go-xcode/devportalservice"
 	"github.com/kballard/go-shellquote"
@@ -190,7 +191,7 @@ func main() {
 	// Select and fetch Apple authenication source
 	var devportalConnectionProvider *devportalservice.BitriseClient
 	if config.BuildURL != "" && config.BuildAPIToken != "" {
-		devportalConnectionProvider = devportalservice.NewBitriseClient(http.DefaultClient, config.BuildURL, string(config.BuildAPIToken))
+		devportalConnectionProvider = devportalservice.NewBitriseClient(retry.NewHTTPClient().StandardClient(), config.BuildURL, string(config.BuildAPIToken))
 	} else {
 		fmt.Println()
 		log.Warnf("Connected Apple Developer Portal Account not found. Step is not running on bitrise.io: BITRISE_BUILD_URL and BITRISE_BUILD_API_TOKEN envs are not set")
@@ -202,17 +203,18 @@ func main() {
 		if err != nil {
 			handleSessionDataError(err)
 		}
-
-		if conn != nil && (conn.APIKeyConnection == nil && conn.AppleIDConnection == nil) {
-			fmt.Println()
-			log.Warnf("%s", notConnected)
-		}
 	}
 
 	authConfig, err := appleauth.Select(conn, authSources, authInputs)
 	if err != nil {
 		if _, ok := err.(*appleauth.MissingAuthConfigError); !ok {
 			failf("Could not configure Apple Service authentication: %v", err)
+		}
+		fmt.Println()
+		log.Warnf("No authentication data found matching the selected Apple Service authentication method (%s).", config.BitriseConnection)
+		if conn != nil && (conn.APIKeyConnection == nil && conn.AppleIDConnection == nil) {
+			fmt.Println()
+			log.Warnf("%s", notConnected)
 		}
 	}
 
