@@ -55,8 +55,14 @@ workflows:
         - verbose_log: "yes"
         - connection: apple_id
     - certificate-and-profile-installer: {}
+    - ios-auto-provision-appstoreconnect:
+        run_if: "true"
+        inputs:
+        - project_path: ./ios/Runner.xcworkspace
+        - scheme: Runner
+        - distribution_type: development
     - flutter-installer:
-        run_if: true
+        run_if: "true"
         title: Install Flutter
         inputs:
         - installation_bundle_url: https://storage.googleapis.com/flutter_infra_release/releases/stable/macos/flutter_macos_2.0.6-stable.zip
