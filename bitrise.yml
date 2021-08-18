@@ -31,7 +31,7 @@ workflows:
   cache:  
     envs:
     - SAMPLE_APP_URL: "https://github.com/bitrise-io/sample-apps-flutter-veggieseasons.git"
-    - BRANCH: master
+    - BRANCH: STEP-1322-update-sample
     steps:
     - script:
         inputs:
