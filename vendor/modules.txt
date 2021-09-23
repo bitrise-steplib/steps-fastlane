@@ -12,17 +12,18 @@ github.com/bitrise-io/bitrise-init/utility
 github.com/bitrise-io/envman/models
 # github.com/bitrise-io/go-android v0.0.0-20210527143215-3ad22ad02e2e
 github.com/bitrise-io/go-android/cache
-# github.com/bitrise-io/go-steputils v0.0.0-20210527075147-910ce7a105a1
+# github.com/bitrise-io/go-steputils v0.0.0-20210923053150-ddc3f70aacd2
 github.com/bitrise-io/go-steputils/cache
 github.com/bitrise-io/go-steputils/command/gems
-github.com/bitrise-io/go-steputils/command/rubycommand
+github.com/bitrise-io/go-steputils/command/ruby
 github.com/bitrise-io/go-steputils/input
 github.com/bitrise-io/go-steputils/step
 github.com/bitrise-io/go-steputils/stepconf
 github.com/bitrise-io/go-steputils/tools
-# github.com/bitrise-io/go-utils v0.0.0-20210520073355-367fa34178f5
+# github.com/bitrise-io/go-utils v0.0.0-20210922201414-6d7c12191c72
 github.com/bitrise-io/go-utils/colorstring
 github.com/bitrise-io/go-utils/command
+github.com/bitrise-io/go-utils/env
 github.com/bitrise-io/go-utils/errorutil
 github.com/bitrise-io/go-utils/filedownloader
 github.com/bitrise-io/go-utils/fileutil
@@ -39,7 +40,7 @@ github.com/bitrise-io/go-xcode/devportalservice
 github.com/bitrise-io/stepman/models
 # github.com/hashicorp/go-cleanhttp v0.5.1
 github.com/hashicorp/go-cleanhttp
-# github.com/hashicorp/go-retryablehttp v0.6.6
+# github.com/hashicorp/go-retryablehttp v0.7.0
 github.com/hashicorp/go-retryablehttp
 # github.com/hashicorp/go-version v1.3.0
 github.com/hashicorp/go-version

@@ -13,9 +13,10 @@ import (
 
 	"github.com/bitrise-io/go-steputils/cache"
 	"github.com/bitrise-io/go-steputils/command/gems"
-	"github.com/bitrise-io/go-steputils/command/rubycommand"
+	"github.com/bitrise-io/go-steputils/command/ruby"
 	"github.com/bitrise-io/go-steputils/stepconf"
 	"github.com/bitrise-io/go-utils/command"
+	"github.com/bitrise-io/go-utils/env"
 	"github.com/bitrise-io/go-utils/errorutil"
 	"github.com/bitrise-io/go-utils/fileutil"
 	"github.com/bitrise-io/go-utils/log"
@@ -78,20 +79,26 @@ func failf(format string, v ...interface{}) {
 }
 
 func fastlaneDebugInfo(workDir string, useBundler bool, bundlerVersion gems.Version) (string, error) {
-	envCmd := []string{"fastlane", "env"}
-	if useBundler {
-		envCmd = append(gems.BundleExecPrefix(bundlerVersion), envCmd...)
-	}
-
-	cmd, err := rubycommand.NewFromSlice(envCmd)
+	factory, err := ruby.NewCommandFactory(command.NewFactory(env.NewRepository()), env.NewCommandLocator())
 	if err != nil {
-		return "", fmt.Errorf("failed to create command model, error: %s", err)
+		return "", err
 	}
 
+	name := "fastlane"
+	args := []string{"env"}
 	var outBuffer bytes.Buffer
-	cmd.SetStdin(strings.NewReader("n"))
-	cmd.SetStdout(bufio.NewWriter(&outBuffer)).SetStderr(os.Stderr)
-	cmd.SetDir(workDir)
+	opts := &command.Opts{
+		Stdin:  strings.NewReader("n"),
+		Stdout: bufio.NewWriter(&outBuffer),
+		Stderr: os.Stderr,
+		Dir:    workDir,
+	}
+	var cmd command.Command
+	if useBundler {
+		cmd = factory.CreateBundleExec(name, args, bundlerVersion.Version, opts)
+	} else {
+		cmd = factory.Create(name, args, opts)
+	}
 
 	log.Debugf("$ %s", cmd.PrintableCommandArgs())
 	if err := cmd.Run(); err != nil {
@@ -131,7 +138,8 @@ func handleSessionDataError(err error) {
 
 func main() {
 	var config Config
-	if err := stepconf.Parse(&config); err != nil {
+	parser := stepconf.NewInputParser(env.NewRepository())
+	if err := parser.Parse(&config); err != nil {
 		failf("Issue with input: %s", err)
 	}
 
@@ -180,10 +188,22 @@ func main() {
 
 	log.Donef("Expanded WorkDir: %s", workDir)
 
-	if rbenvVersionsCommand := gems.RbenvVersionsCommand(); rbenvVersionsCommand != nil {
+	cmdLocator := env.NewCommandLocator()
+	factory, err := ruby.NewCommandFactory(command.NewFactory(env.NewRepository()), cmdLocator)
+	if err != nil {
+		panic(err)
+	}
+
+	if _, err := cmdLocator.LookPath("rbenv"); err != nil {
+		cmd := factory.Create("rbenv", []string{"versions"}, &command.Opts{
+			Stderr: os.Stderr,
+			Stdout: os.Stdout,
+			Dir:    workDir,
+		})
+
 		fmt.Println()
-		log.Donef("$ %s", rbenvVersionsCommand.PrintableCommandArgs())
-		if err := rbenvVersionsCommand.SetStdout(os.Stdout).SetStderr(os.Stderr).SetDir(workDir).Run(); err != nil {
+		log.Donef("$ %s", cmd.PrintableCommandArgs())
+		if err := cmd.Run(); err != nil {
 			log.Warnf("%s", err)
 		}
 	}
@@ -246,32 +266,32 @@ func main() {
 
 		// install bundler with `gem install bundler [-v version]`
 		// in some configurations, the command "bunder _1.2.3_" can return 'Command not found', installing bundler solves this
-		installBundlerCommand := gems.InstallBundlerCommand(gemVersions.bundler)
+		cmds := factory.CreateGemInstall("bunder", gemVersions.bundler.Version, false, true, &command.Opts{
+			Stdout: os.Stdout,
+			Stderr: os.Stderr,
+			Dir:    workDir,
+		})
+		for _, cmd := range cmds {
+			log.Donef("$ %s", cmd.PrintableCommandArgs())
+			fmt.Println()
 
-		log.Donef("$ %s", installBundlerCommand.PrintableCommandArgs())
-		fmt.Println()
-
-		installBundlerCommand.SetStdout(os.Stdout).SetStderr(os.Stderr)
-		installBundlerCommand.SetDir(workDir)
-
-		if err := installBundlerCommand.Run(); err != nil {
-			failf("command failed, error: %s", err)
+			if err := cmd.Run(); err != nil {
+				failf("command failed, error: %s", err)
+			}
 		}
 
 		// install Gemfile.lock gems with `bundle [_version_] install ...`
 		fmt.Println()
 		log.Infof("Install Fastlane with bundler")
 
-		cmd, err := gems.BundleInstallCommand(gemVersions.bundler)
-		if err != nil {
-			failf("failed to create bundle command, error: %s", err)
-		}
+		cmd := factory.CreateBundleInstall(gemVersions.bundler.Version, &command.Opts{
+			Stdout: os.Stdout,
+			Stderr: os.Stderr,
+			Dir:    workDir,
+		})
 
 		log.Donef("$ %s", cmd.PrintableCommandArgs())
 		fmt.Println()
-
-		cmd.SetStdout(os.Stdout).SetStderr(os.Stderr)
-		cmd.SetDir(workDir)
 
 		if err := cmd.Run(); err != nil {
 			failf("Command failed, error: %s", err)
@@ -279,16 +299,13 @@ func main() {
 	} else if config.UpdateFastlane {
 		log.Infof("Update system installed Fastlane")
 
-		cmds, err := rubycommand.GemInstall("fastlane", "", false)
-		if err != nil {
-			failf("Failed to create command model, error: %s", err)
-		}
-
+		cmds := factory.CreateGemInstall("fastlane", "", false, false, &command.Opts{
+			Stdout: os.Stdout,
+			Stderr: os.Stderr,
+			Dir:    workDir,
+		})
 		for _, cmd := range cmds {
 			log.Donef("$ %s", cmd.PrintableCommandArgs())
-
-			cmd.SetStdout(os.Stdout).SetStderr(os.Stderr)
-			cmd.SetDir(workDir)
 
 			if err := cmd.Run(); err != nil {
 				failf("Command failed, error: %s", err)
@@ -301,20 +318,21 @@ func main() {
 	fmt.Println()
 	log.Infof("Fastlane version")
 
-	versionCmd := []string{"fastlane", "--version"}
+	name := "fastlane"
+	args := []string{"--version"}
+	opts := &command.Opts{
+		Stdout: os.Stdout,
+		Stderr: os.Stderr,
+		Dir:    workDir,
+	}
+	var cmd command.Command
 	if useBundler {
-		versionCmd = append(gems.BundleExecPrefix(gemVersions.bundler), versionCmd...)
+		cmd = factory.CreateBundleExec(name, args, gemVersions.bundler.Version, opts)
+	} else {
+		cmd = factory.Create(name, args, opts)
 	}
 
-	log.Donef("$ %s", command.PrintableCommandArgs(false, versionCmd))
-
-	cmd, err := rubycommand.NewFromSlice(versionCmd)
-	if err != nil {
-		failf("Command failed, error: %s", err)
-	}
-
-	cmd.SetStdout(os.Stdout).SetStderr(os.Stderr)
-	cmd.SetDir(workDir)
+	log.Donef("$ %s", cmd.PrintableCommandArgs())
 
 	if err := cmd.Run(); err != nil {
 		failf("Command failed, error: %s", err)
@@ -342,24 +360,7 @@ func main() {
 		log.Infof("To stop overriding authentication-related environment variables, please set Bitrise Apple Developer Connection input to 'off' and leave authentication-related inputs empty.")
 	}
 
-	fastlaneCmd := []string{"fastlane"}
-	fastlaneCmd = append(fastlaneCmd, laneOptions...)
-	if useBundler {
-		fastlaneCmd = append(gems.BundleExecPrefix(gemVersions.bundler), fastlaneCmd...)
-	}
-
-	log.Donef("$ %s", command.PrintableCommandArgs(false, fastlaneCmd))
-
-	cmd, err = rubycommand.NewFromSlice(fastlaneCmd)
-	if err != nil {
-		failf("Failed to create command model, error: %s", err)
-	}
-
-	cmd.SetStdout(os.Stdout).SetStderr(os.Stderr)
-	cmd.SetDir(workDir)
-
 	buildlogPth := ""
-
 	if tempDir, err := pathutil.NormalizedOSTempDirPath("fastlane_logs"); err != nil {
 		log.Errorf("Failed to create temp dir for fastlane logs, error: %s", err)
 	} else {
@@ -367,7 +368,21 @@ func main() {
 		envs = append(envs, "FL_BUILDLOG_PATH="+buildlogPth)
 	}
 
-	cmd.AppendEnvs(envs...)
+	name = "fastlane"
+	args = laneOptions
+	opts = &command.Opts{
+		Stdout: os.Stdout,
+		Stderr: os.Stderr,
+		Dir:    workDir,
+		Env:    append(os.Environ(), envs...),
+	}
+	if useBundler {
+		cmd = factory.CreateBundleExec(name, args, gemVersions.bundler.Version, opts)
+	} else {
+		cmd = factory.Create(name, args, opts)
+	}
+
+	log.Donef("$ %s", cmd.PrintableCommandArgs())
 
 	deployDir := os.Getenv("BITRISE_DEPLOY_DIR")
 	if deployDir == "" {
