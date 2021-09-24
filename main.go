@@ -265,8 +265,8 @@ func main() {
 		log.Infof("Install bundler")
 
 		// install bundler with `gem install bundler [-v version]`
-		// in some configurations, the command "bunder _1.2.3_" can return 'Command not found', installing bundler solves this
-		cmds := factory.CreateGemInstall("bunder", gemVersions.bundler.Version, false, true, &command.Opts{
+		// in some configurations, the command "bundler _1.2.3_" can return 'Command not found', installing bundler solves this
+		cmds := factory.CreateGemInstall("bundler", gemVersions.bundler.Version, false, true, &command.Opts{
 			Stdout: os.Stdout,
 			Stderr: os.Stderr,
 			Dir:    workDir,
