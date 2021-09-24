@@ -13,7 +13,7 @@ import (
 
 	"github.com/bitrise-io/go-steputils/cache"
 	"github.com/bitrise-io/go-steputils/command/gems"
-	"github.com/bitrise-io/go-steputils/command/ruby"
+	"github.com/bitrise-io/go-steputils/ruby"
 	"github.com/bitrise-io/go-steputils/stepconf"
 	"github.com/bitrise-io/go-utils/command"
 	"github.com/bitrise-io/go-utils/env"

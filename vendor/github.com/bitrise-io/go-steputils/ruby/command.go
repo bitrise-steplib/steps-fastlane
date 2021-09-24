@@ -4,9 +4,8 @@ import (
 	"errors"
 	"strings"
 
-	"github.com/bitrise-io/go-utils/env"
-
 	"github.com/bitrise-io/go-utils/command"
+	"github.com/bitrise-io/go-utils/env"
 )
 
 // CommandFactory ...

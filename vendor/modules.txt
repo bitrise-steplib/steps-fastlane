@@ -12,11 +12,11 @@ github.com/bitrise-io/bitrise-init/utility
 github.com/bitrise-io/envman/models
 # github.com/bitrise-io/go-android v0.0.0-20210527143215-3ad22ad02e2e
 github.com/bitrise-io/go-android/cache
-# github.com/bitrise-io/go-steputils v0.0.0-20210923053150-ddc3f70aacd2
+# github.com/bitrise-io/go-steputils v0.0.0-20210924074053-431016d2ea34
 github.com/bitrise-io/go-steputils/cache
 github.com/bitrise-io/go-steputils/command/gems
-github.com/bitrise-io/go-steputils/command/ruby
 github.com/bitrise-io/go-steputils/input
+github.com/bitrise-io/go-steputils/ruby
 github.com/bitrise-io/go-steputils/step
 github.com/bitrise-io/go-steputils/stepconf
 github.com/bitrise-io/go-steputils/tools
