@@ -105,33 +105,33 @@ func gemInstallCommandArgs(gem, version string, enablePrerelease, force bool) []
 	return slice
 }
 
-func sudoNeeded(installType InstallType, slice ...string) bool {
+func sudoNeeded(installType InstallType, command ...string) bool {
 	if installType != SystemRuby {
 		return false
 	}
 
-	if len(slice) < 2 {
+	if len(command) < 2 {
 		return false
 	}
 
-	name := slice[0]
+	name := command[0]
 	if name == "bundle" {
-		cmd := slice[1]
+		cmd := command[1]
 		/*
 			bundle command can contain version:
 			`bundle _2.0.1_ install`
 		*/
 		const bundleVersionMarker = "_"
-		if strings.HasPrefix(slice[1], bundleVersionMarker) && strings.HasSuffix(slice[1], bundleVersionMarker) {
-			if len(slice) < 3 {
+		if strings.HasPrefix(command[1], bundleVersionMarker) && strings.HasSuffix(command[1], bundleVersionMarker) {
+			if len(command) < 3 {
 				return false
 			}
-			cmd = slice[2]
+			cmd = command[2]
 		}
 
 		return cmd == "install" || cmd == "update"
 	} else if name == "gem" {
-		cmd := slice[1]
+		cmd := command[1]
 		return cmd == "install" || cmd == "uninstall"
 	}
 
