@@ -10,7 +10,7 @@ github.com/bitrise-io/bitrise-init/steps
 github.com/bitrise-io/bitrise-init/utility
 # github.com/bitrise-io/envman v0.0.0-20210517135508-b2b4fe89eac5
 github.com/bitrise-io/envman/models
-# github.com/bitrise-io/go-android v0.0.0-20210527143215-3ad22ad02e2e
+# github.com/bitrise-io/go-android v0.0.0-20210913151943-e1ea0b4df36d
 github.com/bitrise-io/go-android/cache
 # github.com/bitrise-io/go-steputils v0.0.0-20210924074053-431016d2ea34
 github.com/bitrise-io/go-steputils/cache
