@@ -13,15 +13,15 @@ import (
 
 	"github.com/bitrise-io/go-steputils/cache"
 	"github.com/bitrise-io/go-steputils/command/gems"
-	"github.com/bitrise-io/go-steputils/ruby"
 	"github.com/bitrise-io/go-steputils/stepconf"
-	"github.com/bitrise-io/go-utils/command"
-	"github.com/bitrise-io/go-utils/env"
+	"github.com/bitrise-io/go-steputils/v2/ruby"
 	"github.com/bitrise-io/go-utils/errorutil"
 	"github.com/bitrise-io/go-utils/fileutil"
 	"github.com/bitrise-io/go-utils/log"
 	"github.com/bitrise-io/go-utils/pathutil"
 	"github.com/bitrise-io/go-utils/retry"
+	"github.com/bitrise-io/go-utils/v2/command"
+	"github.com/bitrise-io/go-utils/v2/env"
 	"github.com/bitrise-io/go-xcode/appleauth"
 	"github.com/bitrise-io/go-xcode/devportalservice"
 	"github.com/kballard/go-shellquote"
@@ -103,9 +103,9 @@ func fastlaneDebugInfo(workDir string, useBundler bool, bundlerVersion gems.Vers
 	log.Debugf("$ %s", cmd.PrintableCommandArgs())
 	if err := cmd.Run(); err != nil {
 		if errorutil.IsExitStatusError(err) {
-			return "", fmt.Errorf("Fastlane command (%s) failed, output: %s", cmd.PrintableCommandArgs(), outBuffer.String())
+			return "", fmt.Errorf("fastlane command (%s) failed, output: %s", cmd.PrintableCommandArgs(), outBuffer.String())
 		}
-		return "", fmt.Errorf("Fastlane command (%s) failed: %v", cmd.PrintableCommandArgs(), err)
+		return "", fmt.Errorf("fastlane command (%s) failed: %v", cmd.PrintableCommandArgs(), err)
 	}
 
 	return outBuffer.String(), nil
@@ -138,7 +138,7 @@ func handleSessionDataError(err error) {
 
 func main() {
 	var config Config
-	parser := stepconf.NewInputParser(env.NewRepository())
+	parser := stepconf.NewDefaultEnvParser()
 	if err := parser.Parse(&config); err != nil {
 		failf("Issue with input: %s", err)
 	}
@@ -208,7 +208,7 @@ func main() {
 		}
 	}
 
-	// Select and fetch Apple authenication source
+	// Select and fetch Apple authentication source
 	var devportalConnectionProvider *devportalservice.BitriseClient
 	if config.BuildURL != "" && config.BuildAPIToken != "" {
 		devportalConnectionProvider = devportalservice.NewBitriseClient(retry.NewHTTPClient().StandardClient(), config.BuildURL, string(config.BuildAPIToken))
