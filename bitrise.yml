@@ -55,13 +55,13 @@ workflows:
         - work_dir: ./
         - verbose_log: "yes"
         - connection: apple_id
-    - ios-auto-provision-appstoreconnect:
+    - manage-ios-code-signing:
         run_if: "true"
         inputs:
         - project_path: ./ios/Runner.xcworkspace
         - scheme: $XCODE_SCHEME
         - configuration: Release
-        - distribution_type: development
+        - distribution_method: development
     - flutter-installer:
         run_if: "true"
         title: Install Flutter
