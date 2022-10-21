@@ -84,7 +84,19 @@ func run() int {
 		failf("Failed to parse lane (%s), error: %s", config.Lane, err)
 	}
 
-	ensureDependencies(config, factory, workDir)
+	// Determine desired Fastlane version
+	fmt.Println()
+	log.Infof("Determine desired Fastlane version")
+
+	gemVersions, err := parseGemfileLock(workDir)
+	if err != nil {
+		failf("%s", err)
+	}
+
+	fmt.Println()
+
+	useBundler := shouldUseBundler(gemVersions)
+	ensureDependencies(config, factory, workDir, gemVersions, useBundler)
 
 	// Run fastlane
 	fmt.Println()
@@ -116,14 +128,15 @@ func run() int {
 		envs = append(envs, "FL_BUILDLOG_PATH="+buildlogPth)
 	}
 
-	name = "fastlane"
-	args = laneOptions
-	opts = &command.Opts{
+	name := "fastlane"
+	args := laneOptions
+	opts := &command.Opts{
 		Stdout: os.Stdout,
 		Stderr: os.Stderr,
 		Dir:    workDir,
 		Env:    append(os.Environ(), envs...),
 	}
+	var cmd command.Command
 	if useBundler {
 		cmd = factory.CreateBundleExec(name, args, gemVersions.bundler.Version, opts)
 	} else {
@@ -200,23 +213,11 @@ func run() int {
 
 }
 
-func ensureDependencies(config Config, factory ruby.CommandFactory, workDir string) {
-	// Determine desired Fastlane version
-	fmt.Println()
-	log.Infof("Determine desired Fastlane version")
+func shouldUseBundler(gemVersions gemVersions) bool {
+	return gemVersions.fastlane.Found
+}
 
-	gemVersions, err := parseGemfileLock(workDir)
-	if err != nil {
-		failf("%s", err)
-	}
-
-	useBundler := false
-	if gemVersions.fastlane.Found {
-		useBundler = true
-	}
-
-	fmt.Println()
-
+func ensureDependencies(config Config, factory ruby.CommandFactory, workDir string, gemVersions gemVersions, useBundler bool) {
 	// Install desired Fastlane version
 	if useBundler {
 		log.Infof("Install bundler")
