@@ -46,8 +46,11 @@ type Config struct {
 	GemHome string `env:"GEM_HOME"`
 
 	// Used to get Bitrise Apple Developer Portal Connection
-	BuildURL      string          `env:"BITRISE_BUILD_URL"`
-	BuildAPIToken stepconf.Secret `env:"BITRISE_BUILD_API_TOKEN"`
+	BuildURL        string          `env:"BITRISE_BUILD_URL"`
+	BuildAPIToken   stepconf.Secret `env:"BITRISE_BUILD_API_TOKEN"`
+	AuthInputs      appleauth.Inputs
+	AuthCredentials appleauth.Credentials
+	LaneOptions     []string
 }
 
 func main() {
@@ -55,146 +58,43 @@ func main() {
 }
 
 func run() int {
-	config := processInputs()
-	authInputs := validateAuthInputs(config)
+	logger := log.NewLogger()
+	buildStep := createStep(logger)
 
-	authSources, err := parseAuthSources(config.BitriseConnection)
+	config, err := buildStep.ProcessConfig()
 	if err != nil {
-		failf("Invalid Input: %v", err)
+		buildStep.logger.Errorf(fmt.Errorf("Failed to process Step inputs: %w", err).Error())
+		return 1
 	}
 
-	validateGemHome(config)
-
-	workDir := getWorkdir(config)
-
-	cmdLocator := env.NewCommandLocator()
-	factory, err := ruby.NewCommandFactory(command.NewFactory(env.NewRepository()), cmdLocator)
+	gemVersions, err := parseGemfileLock(config.WorkDir)
 	if err != nil {
-		panic(err)
-	}
-
-	checkForRbenv(cmdLocator, factory, workDir)
-
-	// Select and fetch Apple authenication source
-	authConfig := selectAppleAuthSource(config, authSources, authInputs)
-
-	// Split lane option
-	laneOptions, err := shellquote.Split(config.Lane)
-	if err != nil {
-		failf("Failed to parse lane (%s), error: %s", config.Lane, err)
-	}
-
-	// Determine desired Fastlane version
-	fmt.Println()
-	log.Infof("Determine desired Fastlane version")
-
-	gemVersions, err := parseGemfileLock(workDir)
-	if err != nil {
-		failf("%s", err)
+		buildStep.logger.Errorf(err.Error())
 	}
 
 	fmt.Println()
 
-	useBundler := shouldUseBundler(gemVersions)
-	ensureDependencies(config, factory, workDir, gemVersions, useBundler)
-
-	// Run fastlane
-	fmt.Println()
-	log.Infof("Run Fastlane")
-
-	var envs []string
-	authEnvs, err := FastlaneAuthParams(authConfig)
-	if err != nil {
-		failf("Failed to set up Fastlane authentication parameters: %v", err)
+	dependenciesOpts := EnsureDependenciesOpts{
+		GemVersions: gemVersions,
+		UseBundler:  gemVersions.fastlane.Found,
 	}
-	var globallySetAuthEnvs []string
-	for envKey, envValue := range authEnvs {
-		if _, set := os.LookupEnv(envKey); set {
-			globallySetAuthEnvs = append(globallySetAuthEnvs, envKey)
-		}
-
-		envs = append(envs, fmt.Sprintf("%s=%s", envKey, envValue))
-	}
-	if len(globallySetAuthEnvs) != 0 {
-		log.Warnf("Fastlane authentication-related environment varibale(s) (%s) are set, overriding.", globallySetAuthEnvs)
-		log.Infof("To stop overriding authentication-related environment variables, please set Bitrise Apple Developer Connection input to 'off' and leave authentication-related inputs empty.")
+	if err = buildStep.InstallDependencies(config, dependenciesOpts); err != nil {
+		buildStep.logger.Errorf(fmt.Errorf("Failed to install Step dependencies: %w", err).Error())
+		return 1
 	}
 
-	buildlogPth := ""
-	if tempDir, err := pathutil.NormalizedOSTempDirPath("fastlane_logs"); err != nil {
-		log.Errorf("Failed to create temp dir for fastlane logs, error: %s", err)
-	} else {
-		buildlogPth = tempDir
-		envs = append(envs, "FL_BUILDLOG_PATH="+buildlogPth)
-	}
-
-	name := "fastlane"
-	args := laneOptions
-	opts := &command.Opts{
-		Stdout: os.Stdout,
-		Stderr: os.Stderr,
-		Dir:    workDir,
-		Env:    append(os.Environ(), envs...),
-	}
-	var cmd command.Command
-	if useBundler {
-		cmd = factory.CreateBundleExec(name, args, gemVersions.bundler.Version, opts)
-	} else {
-		cmd = factory.Create(name, args, opts)
-	}
-
-	log.Donef("$ %s", cmd.PrintableCommandArgs())
-
-	deployDir := os.Getenv("BITRISE_DEPLOY_DIR")
-	if deployDir == "" {
-		log.Warnf("No BITRISE_DEPLOY_DIR found")
-	}
-	deployPth := filepath.Join(deployDir, "fastlane_env.log")
-
-	if err := cmd.Run(); err != nil {
-		fmt.Println()
-		log.Errorf("Fastlane command: (%s) failed", cmd.PrintableCommandArgs())
-		log.Errorf("If you want to send an issue report to fastlane (https://github.com/fastlane/fastlane/issues/new), you can find the output of fastlane env in the following log file:")
-		fmt.Println()
-		log.Infof(deployPth)
-		fmt.Println()
-
-		if fastlaneDebugInfo, err := fastlaneDebugInfo(workDir, useBundler, gemVersions.bundler); err != nil {
-			log.Warnf("%s", err)
-		} else if fastlaneDebugInfo != "" {
-			if err := fileutil.WriteStringToFile(deployPth, fastlaneDebugInfo); err != nil {
-				log.Warnf("Failed to write fastlane env log file, error: %s", err)
-			}
-		}
-
-		if err := filepath.Walk(buildlogPth, func(path string, info os.FileInfo, err error) error {
-			if err != nil {
-				return err
-			}
-			if !info.IsDir() {
-				if relLogPath, err := filepath.Rel(buildlogPth, path); err != nil {
-					return err
-				} else if err := os.Rename(path, filepath.Join(deployDir, strings.Replace(relLogPath, "/", "_", -1))); err != nil {
-					return err
-				}
-			}
-			return nil
-		}); err != nil {
-			log.Errorf("Failed to walk directory, error: %s", err)
-		}
-		failf("Command failed, error: %s", err)
-	}
+	buildStep.Run(config, dependenciesOpts)
 
 	if config.EnableCache {
 		fmt.Println()
-		log.Infof("Collecting cache")
+		buildStep.logger.Infof("Collecting cache")
 
 		c := cache.New()
 		for _, depFunc := range depsFuncs {
-			includes, excludes, err := depFunc(workDir)
-			log.Debugf("%s found include path:\n%s\nexclude paths:\n%s", functionName(depFunc), strings.Join(includes, "\n"), strings.Join(excludes, "\n"))
+			includes, excludes, err := depFunc(config.WorkDir)
+			buildStep.logger.Debugf("%s found include path:\n%s\nexclude paths:\n%s", functionName(depFunc), strings.Join(includes, "\n"), strings.Join(excludes, "\n"))
 			if err != nil {
-				log.Warnf("failed to collect dependencies: %s", err.Error())
+				buildStep.logger.Warnf("failed to collect dependencies: %s", err.Error())
 				continue
 			}
 
@@ -207,137 +107,59 @@ func run() int {
 			}
 		}
 		if err := c.Commit(); err != nil {
-			log.Warnf("failed to commit paths to cache: %s", err)
+			buildStep.logger.Warnf("failed to commit paths to cache: %s", err)
 		}
 	}
 
+	return 0
 }
 
-func shouldUseBundler(gemVersions gemVersions) bool {
-	return gemVersions.fastlane.Found
+func createStep(logger log.Logger) FastlaneRunner {
+	envRepository := env.NewRepository()
+	inputParser := stepconf.NewInputParser(envRepository)
+	cmdFactory := command.NewFactory(envRepository)
+
+	return NewFastlaneRunner(inputParser, logger, cmdFactory)
 }
 
-func ensureDependencies(config Config, factory ruby.CommandFactory, workDir string, gemVersions gemVersions, useBundler bool) {
-	// Install desired Fastlane version
-	if useBundler {
-		log.Infof("Install bundler")
-
-		// install bundler with `gem install bundler [-v version]`
-		// in some configurations, the command "bundler _1.2.3_" can return 'Command not found', installing bundler solves this
-		cmds := factory.CreateGemInstall("bundler", gemVersions.bundler.Version, false, true, &command.Opts{
-			Stdout: os.Stdout,
-			Stderr: os.Stderr,
-			Stdin:  nil,
-			Env:    []string{},
-			Dir:    workDir,
-		})
-		for _, cmd := range cmds {
-			log.Donef("$ %s", cmd.PrintableCommandArgs())
-			fmt.Println()
-
-			if err := cmd.Run(); err != nil {
-				failf("command failed, error: %s", err)
-			}
-		}
-
-		// install Gemfile.lock gems with `bundle [_version_] install ...`
-		fmt.Println()
-		log.Infof("Install Fastlane with bundler")
-
-		cmd := factory.CreateBundleInstall(gemVersions.bundler.Version, &command.Opts{
-			Stdout: os.Stdout,
-			Stderr: os.Stderr,
-			Stdin:  nil,
-			Env:    []string{},
-			Dir:    workDir,
-		})
-
-		log.Donef("$ %s", cmd.PrintableCommandArgs())
-		fmt.Println()
-
-		if err := cmd.Run(); err != nil {
-			failf("Command failed, error: %s", err)
-		}
-	} else if config.UpdateFastlane {
-		log.Infof("Update system installed Fastlane")
-
-		cmds := factory.CreateGemInstall("fastlane", "", false, false, &command.Opts{
-			Stdout: os.Stdout,
-			Stderr: os.Stderr,
-			Stdin:  nil,
-			Env:    []string{},
-			Dir:    workDir,
-		})
-		for _, cmd := range cmds {
-			log.Donef("$ %s", cmd.PrintableCommandArgs())
-
-			if err := cmd.Run(); err != nil {
-				failf("Command failed, error: %s", err)
-			}
-		}
-	} else {
-		log.Infof("Using system installed Fastlane")
-	}
-
-	fmt.Println()
-	log.Infof("Fastlane version")
-
-	name := "fastlane"
-	args := []string{"--version"}
-	opts := &command.Opts{
-		Stdout: os.Stdout,
-		Stderr: os.Stderr,
-		Stdin:  nil,
-		Env:    []string{},
-		Dir:    workDir,
-	}
-	var cmd command.Command
-	if useBundler {
-		cmd = factory.CreateBundleExec(name, args, gemVersions.bundler.Version, opts)
-	} else {
-		cmd = factory.Create(name, args, opts)
-	}
-
-	log.Donef("$ %s", cmd.PrintableCommandArgs())
-
-	if err := cmd.Run(); err != nil {
-		failf("Command failed, error: %s", err)
-	}
-}
-
-func selectAppleAuthSource(config Config, authSources []appleauth.Source, authInputs appleauth.Inputs) appleauth.Credentials {
+func (s FastlaneRunner) selectAppleAuthSource(config Config, authSources []appleauth.Source, authInputs appleauth.Inputs) (appleauth.Credentials, error) {
 	var devportalConnectionProvider *devportalservice.BitriseClient
 	if config.BuildURL != "" && config.BuildAPIToken != "" {
 		devportalConnectionProvider = devportalservice.NewBitriseClient(retry.NewHTTPClient().StandardClient(), config.BuildURL, string(config.BuildAPIToken))
 	} else {
 		fmt.Println()
-		log.Warnf("Connected Apple Developer Portal Account not found. Step is not running on bitrise.io: BITRISE_BUILD_URL and BITRISE_BUILD_API_TOKEN envs are not set")
+		s.logger.Warnf("Connected Apple Developer Portal Account not found. Step is not running on bitrise.io: BITRISE_BUILD_URL and BITRISE_BUILD_API_TOKEN envs are not set")
 	}
 	var conn *devportalservice.AppleDeveloperConnection
 	if config.BitriseConnection != "off" && devportalConnectionProvider != nil {
 		var err error
 		conn, err = devportalConnectionProvider.GetAppleDeveloperConnection()
 		if err != nil {
-			handleSessionDataError(err)
+			s.handleSessionDataError(err)
 		}
 	}
 
 	authConfig, err := appleauth.Select(conn, authSources, authInputs)
 	if err != nil {
 		if _, ok := err.(*appleauth.MissingAuthConfigError); !ok {
-			failf("Could not configure Apple Service authentication: %v", err)
+			return appleauth.Credentials{}, fmt.Errorf("Could not configure Apple Service authentication: %v", err)
 		}
 		fmt.Println()
-		log.Warnf("No authentication data found matching the selected Apple Service authentication method (%s).", config.BitriseConnection)
+		s.logger.Warnf("No authentication data found matching the selected Apple Service authentication method (%s).", config.BitriseConnection)
 		if conn != nil && (conn.APIKeyConnection == nil && conn.AppleIDConnection == nil) {
 			fmt.Println()
-			log.Warnf("%s", notConnected)
+			s.logger.Warnf("%s", notConnected)
 		}
 	}
-	return authConfig
+	return authConfig, nil
 }
 
-func checkForRbenv(cmdLocator env.CommandLocator, factory ruby.CommandFactory, workDir string) {
+func (s FastlaneRunner) checkForRbenv(workDir string) {
+	cmdLocator := env.NewCommandLocator()
+	factory, err := ruby.NewCommandFactory(command.NewFactory(env.NewRepository()), cmdLocator)
+	if err != nil {
+		s.logger.Warnf("%s", err)
+	}
 	if _, err := cmdLocator.LookPath("rbenv"); err != nil {
 		cmd := factory.Create("rbenv", []string{"versions"}, &command.Opts{
 			Stderr: os.Stderr,
@@ -346,50 +168,37 @@ func checkForRbenv(cmdLocator env.CommandLocator, factory ruby.CommandFactory, w
 		})
 
 		fmt.Println()
-		log.Donef("$ %s", cmd.PrintableCommandArgs())
+		s.logger.Donef("$ %s", cmd.PrintableCommandArgs())
 		if err := cmd.Run(); err != nil {
-			log.Warnf("%s", err)
+			s.logger.Warnf("%s", err)
 		}
 	}
 }
 
-func getWorkdir(config Config) string {
-	log.Infof("Expand WorkDir")
+func (s FastlaneRunner) getWorkdir(config Config) (string, error) {
+	s.logger.Infof("Expand WorkDir")
 
 	workDir := config.WorkDir
 	if workDir == "" {
-		log.Printf("WorkDir not set, using CurrentWorkingDirectory...")
+		s.logger.Printf("WorkDir not set, using CurrentWorkingDirectory...")
 		currentDir, err := pathutil.CurrentWorkingDirectoryAbsolutePath()
 		if err != nil {
-			failf("Failed to get current dir, error: %s", err)
+			return "", fmt.Errorf("Failed to get current dir, error: %s", err)
 		}
 		workDir = currentDir
 	} else {
 		absWorkDir, err := pathutil.AbsPath(workDir)
 		if err != nil {
-			failf("Failed to expand path (%s), error: %s", workDir, err)
+			return "", fmt.Errorf("Failed to expand path (%s), error: %s", workDir, err)
 		}
 		workDir = absWorkDir
 	}
 
-	log.Donef("Expanded WorkDir: %s", workDir)
-	return workDir
+	s.logger.Donef("Expanded WorkDir: %s", workDir)
+	return workDir, nil
 }
 
-func processInputs() Config {
-	var config Config
-	parser := stepconf.NewInputParser(env.NewRepository())
-	if err := parser.Parse(&config); err != nil {
-		failf("Issue with input: %s", err)
-	}
-
-	stepconf.Print(config)
-	log.SetEnableDebugLog(config.VerboseLog)
-	fmt.Println()
-	return config
-}
-
-func validateAuthInputs(config Config) appleauth.Inputs {
+func (s FastlaneRunner) validateAuthInputs(config Config) (appleauth.Inputs, error) {
 	authInputs := appleauth.Inputs{
 		Username:            config.AppleID,
 		Password:            string(config.Password),
@@ -398,12 +207,12 @@ func validateAuthInputs(config Config) appleauth.Inputs {
 		APIKeyPath:          string(config.APIKeyPath),
 	}
 	if err := authInputs.Validate(); err != nil {
-		failf("Issue with authentication related inputs: %v", err)
+		return appleauth.Inputs{}, fmt.Errorf("Issue with authentication related inputs: %v", err)
 	}
-	return authInputs
+	return authInputs, nil
 }
 
-func parseAuthSources(bitriseConnection string) ([]appleauth.Source, error) {
+func (s FastlaneRunner) parseAuthSources(bitriseConnection string) ([]appleauth.Source, error) {
 	switch bitriseConnection {
 	case "automatic":
 		return []appleauth.Source{
@@ -426,18 +235,14 @@ func parseAuthSources(bitriseConnection string) ([]appleauth.Source, error) {
 	}
 }
 
-func validateGemHome(config Config) {
-	if strings.TrimSpace(config.GemHome) != "" {
-		log.Warnf("Custom value (%s) is set for GEM_HOME environment variable. This can lead to errors as gem lookup path may not contain GEM_HOME.")
+func (s FastlaneRunner) validateGemHome(config Config) {
+	if strings.TrimSpace(config.GemHome) == "" {
+		return
 	}
+	s.logger.Warnf("Custom value (%s) is set for GEM_HOME environment variable. This can lead to errors as gem lookup path may not contain GEM_HOME.")
 }
 
-func failf(format string, v ...interface{}) {
-	log.Errorf(format, v...)
-	os.Exit(1)
-}
-
-func fastlaneDebugInfo(workDir string, useBundler bool, bundlerVersion gems.Version) (string, error) {
+func (s FastlaneRunner) fastlaneDebugInfo(workDir string, useBundler bool, bundlerVersion gems.Version) (string, error) {
 	factory, err := ruby.NewCommandFactory(command.NewFactory(env.NewRepository()), env.NewCommandLocator())
 	if err != nil {
 		return "", err
@@ -459,7 +264,7 @@ func fastlaneDebugInfo(workDir string, useBundler bool, bundlerVersion gems.Vers
 		cmd = factory.Create(name, args, opts)
 	}
 
-	log.Debugf("$ %s", cmd.PrintableCommandArgs())
+	s.logger.Debugf("$ %s", cmd.PrintableCommandArgs())
 	if err := cmd.Run(); err != nil {
 		if errorutil.IsExitStatusError(err) {
 			return "", fmt.Errorf("Fastlane command (%s) failed, output: %s", cmd.PrintableCommandArgs(), outBuffer.String())
@@ -478,19 +283,272 @@ const notConnected = `Connected Apple Developer Portal Account not found.
 Most likely because there is no Apple Developer Portal Account connected to the build.
 Read more: https://devcenter.bitrise.io/getting-started/configuring-bitrise-steps-that-require-apple-developer-account-data/`
 
-func handleSessionDataError(err error) {
+func (s FastlaneRunner) handleSessionDataError(err error) {
 	if err == nil {
 		return
 	}
 
 	if networkErr, ok := err.(devportalservice.NetworkError); ok && networkErr.Status == http.StatusUnauthorized {
 		fmt.Println()
-		log.Warnf("%s", "Unauthorized to query Connected Apple Developer Portal Account. This happens by design, with a public app's PR build, to protect secrets.")
+		s.logger.Warnf("%s", "Unauthorized to query Connected Apple Developer Portal Account. This happens by design, with a public app's PR build, to protect secrets.")
 
 		return
 	}
 
 	fmt.Println()
-	log.Errorf("Failed to activate Bitrise Apple Developer Portal connection: %s", err)
-	log.Warnf("Read more: https://devcenter.bitrise.io/getting-started/configuring-bitrise-steps-that-require-apple-developer-account-data/")
+	s.logger.Errorf("Failed to activate Bitrise Apple Developer Portal connection: %s", err)
+	s.logger.Warnf("Read more: https://devcenter.bitrise.io/getting-started/configuring-bitrise-steps-that-require-apple-developer-account-data/")
+}
+
+// FastlaneRunner ...
+type FastlaneRunner struct {
+	inputParser stepconf.InputParser
+	logger      log.Logger
+	cmdFactory  command.Factory
+	rbyFactory  ruby.CommandFactory
+}
+
+func NewFastlaneRunner(stepInputParser stepconf.InputParser, logger log.Logger, cmdFactory command.Factory) FastlaneRunner {
+	return FastlaneRunner{
+		inputParser: stepInputParser,
+		logger:      logger,
+		cmdFactory:  cmdFactory,
+	}
+}
+
+func (s FastlaneRunner) ProcessConfig() (Config, error) {
+	var config Config
+	if err := s.inputParser.Parse(&config); err != nil {
+		return config, err
+	}
+
+	stepconf.Print(config)
+	s.logger.EnableDebugLog(config.VerboseLog)
+	fmt.Println()
+
+	authInputs, err := s.validateAuthInputs(config)
+	if err != nil {
+		return Config{}, fmt.Errorf("Issue with authentication related inputs: %v", err)
+	}
+
+	authSources, err := s.parseAuthSources(config.BitriseConnection)
+	if err != nil {
+		return Config{}, fmt.Errorf("Invalid Input: %v", err)
+	}
+
+	s.validateGemHome(config)
+
+	workDir, err := s.getWorkdir(config)
+	if err != nil {
+		return Config{}, err
+	}
+	config.WorkDir = workDir
+
+	s.checkForRbenv(workDir)
+
+	// Select and fetch Apple authenication source
+	authConfig, err := s.selectAppleAuthSource(config, authSources, authInputs)
+	if err != nil {
+		return Config{}, err
+	}
+	config.AuthCredentials = authConfig
+
+	// Split lane option
+	laneOptions, err := shellquote.Split(config.Lane)
+	if err != nil {
+		return Config{}, fmt.Errorf("Failed to parse lane (%s), error: %s", config.Lane, err)
+	}
+	config.LaneOptions = laneOptions
+
+	return config, nil
+}
+
+type EnsureDependenciesOpts struct {
+	GemVersions gemVersions
+	UseBundler  bool
+}
+
+func (s FastlaneRunner) InstallDependencies(config Config, opts EnsureDependenciesOpts) error {
+	// Determine desired Fastlane version
+	fmt.Println()
+	s.logger.Infof("Determine desired Fastlane version")
+
+	// Install desired Fastlane version
+	if opts.UseBundler {
+		s.logger.Infof("Install bundler")
+
+		// install bundler with `gem install bundler [-v version]`
+		// in some configurations, the command "bundler _1.2.3_" can return 'Command not found', installing bundler solves this
+		cmds := s.rbyFactory.CreateGemInstall("bundler", opts.GemVersions.bundler.Version, false, true, &command.Opts{
+			Stdout: os.Stdout,
+			Stderr: os.Stderr,
+			Stdin:  nil,
+			Env:    []string{},
+			Dir:    config.WorkDir,
+		})
+		for _, cmd := range cmds {
+			s.logger.Donef("$ %s", cmd.PrintableCommandArgs())
+			fmt.Println()
+
+			if err := cmd.Run(); err != nil {
+				return fmt.Errorf("command failed, error: %s", err)
+			}
+		}
+
+		// install Gemfile.lock gems with `bundle [_version_] install ...`
+		fmt.Println()
+		s.logger.Infof("Install Fastlane with bundler")
+
+		cmd := s.rbyFactory.CreateBundleInstall(opts.GemVersions.bundler.Version, &command.Opts{
+			Stdout: os.Stdout,
+			Stderr: os.Stderr,
+			Stdin:  nil,
+			Env:    []string{},
+			Dir:    config.WorkDir,
+		})
+
+		s.logger.Donef("$ %s", cmd.PrintableCommandArgs())
+		fmt.Println()
+
+		if err := cmd.Run(); err != nil {
+			return fmt.Errorf("Command failed, error: %s", err)
+		}
+	} else if config.UpdateFastlane {
+		s.logger.Infof("Update system installed Fastlane")
+
+		cmds := s.rbyFactory.CreateGemInstall("fastlane", "", false, false, &command.Opts{
+			Stdout: os.Stdout,
+			Stderr: os.Stderr,
+			Stdin:  nil,
+			Env:    []string{},
+			Dir:    config.WorkDir,
+		})
+		for _, cmd := range cmds {
+			s.logger.Donef("$ %s", cmd.PrintableCommandArgs())
+
+			if err := cmd.Run(); err != nil {
+				return fmt.Errorf("Command failed, error: %s", err)
+			}
+		}
+	} else {
+		s.logger.Infof("Using system installed Fastlane")
+	}
+
+	fmt.Println()
+	s.logger.Infof("Fastlane version")
+
+	name := "fastlane"
+	args := []string{"--version"}
+	options := &command.Opts{
+		Stdout: os.Stdout,
+		Stderr: os.Stderr,
+		Stdin:  nil,
+		Env:    []string{},
+		Dir:    config.WorkDir,
+	}
+	var cmd command.Command
+	if opts.UseBundler {
+		cmd = s.rbyFactory.CreateBundleExec(name, args, opts.GemVersions.bundler.Version, options)
+	} else {
+		cmd = s.rbyFactory.Create(name, args, options)
+	}
+
+	s.logger.Donef("$ %s", cmd.PrintableCommandArgs())
+
+	if err := cmd.Run(); err != nil {
+		return fmt.Errorf("Command failed, error: %s", err)
+	}
+
+	return nil
+}
+
+func (s FastlaneRunner) Run(config Config, opts EnsureDependenciesOpts) error {
+	// Run fastlane
+	fmt.Println()
+	s.logger.Infof("Run Fastlane")
+
+	var envs []string
+	authEnvs, err := FastlaneAuthParams(config.AuthCredentials)
+	if err != nil {
+		return fmt.Errorf("Failed to set up Fastlane authentication parameters: %v", err)
+	}
+	var globallySetAuthEnvs []string
+	for envKey, envValue := range authEnvs {
+		if _, set := os.LookupEnv(envKey); set {
+			globallySetAuthEnvs = append(globallySetAuthEnvs, envKey)
+		}
+
+		envs = append(envs, fmt.Sprintf("%s=%s", envKey, envValue))
+	}
+	if len(globallySetAuthEnvs) != 0 {
+		s.logger.Warnf("Fastlane authentication-related environment varibale(s) (%s) are set, overriding.", globallySetAuthEnvs)
+		s.logger.Infof("To stop overriding authentication-related environment variables, please set Bitrise Apple Developer Connection input to 'off' and leave authentication-related inputs empty.")
+	}
+
+	buildlogPth := ""
+	if tempDir, err := pathutil.NormalizedOSTempDirPath("fastlane_logs"); err != nil {
+		s.logger.Errorf("Failed to create temp dir for fastlane logs, error: %s", err)
+	} else {
+		buildlogPth = tempDir
+		envs = append(envs, "FL_BUILDLOG_PATH="+buildlogPth)
+	}
+
+	name := "fastlane"
+	args := config.LaneOptions
+	options := &command.Opts{
+		Stdout: os.Stdout,
+		Stderr: os.Stderr,
+		Dir:    config.WorkDir,
+		Env:    append(os.Environ(), envs...),
+	}
+	var cmd command.Command
+	if opts.UseBundler {
+		cmd = s.rbyFactory.CreateBundleExec(name, args, opts.GemVersions.bundler.Version, options)
+	} else {
+		cmd = s.rbyFactory.Create(name, args, options)
+	}
+
+	s.logger.Donef("$ %s", cmd.PrintableCommandArgs())
+
+	deployDir := os.Getenv("BITRISE_DEPLOY_DIR")
+	if deployDir == "" {
+		s.logger.Warnf("No BITRISE_DEPLOY_DIR found")
+	}
+	deployPth := filepath.Join(deployDir, "fastlane_env.log")
+
+	if err := cmd.Run(); err != nil {
+		fmt.Println()
+		s.logger.Errorf("Fastlane command: (%s) failed", cmd.PrintableCommandArgs())
+		s.logger.Errorf("If you want to send an issue report to fastlane (https://github.com/fastlane/fastlane/issues/new), you can find the output of fastlane env in the following log file:")
+		fmt.Println()
+		s.logger.Infof(deployPth)
+		fmt.Println()
+
+		if fastlaneDebugInfo, err := s.fastlaneDebugInfo(config.WorkDir, opts.UseBundler, opts.GemVersions.bundler); err != nil {
+			s.logger.Warnf("%s", err)
+		} else if fastlaneDebugInfo != "" {
+			if err := fileutil.WriteStringToFile(deployPth, fastlaneDebugInfo); err != nil {
+				s.logger.Warnf("Failed to write fastlane env log file, error: %s", err)
+			}
+		}
+
+		if err := filepath.Walk(buildlogPth, func(path string, info os.FileInfo, err error) error {
+			if err != nil {
+				return err
+			}
+			if !info.IsDir() {
+				if relLogPath, err := filepath.Rel(buildlogPth, path); err != nil {
+					return err
+				} else if err := os.Rename(path, filepath.Join(deployDir, strings.Replace(relLogPath, "/", "_", -1))); err != nil {
+					return err
+				}
+			}
+			return nil
+		}); err != nil {
+			s.logger.Errorf("Failed to walk directory, error: %s", err)
+		}
+		return fmt.Errorf("Command failed, error: %s", err)
+	}
+
+	return nil
 }
