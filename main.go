@@ -67,6 +67,9 @@ func run() int {
 		return 1
 	}
 
+	// Determine desired Fastlane version
+	fmt.Println()
+	buildStep.logger.Infof("Determine desired Fastlane version")
 	gemVersions, err := parseGemfileLock(config.WorkDir)
 	if err != nil {
 		buildStep.logger.Errorf(err.Error())
@@ -118,186 +121,13 @@ func createStep(logger log.Logger) FastlaneRunner {
 	envRepository := env.NewRepository()
 	inputParser := stepconf.NewInputParser(envRepository)
 	cmdFactory := command.NewFactory(envRepository)
-
-	return NewFastlaneRunner(inputParser, logger, cmdFactory)
-}
-
-func (s FastlaneRunner) selectAppleAuthSource(config Config, authSources []appleauth.Source, authInputs appleauth.Inputs) (appleauth.Credentials, error) {
-	var devportalConnectionProvider *devportalservice.BitriseClient
-	if config.BuildURL != "" && config.BuildAPIToken != "" {
-		devportalConnectionProvider = devportalservice.NewBitriseClient(retry.NewHTTPClient().StandardClient(), config.BuildURL, string(config.BuildAPIToken))
-	} else {
-		fmt.Println()
-		s.logger.Warnf("Connected Apple Developer Portal Account not found. Step is not running on bitrise.io: BITRISE_BUILD_URL and BITRISE_BUILD_API_TOKEN envs are not set")
-	}
-	var conn *devportalservice.AppleDeveloperConnection
-	if config.BitriseConnection != "off" && devportalConnectionProvider != nil {
-		var err error
-		conn, err = devportalConnectionProvider.GetAppleDeveloperConnection()
-		if err != nil {
-			s.handleSessionDataError(err)
-		}
-	}
-
-	authConfig, err := appleauth.Select(conn, authSources, authInputs)
-	if err != nil {
-		if _, ok := err.(*appleauth.MissingAuthConfigError); !ok {
-			return appleauth.Credentials{}, fmt.Errorf("Could not configure Apple Service authentication: %v", err)
-		}
-		fmt.Println()
-		s.logger.Warnf("No authentication data found matching the selected Apple Service authentication method (%s).", config.BitriseConnection)
-		if conn != nil && (conn.APIKeyConnection == nil && conn.AppleIDConnection == nil) {
-			fmt.Println()
-			s.logger.Warnf("%s", notConnected)
-		}
-	}
-	return authConfig, nil
-}
-
-func (s FastlaneRunner) checkForRbenv(workDir string) {
 	cmdLocator := env.NewCommandLocator()
-	factory, err := ruby.NewCommandFactory(command.NewFactory(env.NewRepository()), cmdLocator)
+	rbyFactory, err := ruby.NewCommandFactory(command.NewFactory(env.NewRepository()), cmdLocator)
 	if err != nil {
-		s.logger.Warnf("%s", err)
-	}
-	if _, err := cmdLocator.LookPath("rbenv"); err != nil {
-		cmd := factory.Create("rbenv", []string{"versions"}, &command.Opts{
-			Stderr: os.Stderr,
-			Stdout: os.Stdout,
-			Dir:    workDir,
-		})
-
-		fmt.Println()
-		s.logger.Donef("$ %s", cmd.PrintableCommandArgs())
-		if err := cmd.Run(); err != nil {
-			s.logger.Warnf("%s", err)
-		}
-	}
-}
-
-func (s FastlaneRunner) getWorkdir(config Config) (string, error) {
-	s.logger.Infof("Expand WorkDir")
-
-	workDir := config.WorkDir
-	if workDir == "" {
-		s.logger.Printf("WorkDir not set, using CurrentWorkingDirectory...")
-		currentDir, err := pathutil.CurrentWorkingDirectoryAbsolutePath()
-		if err != nil {
-			return "", fmt.Errorf("Failed to get current dir, error: %s", err)
-		}
-		workDir = currentDir
-	} else {
-		absWorkDir, err := pathutil.AbsPath(workDir)
-		if err != nil {
-			return "", fmt.Errorf("Failed to expand path (%s), error: %s", workDir, err)
-		}
-		workDir = absWorkDir
+		logger.Warnf("%s", err)
 	}
 
-	s.logger.Donef("Expanded WorkDir: %s", workDir)
-	return workDir, nil
-}
-
-func (s FastlaneRunner) validateAuthInputs(config Config) (appleauth.Inputs, error) {
-	authInputs := appleauth.Inputs{
-		Username:            config.AppleID,
-		Password:            string(config.Password),
-		AppSpecificPassword: string(config.AppSpecificPassword),
-		APIIssuer:           config.APIIssuer,
-		APIKeyPath:          string(config.APIKeyPath),
-	}
-	if err := authInputs.Validate(); err != nil {
-		return appleauth.Inputs{}, fmt.Errorf("Issue with authentication related inputs: %v", err)
-	}
-	return authInputs, nil
-}
-
-func (s FastlaneRunner) parseAuthSources(bitriseConnection string) ([]appleauth.Source, error) {
-	switch bitriseConnection {
-	case "automatic":
-		return []appleauth.Source{
-			&appleauth.ConnectionAPIKeySource{},
-			&appleauth.ConnectionAppleIDFastlaneSource{},
-			&appleauth.InputAPIKeySource{},
-			&appleauth.InputAppleIDFastlaneSource{},
-		}, nil
-	case "api_key":
-		return []appleauth.Source{&appleauth.ConnectionAPIKeySource{}}, nil
-	case "apple_id":
-		return []appleauth.Source{&appleauth.ConnectionAppleIDFastlaneSource{}}, nil
-	case "off":
-		return []appleauth.Source{
-			&appleauth.InputAPIKeySource{},
-			&appleauth.InputAppleIDFastlaneSource{},
-		}, nil
-	default:
-		return nil, fmt.Errorf("invalid connection input: %s", bitriseConnection)
-	}
-}
-
-func (s FastlaneRunner) validateGemHome(config Config) {
-	if strings.TrimSpace(config.GemHome) == "" {
-		return
-	}
-	s.logger.Warnf("Custom value (%s) is set for GEM_HOME environment variable. This can lead to errors as gem lookup path may not contain GEM_HOME.")
-}
-
-func (s FastlaneRunner) fastlaneDebugInfo(workDir string, useBundler bool, bundlerVersion gems.Version) (string, error) {
-	factory, err := ruby.NewCommandFactory(command.NewFactory(env.NewRepository()), env.NewCommandLocator())
-	if err != nil {
-		return "", err
-	}
-
-	name := "fastlane"
-	args := []string{"env"}
-	var outBuffer bytes.Buffer
-	opts := &command.Opts{
-		Stdin:  strings.NewReader("n"),
-		Stdout: bufio.NewWriter(&outBuffer),
-		Stderr: os.Stderr,
-		Dir:    workDir,
-	}
-	var cmd command.Command
-	if useBundler {
-		cmd = factory.CreateBundleExec(name, args, bundlerVersion.Version, opts)
-	} else {
-		cmd = factory.Create(name, args, opts)
-	}
-
-	s.logger.Debugf("$ %s", cmd.PrintableCommandArgs())
-	if err := cmd.Run(); err != nil {
-		if errorutil.IsExitStatusError(err) {
-			return "", fmt.Errorf("Fastlane command (%s) failed, output: %s", cmd.PrintableCommandArgs(), outBuffer.String())
-		}
-		return "", fmt.Errorf("Fastlane command (%s) failed: %v", cmd.PrintableCommandArgs(), err)
-	}
-
-	return outBuffer.String(), nil
-}
-
-func functionName(i interface{}) string {
-	return runtime.FuncForPC(reflect.ValueOf(i).Pointer()).Name()
-}
-
-const notConnected = `Connected Apple Developer Portal Account not found.
-Most likely because there is no Apple Developer Portal Account connected to the build.
-Read more: https://devcenter.bitrise.io/getting-started/configuring-bitrise-steps-that-require-apple-developer-account-data/`
-
-func (s FastlaneRunner) handleSessionDataError(err error) {
-	if err == nil {
-		return
-	}
-
-	if networkErr, ok := err.(devportalservice.NetworkError); ok && networkErr.Status == http.StatusUnauthorized {
-		fmt.Println()
-		s.logger.Warnf("%s", "Unauthorized to query Connected Apple Developer Portal Account. This happens by design, with a public app's PR build, to protect secrets.")
-
-		return
-	}
-
-	fmt.Println()
-	s.logger.Errorf("Failed to activate Bitrise Apple Developer Portal connection: %s", err)
-	s.logger.Warnf("Read more: https://devcenter.bitrise.io/getting-started/configuring-bitrise-steps-that-require-apple-developer-account-data/")
+	return NewFastlaneRunner(inputParser, logger, cmdLocator, cmdFactory, rbyFactory)
 }
 
 // FastlaneRunner ...
@@ -305,14 +135,23 @@ type FastlaneRunner struct {
 	inputParser stepconf.InputParser
 	logger      log.Logger
 	cmdFactory  command.Factory
+	cmdLocator  env.CommandLocator
 	rbyFactory  ruby.CommandFactory
 }
 
-func NewFastlaneRunner(stepInputParser stepconf.InputParser, logger log.Logger, cmdFactory command.Factory) FastlaneRunner {
+func NewFastlaneRunner(
+	stepInputParser stepconf.InputParser,
+	logger log.Logger,
+	commandLocator env.CommandLocator,
+	cmdFactory command.Factory,
+	rbyFactory ruby.CommandFactory,
+) FastlaneRunner {
 	return FastlaneRunner{
 		inputParser: stepInputParser,
 		logger:      logger,
+		cmdLocator:  commandLocator,
 		cmdFactory:  cmdFactory,
+		rbyFactory:  rbyFactory,
 	}
 }
 
@@ -363,16 +202,144 @@ func (s FastlaneRunner) ProcessConfig() (Config, error) {
 	return config, nil
 }
 
+func (s FastlaneRunner) validateAuthInputs(config Config) (appleauth.Inputs, error) {
+	authInputs := appleauth.Inputs{
+		Username:            config.AppleID,
+		Password:            string(config.Password),
+		AppSpecificPassword: string(config.AppSpecificPassword),
+		APIIssuer:           config.APIIssuer,
+		APIKeyPath:          string(config.APIKeyPath),
+	}
+	if err := authInputs.Validate(); err != nil {
+		return appleauth.Inputs{}, fmt.Errorf("Issue with authentication related inputs: %v", err)
+	}
+	return authInputs, nil
+}
+
+func (s FastlaneRunner) parseAuthSources(bitriseConnection string) ([]appleauth.Source, error) {
+	switch bitriseConnection {
+	case "automatic":
+		return []appleauth.Source{
+			&appleauth.ConnectionAPIKeySource{},
+			&appleauth.ConnectionAppleIDFastlaneSource{},
+			&appleauth.InputAPIKeySource{},
+			&appleauth.InputAppleIDFastlaneSource{},
+		}, nil
+	case "api_key":
+		return []appleauth.Source{&appleauth.ConnectionAPIKeySource{}}, nil
+	case "apple_id":
+		return []appleauth.Source{&appleauth.ConnectionAppleIDFastlaneSource{}}, nil
+	case "off":
+		return []appleauth.Source{
+			&appleauth.InputAPIKeySource{},
+			&appleauth.InputAppleIDFastlaneSource{},
+		}, nil
+	default:
+		return nil, fmt.Errorf("invalid connection input: %s", bitriseConnection)
+	}
+}
+
+func (s FastlaneRunner) validateGemHome(config Config) {
+	if strings.TrimSpace(config.GemHome) == "" {
+		return
+	}
+	s.logger.Warnf("Custom value (%s) is set for GEM_HOME environment variable. This can lead to errors as gem lookup path may not contain GEM_HOME.")
+}
+
+func (s FastlaneRunner) getWorkdir(config Config) (string, error) {
+	s.logger.Infof("Expand WorkDir")
+
+	workDir := config.WorkDir
+	if workDir == "" {
+		s.logger.Printf("WorkDir not set, using CurrentWorkingDirectory...")
+		currentDir, err := pathutil.CurrentWorkingDirectoryAbsolutePath()
+		if err != nil {
+			return "", fmt.Errorf("Failed to get current dir, error: %s", err)
+		}
+		workDir = currentDir
+	} else {
+		absWorkDir, err := pathutil.AbsPath(workDir)
+		if err != nil {
+			return "", fmt.Errorf("Failed to expand path (%s), error: %s", workDir, err)
+		}
+		workDir = absWorkDir
+	}
+
+	s.logger.Donef("Expanded WorkDir: %s", workDir)
+	return workDir, nil
+}
+
+func (s FastlaneRunner) checkForRbenv(workDir string) {
+	if _, err := s.cmdLocator.LookPath("rbenv"); err != nil {
+		cmd := s.rbyFactory.Create("rbenv", []string{"versions"}, &command.Opts{
+			Stderr: os.Stderr,
+			Stdout: os.Stdout,
+			Dir:    workDir,
+		})
+
+		fmt.Println()
+		s.logger.Donef("$ %s", cmd.PrintableCommandArgs())
+		if err := cmd.Run(); err != nil {
+			s.logger.Warnf("%s", err)
+		}
+	}
+}
+
+func (s FastlaneRunner) selectAppleAuthSource(config Config, authSources []appleauth.Source, authInputs appleauth.Inputs) (appleauth.Credentials, error) {
+	var devportalConnectionProvider *devportalservice.BitriseClient
+	if config.BuildURL != "" && config.BuildAPIToken != "" {
+		devportalConnectionProvider = devportalservice.NewBitriseClient(retry.NewHTTPClient().StandardClient(), config.BuildURL, string(config.BuildAPIToken))
+	} else {
+		fmt.Println()
+		s.logger.Warnf("Connected Apple Developer Portal Account not found. Step is not running on bitrise.io: BITRISE_BUILD_URL and BITRISE_BUILD_API_TOKEN envs are not set")
+	}
+	var conn *devportalservice.AppleDeveloperConnection
+	if config.BitriseConnection != "off" && devportalConnectionProvider != nil {
+		var err error
+		conn, err = devportalConnectionProvider.GetAppleDeveloperConnection()
+		if err != nil {
+			s.handleSessionDataError(err)
+		}
+	}
+
+	authConfig, err := appleauth.Select(conn, authSources, authInputs)
+	if err != nil {
+		if _, ok := err.(*appleauth.MissingAuthConfigError); !ok {
+			return appleauth.Credentials{}, fmt.Errorf("Could not configure Apple Service authentication: %v", err)
+		}
+		fmt.Println()
+		s.logger.Warnf("No authentication data found matching the selected Apple Service authentication method (%s).", config.BitriseConnection)
+		if conn != nil && (conn.APIKeyConnection == nil && conn.AppleIDConnection == nil) {
+			fmt.Println()
+			s.logger.Warnf("%s", notConnected)
+		}
+	}
+	return authConfig, nil
+}
+
+func (s FastlaneRunner) handleSessionDataError(err error) {
+	if err == nil {
+		return
+	}
+
+	if networkErr, ok := err.(devportalservice.NetworkError); ok && networkErr.Status == http.StatusUnauthorized {
+		fmt.Println()
+		s.logger.Warnf("%s", "Unauthorized to query Connected Apple Developer Portal Account. This happens by design, with a public app's PR build, to protect secrets.")
+
+		return
+	}
+
+	fmt.Println()
+	s.logger.Errorf("Failed to activate Bitrise Apple Developer Portal connection: %s", err)
+	s.logger.Warnf("Read more: https://devcenter.bitrise.io/getting-started/configuring-bitrise-steps-that-require-apple-developer-account-data/")
+}
+
 type EnsureDependenciesOpts struct {
 	GemVersions gemVersions
 	UseBundler  bool
 }
 
 func (s FastlaneRunner) InstallDependencies(config Config, opts EnsureDependenciesOpts) error {
-	// Determine desired Fastlane version
-	fmt.Println()
-	s.logger.Infof("Determine desired Fastlane version")
-
 	// Install desired Fastlane version
 	if opts.UseBundler {
 		s.logger.Infof("Install bundler")
@@ -552,3 +519,44 @@ func (s FastlaneRunner) Run(config Config, opts EnsureDependenciesOpts) error {
 
 	return nil
 }
+
+func (s FastlaneRunner) fastlaneDebugInfo(workDir string, useBundler bool, bundlerVersion gems.Version) (string, error) {
+	factory, err := ruby.NewCommandFactory(command.NewFactory(env.NewRepository()), env.NewCommandLocator())
+	if err != nil {
+		return "", err
+	}
+
+	name := "fastlane"
+	args := []string{"env"}
+	var outBuffer bytes.Buffer
+	opts := &command.Opts{
+		Stdin:  strings.NewReader("n"),
+		Stdout: bufio.NewWriter(&outBuffer),
+		Stderr: os.Stderr,
+		Dir:    workDir,
+	}
+	var cmd command.Command
+	if useBundler {
+		cmd = factory.CreateBundleExec(name, args, bundlerVersion.Version, opts)
+	} else {
+		cmd = factory.Create(name, args, opts)
+	}
+
+	s.logger.Debugf("$ %s", cmd.PrintableCommandArgs())
+	if err := cmd.Run(); err != nil {
+		if errorutil.IsExitStatusError(err) {
+			return "", fmt.Errorf("Fastlane command (%s) failed, output: %s", cmd.PrintableCommandArgs(), outBuffer.String())
+		}
+		return "", fmt.Errorf("Fastlane command (%s) failed: %v", cmd.PrintableCommandArgs(), err)
+	}
+
+	return outBuffer.String(), nil
+}
+
+func functionName(i interface{}) string {
+	return runtime.FuncForPC(reflect.ValueOf(i).Pointer()).Name()
+}
+
+const notConnected = `Connected Apple Developer Portal Account not found.
+Most likely because there is no Apple Developer Portal Account connected to the build.
+Read more: https://devcenter.bitrise.io/getting-started/configuring-bitrise-steps-that-require-apple-developer-account-data/`
