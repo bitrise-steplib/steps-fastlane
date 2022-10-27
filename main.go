@@ -86,7 +86,11 @@ func run() int {
 		return 1
 	}
 
-	buildStep.Run(config, dependenciesOpts)
+	err = buildStep.Run(config, dependenciesOpts)
+	if err != nil {
+		logger.Errorf(fmt.Errorf("Failed to execute Step main logic: %w", err).Error())
+		return 1
+	}
 
 	if config.EnableCache {
 		fmt.Println()
