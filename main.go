@@ -336,6 +336,7 @@ func (s FastlaneRunner) handleSessionDataError(err error) {
 	s.logger.Warnf("Read more: https://devcenter.bitrise.io/getting-started/configuring-bitrise-steps-that-require-apple-developer-account-data/")
 }
 
+// EnsureDependenciesOpts ...
 type EnsureDependenciesOpts struct {
 	GemVersions gemVersions
 	UseBundler  bool
