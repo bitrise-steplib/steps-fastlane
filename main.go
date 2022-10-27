@@ -139,6 +139,7 @@ type FastlaneRunner struct {
 	rbyFactory  ruby.CommandFactory
 }
 
+// Step Constructor
 func NewFastlaneRunner(
 	stepInputParser stepconf.InputParser,
 	logger log.Logger,
@@ -155,6 +156,7 @@ func NewFastlaneRunner(
 	}
 }
 
+// Process Config
 func (s FastlaneRunner) ProcessConfig() (Config, error) {
 	var config Config
 	if err := s.inputParser.Parse(&config); err != nil {
@@ -339,6 +341,7 @@ type EnsureDependenciesOpts struct {
 	UseBundler  bool
 }
 
+// Install Dependencies
 func (s FastlaneRunner) InstallDependencies(config Config, opts EnsureDependenciesOpts) error {
 	// Install desired Fastlane version
 	if opts.UseBundler {
@@ -429,6 +432,7 @@ func (s FastlaneRunner) InstallDependencies(config Config, opts EnsureDependenci
 	return nil
 }
 
+// Run Command
 func (s FastlaneRunner) Run(config Config, opts EnsureDependenciesOpts) error {
 	// Run fastlane
 	fmt.Println()
