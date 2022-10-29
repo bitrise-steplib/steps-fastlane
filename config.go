@@ -98,7 +98,7 @@ func (s FastlaneRunner) validateAuthInputs(config Config) (appleauth.Inputs, err
 		APIKeyPath:          string(config.APIKeyPath),
 	}
 	if err := authInputs.Validate(); err != nil {
-		return appleauth.Inputs{}, fmt.Errorf("Issue with authentication related inputs: %v", err)
+		return appleauth.Inputs{}, err
 	}
 	return authInputs, nil
 }
