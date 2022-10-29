@@ -192,7 +192,7 @@ workflows:
             fi
 
             envman add --key BITRISE_BUILD_NUMBER --value "${BITRISE_BUILD_NUMBER}"
-            envmand add --key SHORT_VERSION_STRING -- value "${SHORT_VERSION_STRING}"
+            envman add --key SHORT_VERSION_STRING -- value "${SHORT_VERSION_STRING}"
     - set-xcode-build-number:
         title: Set Build Number
         run_if: "true"
