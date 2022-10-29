@@ -182,6 +182,7 @@ workflows:
             #!/usr/bin/env bash
             CURRENT_BUILD_NUMBER=${BITRISE_BUILD_NUMBER}
             BITRISE_BUILD_NUMBER=$((($(gdate +%Y%m%d%H%M%S)-20000000000000)*10000))
+            SHORT_VERSION_STRING="1.0.1"
             if [[ -z "${BITRISE_BUILD_NUMBER}" ]]; then
               echo "error: failed to calculated build number"
               exit 1
@@ -191,6 +192,7 @@ workflows:
             fi
 
             envman add --key BITRISE_BUILD_NUMBER --value "${BITRISE_BUILD_NUMBER}"
+            envmand add --key SHORT_VERSION_STRING -- value "${SHORT_VERSION_STRING}"
     - set-xcode-build-number:
         title: Set Build Number
         run_if: "true"
@@ -198,6 +200,7 @@ workflows:
         - build_version: $BITRISE_BUILD_NUMBER
         - plist_path: $INFO_PLIST_PATH
         - build_version_offset: $BITRISE_BUILD_VERSION_OFFSET
+        - build_short_version_string: $SHORT_VERSION_STRING
 
 
   audit-this-step:
