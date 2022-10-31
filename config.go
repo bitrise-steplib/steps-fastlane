@@ -215,12 +215,12 @@ func (f FastlaneRunner) handleSessionDataError(err error) {
 
 	if networkErr, ok := err.(devportalservice.NetworkError); ok && networkErr.Status == http.StatusUnauthorized {
 		fmt.Println()
-		s.logger.Warnf("%s", "Unauthorized to query Connected Apple Developer Portal Account. This happens by design, with a public app's PR build, to protect secrets.")
+		f.logger.Warnf("%s", "Unauthorized to query Connected Apple Developer Portal Account. This happens by design, with a public app's PR build, to protect secrets.")
 
 		return
 	}
 
 	fmt.Println()
-	s.logger.Errorf("Failed to activate Bitrise Apple Developer Portal connection: %s", err)
-	s.logger.Warnf("Read more: https://devcenter.bitrise.io/getting-started/configuring-bitrise-steps-that-require-apple-developer-account-data/")
+	f.logger.Errorf("Failed to activate Bitrise Apple Developer Portal connection: %s", err)
+	f.logger.Warnf("Read more: https://devcenter.bitrise.io/getting-started/configuring-bitrise-steps-that-require-apple-developer-account-data/")
 }
