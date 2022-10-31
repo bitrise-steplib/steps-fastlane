@@ -130,7 +130,7 @@ func (s FastlaneRunner) validateGemHome(config Config) {
 	if strings.TrimSpace(config.GemHome) == "" {
 		return
 	}
-	s.logger.Warnf("Custom value (%s) is set for GEM_HOME environment variable. This can lead to errors as gem lookup path may not contain GEM_HOME.")
+	s.logger.Warnf("GEM_HOME environment variable is set to:\n%s\nThis can lead to errors as gem lookup path may not contain GEM_HOME.", config.GemHome)
 }
 
 func (s FastlaneRunner) getWorkdir(config Config) (string, error) {
