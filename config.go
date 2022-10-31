@@ -208,7 +208,7 @@ const notConnected = `Connected Apple Developer Portal Account not found.
 Most likely because there is no Apple Developer Portal Account connected to the build.
 Read more: https://devcenter.bitrise.io/getting-started/configuring-bitrise-steps-that-require-apple-developer-account-data/`
 
-func (s FastlaneRunner) handleSessionDataError(err error) {
+func (f FastlaneRunner) handleSessionDataError(err error) {
 	if err == nil {
 		return
 	}
