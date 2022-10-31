@@ -42,38 +42,38 @@ type Config struct {
 }
 
 // ProcessConfig ...
-func (s FastlaneRunner) ProcessConfig() (Config, error) {
+func (f FastlaneRunner) ProcessConfig() (Config, error) {
 	var config Config
-	if err := s.inputParser.Parse(&config); err != nil {
+	if err := f.inputParser.Parse(&config); err != nil {
 		return config, err
 	}
 
 	stepconf.Print(config)
-	s.logger.EnableDebugLog(config.VerboseLog)
+	f.logger.EnableDebugLog(config.VerboseLog)
 	fmt.Println()
 
-	authInputs, err := s.validateAuthInputs(config)
+	authInputs, err := f.validateAuthInputs(config)
 	if err != nil {
 		return Config{}, fmt.Errorf("Issue with authentication related inputs: %v", err)
 	}
 
-	authSources, err := s.parseAuthSources(config.BitriseConnection)
+	authSources, err := f.parseAuthSources(config.BitriseConnection)
 	if err != nil {
 		return Config{}, fmt.Errorf("Invalid Input: %v", err)
 	}
 
-	s.validateGemHome(config)
+	f.validateGemHome(config)
 
-	workDir, err := s.getWorkdir(config)
+	workDir, err := f.getWorkdir(config)
 	if err != nil {
 		return Config{}, err
 	}
 	config.WorkDir = workDir
 
-	s.checkForRbenv(workDir)
+	f.checkForRbenv(workDir)
 
 	// Select and fetch Apple authenication source
-	authConfig, err := s.selectAppleAuthSource(config, authSources, authInputs)
+	authConfig, err := f.selectAppleAuthSource(config, authSources, authInputs)
 	if err != nil {
 		return Config{}, err
 	}
@@ -89,7 +89,7 @@ func (s FastlaneRunner) ProcessConfig() (Config, error) {
 	return config, nil
 }
 
-func (s FastlaneRunner) validateAuthInputs(config Config) (appleauth.Inputs, error) {
+func (f FastlaneRunner) validateAuthInputs(config Config) (appleauth.Inputs, error) {
 	authInputs := appleauth.Inputs{
 		Username:            config.AppleID,
 		Password:            string(config.Password),
@@ -103,7 +103,7 @@ func (s FastlaneRunner) validateAuthInputs(config Config) (appleauth.Inputs, err
 	return authInputs, nil
 }
 
-func (s FastlaneRunner) parseAuthSources(bitriseConnection string) ([]appleauth.Source, error) {
+func (f FastlaneRunner) parseAuthSources(bitriseConnection string) ([]appleauth.Source, error) {
 	switch bitriseConnection {
 	case "automatic":
 		return []appleauth.Source{
@@ -126,19 +126,19 @@ func (s FastlaneRunner) parseAuthSources(bitriseConnection string) ([]appleauth.
 	}
 }
 
-func (s FastlaneRunner) validateGemHome(config Config) {
+func (f FastlaneRunner) validateGemHome(config Config) {
 	if strings.TrimSpace(config.GemHome) == "" {
 		return
 	}
-	s.logger.Warnf("GEM_HOME environment variable is set to:\n%s\nThis can lead to errors as gem lookup path may not contain GEM_HOME.", config.GemHome)
+	f.logger.Warnf("GEM_HOME environment variable is set to:\n%s\nThis can lead to errors as gem lookup path may not contain GEM_HOME.", config.GemHome)
 }
 
-func (s FastlaneRunner) getWorkdir(config Config) (string, error) {
-	s.logger.Infof("Expand WorkDir")
+func (f FastlaneRunner) getWorkdir(config Config) (string, error) {
+	f.logger.Infof("Expand WorkDir")
 
 	workDir := config.WorkDir
 	if workDir == "" {
-		s.logger.Printf("WorkDir not set, using CurrentWorkingDirectory...")
+		f.logger.Printf("WorkDir not set, using CurrentWorkingDirectory...")
 		currentDir, err := pathutil.CurrentWorkingDirectoryAbsolutePath()
 		if err != nil {
 			return "", fmt.Errorf("Failed to get current dir, error: %s", err)
@@ -152,40 +152,40 @@ func (s FastlaneRunner) getWorkdir(config Config) (string, error) {
 		workDir = absWorkDir
 	}
 
-	s.logger.Donef("Expanded WorkDir: %s", workDir)
+	f.logger.Donef("Expanded WorkDir: %s", workDir)
 	return workDir, nil
 }
 
-func (s FastlaneRunner) checkForRbenv(workDir string) {
-	if _, err := s.cmdLocator.LookPath("rbenv"); err != nil {
-		cmd := s.rbyFactory.Create("rbenv", []string{"versions"}, &command.Opts{
+func (f FastlaneRunner) checkForRbenv(workDir string) {
+	if _, err := f.cmdLocator.LookPath("rbenv"); err != nil {
+		cmd := f.rbyFactory.Create("rbenv", []string{"versions"}, &command.Opts{
 			Stderr: os.Stderr,
 			Stdout: os.Stdout,
 			Dir:    workDir,
 		})
 
 		fmt.Println()
-		s.logger.Donef("$ %s", cmd.PrintableCommandArgs())
+		f.logger.Donef("$ %s", cmd.PrintableCommandArgs())
 		if err := cmd.Run(); err != nil {
-			s.logger.Warnf("%s", err)
+			f.logger.Warnf("%s", err)
 		}
 	}
 }
 
-func (s FastlaneRunner) selectAppleAuthSource(config Config, authSources []appleauth.Source, authInputs appleauth.Inputs) (appleauth.Credentials, error) {
+func (f FastlaneRunner) selectAppleAuthSource(config Config, authSources []appleauth.Source, authInputs appleauth.Inputs) (appleauth.Credentials, error) {
 	var devportalConnectionProvider *devportalservice.BitriseClient
 	if config.BuildURL != "" && config.BuildAPIToken != "" {
 		devportalConnectionProvider = devportalservice.NewBitriseClient(retry.NewHTTPClient().StandardClient(), config.BuildURL, string(config.BuildAPIToken))
 	} else {
 		fmt.Println()
-		s.logger.Warnf("Connected Apple Developer Portal Account not found. Step is not running on bitrise.io: BITRISE_BUILD_URL and BITRISE_BUILD_API_TOKEN envs are not set")
+		f.logger.Warnf("Connected Apple Developer Portal Account not found. Step is not running on bitrise.io: BITRISE_BUILD_URL and BITRISE_BUILD_API_TOKEN envs are not set")
 	}
 	var conn *devportalservice.AppleDeveloperConnection
 	if config.BitriseConnection != "off" && devportalConnectionProvider != nil {
 		var err error
 		conn, err = devportalConnectionProvider.GetAppleDeveloperConnection()
 		if err != nil {
-			s.handleSessionDataError(err)
+			f.handleSessionDataError(err)
 		}
 	}
 
@@ -195,10 +195,10 @@ func (s FastlaneRunner) selectAppleAuthSource(config Config, authSources []apple
 			return appleauth.Credentials{}, fmt.Errorf("Could not configure Apple Service authentication: %v", err)
 		}
 		fmt.Println()
-		s.logger.Warnf("No authentication data found matching the selected Apple Service authentication method (%s).", config.BitriseConnection)
+		f.logger.Warnf("No authentication data found matching the selected Apple Service authentication method (%s).", config.BitriseConnection)
 		if conn != nil && (conn.APIKeyConnection == nil && conn.AppleIDConnection == nil) {
 			fmt.Println()
-			s.logger.Warnf("%s", notConnected)
+			f.logger.Warnf("%s", notConnected)
 		}
 	}
 	return authConfig, nil

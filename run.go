@@ -18,10 +18,10 @@ import (
 )
 
 // Run ...
-func (s FastlaneRunner) Run(config Config, opts EnsureDependenciesOpts) error {
+func (f FastlaneRunner) Run(config Config, opts EnsureDependenciesOpts) error {
 	// Run fastlane
 	fmt.Println()
-	s.logger.Infof("Run Fastlane")
+	f.logger.Infof("Run Fastlane")
 
 	var envs []string
 	authEnvs, err := FastlaneAuthParams(config.AuthCredentials)
@@ -37,13 +37,13 @@ func (s FastlaneRunner) Run(config Config, opts EnsureDependenciesOpts) error {
 		envs = append(envs, fmt.Sprintf("%s=%s", envKey, envValue))
 	}
 	if len(globallySetAuthEnvs) != 0 {
-		s.logger.Warnf("Fastlane authentication-related environment varibale(s) (%s) are set, overriding.", globallySetAuthEnvs)
-		s.logger.Infof("To stop overriding authentication-related environment variables, please set Bitrise Apple Developer Connection input to 'off' and leave authentication-related inputs empty.")
+		f.logger.Warnf("Fastlane authentication-related environment varibale(s) (%s) are set, overriding.", globallySetAuthEnvs)
+		f.logger.Infof("To stop overriding authentication-related environment variables, please set Bitrise Apple Developer Connection input to 'off' and leave authentication-related inputs empty.")
 	}
 
 	buildlogPth := ""
 	if tempDir, err := pathutil.NormalizedOSTempDirPath("fastlane_logs"); err != nil {
-		s.logger.Errorf("Failed to create temp dir for fastlane logs, error: %s", err)
+		f.logger.Errorf("Failed to create temp dir for fastlane logs, error: %s", err)
 	} else {
 		buildlogPth = tempDir
 		envs = append(envs, "FL_BUILDLOG_PATH="+buildlogPth)
@@ -59,32 +59,32 @@ func (s FastlaneRunner) Run(config Config, opts EnsureDependenciesOpts) error {
 	}
 	var cmd command.Command
 	if opts.UseBundler {
-		cmd = s.rbyFactory.CreateBundleExec(name, args, opts.GemVersions.bundler.Version, options)
+		cmd = f.rbyFactory.CreateBundleExec(name, args, opts.GemVersions.bundler.Version, options)
 	} else {
-		cmd = s.rbyFactory.Create(name, args, options)
+		cmd = f.rbyFactory.Create(name, args, options)
 	}
 
-	s.logger.Donef("$ %s", cmd.PrintableCommandArgs())
+	f.logger.Donef("$ %s", cmd.PrintableCommandArgs())
 
 	deployDir := os.Getenv("BITRISE_DEPLOY_DIR")
 	if deployDir == "" {
-		s.logger.Warnf("No BITRISE_DEPLOY_DIR found")
+		f.logger.Warnf("No BITRISE_DEPLOY_DIR found")
 	}
 	deployPth := filepath.Join(deployDir, "fastlane_env.log")
 
 	if err := cmd.Run(); err != nil {
 		fmt.Println()
-		s.logger.Errorf("Fastlane command: (%s) failed", cmd.PrintableCommandArgs())
-		s.logger.Errorf("If you want to send an issue report to fastlane (https://github.com/fastlane/fastlane/issues/new), you can find the output of fastlane env in the following log file:")
+		f.logger.Errorf("Fastlane command: (%s) failed", cmd.PrintableCommandArgs())
+		f.logger.Errorf("If you want to send an issue report to fastlane (https://github.com/fastlane/fastlane/issues/new), you can find the output of fastlane env in the following log file:")
 		fmt.Println()
-		s.logger.Infof(deployPth)
+		f.logger.Infof(deployPth)
 		fmt.Println()
 
-		if fastlaneDebugInfo, err := s.fastlaneDebugInfo(config.WorkDir, opts.UseBundler, opts.GemVersions.bundler); err != nil {
-			s.logger.Warnf("%s", err)
+		if fastlaneDebugInfo, err := f.fastlaneDebugInfo(config.WorkDir, opts.UseBundler, opts.GemVersions.bundler); err != nil {
+			f.logger.Warnf("%s", err)
 		} else if fastlaneDebugInfo != "" {
 			if err := fileutil.WriteStringToFile(deployPth, fastlaneDebugInfo); err != nil {
-				s.logger.Warnf("Failed to write fastlane env log file, error: %s", err)
+				f.logger.Warnf("Failed to write fastlane env log file, error: %s", err)
 			}
 		}
 
@@ -101,7 +101,7 @@ func (s FastlaneRunner) Run(config Config, opts EnsureDependenciesOpts) error {
 			}
 			return nil
 		}); err != nil {
-			s.logger.Errorf("Failed to walk directory, error: %s", err)
+			f.logger.Errorf("Failed to walk directory, error: %s", err)
 		}
 		return fmt.Errorf("Command failed, error: %s", err)
 	}
@@ -109,7 +109,7 @@ func (s FastlaneRunner) Run(config Config, opts EnsureDependenciesOpts) error {
 	return nil
 }
 
-func (s FastlaneRunner) fastlaneDebugInfo(workDir string, useBundler bool, bundlerVersion gems.Version) (string, error) {
+func (f FastlaneRunner) fastlaneDebugInfo(workDir string, useBundler bool, bundlerVersion gems.Version) (string, error) {
 	factory, err := ruby.NewCommandFactory(command.NewFactory(env.NewRepository()), env.NewCommandLocator())
 	if err != nil {
 		return "", err
@@ -131,7 +131,7 @@ func (s FastlaneRunner) fastlaneDebugInfo(workDir string, useBundler bool, bundl
 		cmd = factory.Create(name, args, opts)
 	}
 
-	s.logger.Debugf("$ %s", cmd.PrintableCommandArgs())
+	f.logger.Debugf("$ %s", cmd.PrintableCommandArgs())
 	if err := cmd.Run(); err != nil {
 		if errorutil.IsExitStatusError(err) {
 			return "", fmt.Errorf("Fastlane command (%s) failed, output: %s", cmd.PrintableCommandArgs(), outBuffer.String())
