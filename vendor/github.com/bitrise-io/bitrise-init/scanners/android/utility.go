@@ -39,10 +39,15 @@ const (
 	ModuleInputTitle   = "Module"
 	ModuleInputSummary = "Modules provide a container for your Android project's source code, resource files, and app level settings, such as the module-level build file and Android manifest file. Each module can be independently built, tested, and debugged. You can add new modules to your Bitrise builds at any time."
 
-	GradlewPathInputKey    = "gradlew_path"
-	GradlewPathInputEnvKey = "GRADLEW_PATH"
-	GradlewPathInputTitle  = "Gradlew file path"
+	GradlewPathInputKey = "gradlew_path"
 )
+
+// Project is an Android project on the filesystem
+type Project struct {
+	RelPath  string
+	Icons    models.Icons
+	Warnings models.Warnings
+}
 
 func walk(src string, fn func(path string, info os.FileInfo) error) error {
 	return filePathWalk(src, func(path string, info os.FileInfo, err error) error {
@@ -133,42 +138,35 @@ that the right Gradle version is installed and used for the build. More info/gui
 	return nil
 }
 
-func (scanner *Scanner) generateConfigBuilder() models.ConfigBuilderModel {
+func (scanner *Scanner) generateConfigBuilder(isPrivateRepository bool) models.ConfigBuilderModel {
 	configBuilder := models.NewDefaultConfigBuilder()
 
 	projectLocationEnv, gradlewPath, moduleEnv, variantEnv := "$"+ProjectLocationInputEnvKey, "$"+ProjectLocationInputEnvKey+"/gradlew", "$"+ModuleInputEnvKey, "$"+VariantInputEnvKey
 
 	//-- primary
-	configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.DefaultPrepareStepList(true)...)
+	configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.DefaultPrepareStepListV2(steps.PrepareListParams{
+		ShouldIncludeCache:       true,
+		ShouldIncludeActivateSSH: isPrivateRepository,
+	})...)
 	configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.InstallMissingAndroidToolsStepListItem(
 		envmanModels.EnvironmentItemModel{GradlewPathInputKey: gradlewPath},
-	))
-	configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.AndroidLintStepListItem(
-		envmanModels.EnvironmentItemModel{
-			ProjectLocationInputKey: projectLocationEnv,
-		},
-		envmanModels.EnvironmentItemModel{
-			ModuleInputKey: moduleEnv,
-		},
-		envmanModels.EnvironmentItemModel{
-			VariantInputKey: variantEnv,
-		},
 	))
 	configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.AndroidUnitTestStepListItem(
 		envmanModels.EnvironmentItemModel{
 			ProjectLocationInputKey: projectLocationEnv,
 		},
 		envmanModels.EnvironmentItemModel{
-			ModuleInputKey: moduleEnv,
-		},
-		envmanModels.EnvironmentItemModel{
 			VariantInputKey: variantEnv,
 		},
 	))
-	configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.DefaultDeployStepList(true)...)
+	configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.DefaultDeployStepListV2(true)...)
+	configBuilder.SetWorkflowDescriptionTo(models.PrimaryWorkflowID, primaryWorkflowDescription)
 
 	//-- deploy
-	configBuilder.AppendStepListItemsTo(models.DeployWorkflowID, steps.DefaultPrepareStepList(true)...)
+	configBuilder.AppendStepListItemsTo(models.DeployWorkflowID, steps.DefaultPrepareStepListV2(steps.PrepareListParams{
+		ShouldIncludeCache:       true,
+		ShouldIncludeActivateSSH: isPrivateRepository,
+	})...)
 	configBuilder.AppendStepListItemsTo(models.DeployWorkflowID, steps.InstallMissingAndroidToolsStepListItem(
 		envmanModels.EnvironmentItemModel{GradlewPathInputKey: gradlewPath},
 	))
@@ -182,18 +180,12 @@ func (scanner *Scanner) generateConfigBuilder() models.ConfigBuilderModel {
 			ProjectLocationInputKey: projectLocationEnv,
 		},
 		envmanModels.EnvironmentItemModel{
-			ModuleInputKey: moduleEnv,
-		},
-		envmanModels.EnvironmentItemModel{
 			VariantInputKey: variantEnv,
 		},
 	))
 	configBuilder.AppendStepListItemsTo(models.DeployWorkflowID, steps.AndroidUnitTestStepListItem(
 		envmanModels.EnvironmentItemModel{
 			ProjectLocationInputKey: projectLocationEnv,
-		},
-		envmanModels.EnvironmentItemModel{
-			ModuleInputKey: moduleEnv,
 		},
 		envmanModels.EnvironmentItemModel{
 			VariantInputKey: variantEnv,
@@ -212,7 +204,7 @@ func (scanner *Scanner) generateConfigBuilder() models.ConfigBuilderModel {
 		},
 	))
 	configBuilder.AppendStepListItemsTo(models.DeployWorkflowID, steps.SignAPKStepListItem())
-	configBuilder.AppendStepListItemsTo(models.DeployWorkflowID, steps.DefaultDeployStepList(true)...)
+	configBuilder.AppendStepListItemsTo(models.DeployWorkflowID, steps.DefaultDeployStepListV2(true)...)
 
 	configBuilder.SetWorkflowDescriptionTo(models.DeployWorkflowID, deployWorkflowDescription)
 
