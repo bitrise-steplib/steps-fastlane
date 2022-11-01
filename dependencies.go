@@ -33,7 +33,7 @@ func (f FastlaneRunner) InstallDependencies(config Config, opts EnsureDependenci
 			fmt.Println()
 
 			if err := cmd.Run(); err != nil {
-				return fmt.Errorf("command failed, error: %s", err)
+				return fmt.Errorf("command (%s) failed, error: %s", cmd.PrintableCommandArgs(), err)
 			}
 		}
 
@@ -53,7 +53,7 @@ func (f FastlaneRunner) InstallDependencies(config Config, opts EnsureDependenci
 		fmt.Println()
 
 		if err := cmd.Run(); err != nil {
-			return fmt.Errorf("Command failed, error: %s", err)
+			return fmt.Errorf("command (%s) failed, error: %s", cmd.PrintableCommandArgs(), err)
 		}
 	} else if config.UpdateFastlane {
 		f.logger.Infof("Update system installed Fastlane")
@@ -69,7 +69,7 @@ func (f FastlaneRunner) InstallDependencies(config Config, opts EnsureDependenci
 			f.logger.Donef("$ %s", cmd.PrintableCommandArgs())
 
 			if err := cmd.Run(); err != nil {
-				return fmt.Errorf("Command failed, error: %s", err)
+				return fmt.Errorf("command (%s) failed, error: %s", cmd.PrintableCommandArgs(), err)
 			}
 		}
 	} else {
@@ -98,7 +98,7 @@ func (f FastlaneRunner) InstallDependencies(config Config, opts EnsureDependenci
 	f.logger.Donef("$ %s", cmd.PrintableCommandArgs())
 
 	if err := cmd.Run(); err != nil {
-		return fmt.Errorf("Command failed, error: %s", err)
+		return fmt.Errorf("command (%s) failed, error: %s", cmd.PrintableCommandArgs(), err)
 	}
 
 	return nil

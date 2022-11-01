@@ -25,6 +25,7 @@ func run() int {
 
 	config, err := buildStep.ProcessConfig()
 	if err != nil {
+		buildStep.logger.Println()
 		buildStep.logger.Errorf(fmt.Errorf("Failed to process Step inputs: %w", err).Error())
 		return 1
 	}
@@ -34,6 +35,7 @@ func run() int {
 	buildStep.logger.Infof("Determine desired Fastlane version")
 	gemVersions, err := parseGemfileLock(config.WorkDir)
 	if err != nil {
+		buildStep.logger.Println()
 		buildStep.logger.Errorf(err.Error())
 	}
 
@@ -44,12 +46,14 @@ func run() int {
 		UseBundler:  gemVersions.fastlane.Found,
 	}
 	if err = buildStep.InstallDependencies(config, dependenciesOpts); err != nil {
+		buildStep.logger.Println()
 		buildStep.logger.Errorf(fmt.Errorf("Failed to install Step dependencies: %w", err).Error())
 		return 1
 	}
 
 	err = buildStep.Run(config, dependenciesOpts)
 	if err != nil {
+		buildStep.logger.Println()
 		logger.Errorf(fmt.Errorf("Failed to execute Step main logic: %w", err).Error())
 		return 1
 	}
