@@ -94,6 +94,7 @@ func rubyInstallType(cmdLocator env.CommandLocator) InstallType {
 	return installType
 }
 
+// IsGemInstalled returns true if the specified gem version is installed
 func (m environment) IsGemInstalled(gem, version string) (bool, error) {
 	cmd := m.factory.Create("gem", []string{"list"}, nil)
 
@@ -146,7 +147,7 @@ func isSpecifiedRbenvRubyInstalled(message string) (bool, string, error) {
 
 	//
 	// Installed
-	reg, err = regexp.Compile(".* \\(set by")
+	reg, err = regexp.Compile(`.* \(set by`)
 	if err != nil {
 		return false, "", fmt.Errorf("failed to parse regex ( %s ) on the error message, error: %s", ".* \\(set by", err)
 	}
@@ -159,6 +160,7 @@ func isSpecifiedRbenvRubyInstalled(message string) (bool, string, error) {
 	return false, version, nil
 }
 
+// IsSpecifiedASDFRubyInstalled ...
 func (m environment) IsSpecifiedASDFRubyInstalled(workdir string) (isInstalled bool, versionInstalled string, error error) {
 	absWorkdir, err := pathutil.AbsPath(workdir)
 	if err != nil {

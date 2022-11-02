@@ -7,12 +7,12 @@ import (
 	"runtime"
 	"strings"
 
-	"github.com/bitrise-io/go-steputils/cache"
-	"github.com/bitrise-io/go-steputils/ruby"
-	"github.com/bitrise-io/go-steputils/stepconf"
-	"github.com/bitrise-io/go-utils/command"
-	"github.com/bitrise-io/go-utils/env"
-	"github.com/bitrise-io/go-utils/log"
+	"github.com/bitrise-io/go-steputils/v2/cache"
+	"github.com/bitrise-io/go-steputils/v2/ruby"
+	"github.com/bitrise-io/go-steputils/v2/stepconf"
+	"github.com/bitrise-io/go-utils/v2/command"
+	"github.com/bitrise-io/go-utils/v2/env"
+	"github.com/bitrise-io/go-utils/v2/log"
 )
 
 func main() {
@@ -89,7 +89,7 @@ func run() int {
 
 func createStep(logger log.Logger) FastlaneRunner {
 	envRepository := env.NewRepository()
-	inputParser := stepconf.NewInputParser(envRepository)
+	inputParser := stepconf.NewInputParser(env.NewRepository())
 	cmdFactory := command.NewFactory(envRepository)
 	cmdLocator := env.NewCommandLocator()
 	rbyFactory, err := ruby.NewCommandFactory(command.NewFactory(env.NewRepository()), cmdLocator)
