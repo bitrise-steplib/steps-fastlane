@@ -56,6 +56,8 @@ func run() int {
 		return 1
 	}
 
+	buildStep.cacheDeps(config)
+
 	return 0
 }
 
