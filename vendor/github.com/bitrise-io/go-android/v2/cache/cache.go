@@ -10,10 +10,10 @@ import (
 	"strings"
 
 	"github.com/bitrise-io/go-steputils/cache"
-	"github.com/bitrise-io/go-utils/command"
 	"github.com/bitrise-io/go-utils/fileutil"
 	"github.com/bitrise-io/go-utils/log"
 	"github.com/bitrise-io/go-utils/pathutil"
+	"github.com/bitrise-io/go-utils/v2/command"
 )
 
 // AndroidGradleCacheItemCollector ...

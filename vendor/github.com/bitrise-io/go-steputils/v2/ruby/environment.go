@@ -7,9 +7,10 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/bitrise-io/go-utils/command"
-	"github.com/bitrise-io/go-utils/env"
 	"github.com/bitrise-io/go-utils/pathutil"
+	"github.com/bitrise-io/go-utils/v2/command"
+	"github.com/bitrise-io/go-utils/v2/env"
+	"github.com/bitrise-io/go-utils/v2/log"
 )
 
 const (
@@ -32,6 +33,8 @@ const (
 	RVMRuby
 	// RbenvRuby ...
 	RbenvRuby
+	// ASDFRuby ...
+	ASDFRuby
 )
 
 // Environment ...
@@ -39,24 +42,56 @@ type Environment interface {
 	RubyInstallType() InstallType
 	IsGemInstalled(gem, version string) (bool, error)
 	IsSpecifiedRbenvRubyInstalled(workdir string) (bool, string, error)
+	IsSpecifiedASDFRubyInstalled(workdir string) (bool, string, error)
 }
 
 type environment struct {
 	factory    CommandFactory
 	cmdLocator env.CommandLocator
+	logger     log.Logger
 }
 
 // NewEnvironment ...
-func NewEnvironment(factory CommandFactory, cmdLocator env.CommandLocator) Environment {
+func NewEnvironment(factory CommandFactory, cmdLocator env.CommandLocator, logger log.Logger) Environment {
 	return environment{
 		factory:    factory,
 		cmdLocator: cmdLocator,
+		logger:     logger,
 	}
 }
 
 // RubyInstallType returns which version manager was used for the ruby install
 func (m environment) RubyInstallType() InstallType {
 	return rubyInstallType(m.cmdLocator)
+}
+
+func rubyInstallType(cmdLocator env.CommandLocator) InstallType {
+	pth, err := cmdLocator.LookPath("ruby")
+	if err != nil {
+		return Unknown
+	}
+
+	installType := Unknown
+	if pth == systemRubyPth {
+		installType = SystemRuby
+	} else if pth == brewRubyPth {
+		installType = BrewRuby
+	} else if pth == brewRubyPthAlt {
+		installType = BrewRuby
+	} else if _, err := cmdLocator.LookPath("rvm"); err == nil {
+		installType = RVMRuby
+	} else if _, err := cmdLocator.LookPath("rbenv"); err == nil {
+		installType = RbenvRuby
+	} else if _, err := cmdLocator.LookPath("asdf"); err == nil {
+		// asdf doesn't store its installs in a definite location,
+		// but it does store its shims in a 'shims' directory, which
+		// is what we'll get from the `LookPath("ruby")` call above.
+		if strings.Contains(pth, "shims/ruby") {
+			installType = ASDFRuby
+		}
+	}
+
+	return installType
 }
 
 func (m environment) IsGemInstalled(gem, version string) (bool, error) {
@@ -88,39 +123,18 @@ func (m environment) IsSpecifiedRbenvRubyInstalled(workdir string) (bool, string
 	cmd := m.factory.Create("rbenv", []string{"version"}, &command.Opts{Dir: absWorkdir})
 	out, err := cmd.RunAndReturnTrimmedCombinedOutput()
 	if err != nil {
-		return false, "", fmt.Errorf("failed to check installed ruby version, %s error: %s", out, err)
+		m.logger.Warnf("failed to check installed ruby version, %s error: %s", out, err)
 	}
 	return isSpecifiedRbenvRubyInstalled(out)
-}
-
-func rubyInstallType(cmdLocator env.CommandLocator) InstallType {
-	pth, err := cmdLocator.LookPath("ruby")
-	if err != nil {
-		return Unknown
-	}
-
-	installType := Unknown
-	if pth == systemRubyPth {
-		installType = SystemRuby
-	} else if pth == brewRubyPth {
-		installType = BrewRuby
-	} else if pth == brewRubyPthAlt {
-		installType = BrewRuby
-	} else if _, err := cmdLocator.LookPath("rvm"); err == nil {
-		installType = RVMRuby
-	} else if _, err := cmdLocator.LookPath("rbenv"); err == nil {
-		installType = RbenvRuby
-	}
-
-	return installType
 }
 
 func isSpecifiedRbenvRubyInstalled(message string) (bool, string, error) {
 	//
 	// Not installed
-	reg, err := regexp.Compile("rbenv: version \x60.*' is not installed") // \x60 == ` (The go linter suggested to use the hex code instead)
+	regexPattern := "rbenv: version \x60.*' is not installed" // \x60 == ` (The go linter suggested to use the hex code instead)
+	reg, err := regexp.Compile(regexPattern)
 	if err != nil {
-		return false, "", fmt.Errorf("failed to parse regex ( %s ) on the error message, error: %s", "rbenv: version \x60.*' is not installed", err) // \x60 == ` (The go linter suggested to use the hex code instead)
+		return false, "", fmt.Errorf("failed to parse regex ( %s ) on the error message, error: %s", regexPattern, err)
 	}
 
 	var version string
@@ -143,6 +157,46 @@ func isSpecifiedRbenvRubyInstalled(message string) (bool, string, error) {
 		return true, version, nil
 	}
 	return false, version, nil
+}
+
+func (m environment) IsSpecifiedASDFRubyInstalled(workdir string) (isInstalled bool, versionInstalled string, error error) {
+	absWorkdir, err := pathutil.AbsPath(workdir)
+	if err != nil {
+		return false, "", fmt.Errorf("failed to get absolute path for ( %s ), error: %s", workdir, err)
+	}
+
+	cmd := m.factory.Create("asdf", []string{"current", "ruby"}, &command.Opts{Dir: absWorkdir})
+	out, err := cmd.RunAndReturnTrimmedCombinedOutput()
+	if err != nil {
+		m.logger.Warnf("failed to check installed ruby version, %s error: %s", out, err)
+	}
+
+	return isSpecifiedASDFRubyInstalled(out)
+}
+
+func isSpecifiedASDFRubyInstalled(message string) (isInstalled bool, versionInstalled string, error error) {
+	regexPattern := "Not installed. Run \"asdf install ruby .*\""
+	reg, err := regexp.Compile(regexPattern)
+	if err != nil {
+		return false, "", fmt.Errorf("failed to parse regex ( %s ) on the error message, error: %s", regexPattern, err)
+	}
+
+	var version string
+	if reg.MatchString(message) {
+		//
+		// Not installed
+		version = strings.Split(strings.Split(message, "\"asdf install ruby ")[1], "\"")[0]
+		return false, version, nil
+	}
+	//
+	// Installed
+	patternTerminator := "/"
+	if strings.Contains(message, "ASDF_RUBY_VERSION") {
+		patternTerminator = "ASDF_RUBY_VERSION"
+	}
+	version = strings.Split(strings.Split(message, "ruby ")[1], patternTerminator)[0]
+	version = strings.TrimSpace(version)
+	return true, version, nil
 }
 
 func findGemInList(gemList, gem, version string) (bool, error) {

@@ -16,6 +16,8 @@ const (
 // FileDownloader ..
 type FileDownloader interface {
 	Get(destination, source string) error
+	GetRemoteContents(source string) ([]byte, error)
+	ReadLocalFile(path string) ([]byte, error)
 }
 
 // FileProvider supports retrieving the local path to a file either provided
@@ -34,23 +36,25 @@ func NewFileProvider(filedownloader FileDownloader) FileProvider {
 
 // LocalPath ...
 func (fileProvider FileProvider) LocalPath(path string) (string, error) {
-
-	var localPath string
-	if strings.HasPrefix(path, fileSchema) {
-		trimmedPath, err := fileProvider.trimmedFilePath(path)
-		if err != nil {
-			return "", err
-		}
-		localPath = trimmedPath
-	} else {
-		downloadedPath, err := fileProvider.downloadFile(path)
-		if err != nil {
-			return "", err
-		}
-		localPath = downloadedPath
+	if strings.HasPrefix(path, fileSchema) { // Local file
+		return fileProvider.trimmedFilePath(path)
 	}
 
-	return localPath, nil
+	return fileProvider.downloadFileToLocalPath(path)
+}
+
+// Contents returns the contents of remote or local URL
+func (fileProvider FileProvider) Contents(srcPath string) ([]byte, error) {
+	if strings.HasPrefix(srcPath, fileSchema) { // Local file
+		trimmedPath, err := fileProvider.trimmedFilePath(srcPath)
+		if err != nil {
+			return nil, err
+		}
+
+		return fileProvider.filedownloader.ReadLocalFile(trimmedPath)
+	}
+
+	return fileProvider.filedownloader.GetRemoteContents(srcPath)
 }
 
 // Removes file:// from the begining of the path
@@ -59,7 +63,7 @@ func (fileProvider FileProvider) trimmedFilePath(path string) (string, error) {
 	return pathutil.AbsPath(pth)
 }
 
-func (fileProvider FileProvider) downloadFile(url string) (string, error) {
+func (fileProvider FileProvider) downloadFileToLocalPath(url string) (string, error) {
 	tmpDir, err := pathutil.NormalizedOSTempDirPath("FileProviderprovider")
 	if err != nil {
 		return "", err
