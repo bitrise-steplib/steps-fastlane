@@ -8,7 +8,7 @@ require (
 	github.com/bitrise-io/go-steputils v1.0.2
 	github.com/bitrise-io/go-steputils/v2 v2.0.0-alpha.14
 	github.com/bitrise-io/go-utils v1.0.2
-	github.com/bitrise-io/go-utils/v2 v2.0.0-alpha.12
+	github.com/bitrise-io/go-utils/v2 v2.0.0-alpha.13
 	github.com/bitrise-io/go-xcode v1.0.9
 	github.com/kballard/go-shellquote v0.0.0-20180428030007-95032a82bc51
 	github.com/stretchr/testify v1.7.1
@@ -20,14 +20,10 @@ require (
 	github.com/bitrise-io/bitrise v0.0.0-20220719135434-7f794d69d858 // indirect
 	github.com/bitrise-io/envman v0.0.0-20220512153504-166d59151b78 // indirect
 	github.com/bitrise-io/stepman v0.0.0-20220718172049-e5ae0a09c2f2 // indirect
-	github.com/bmatcuk/doublestar/v4 v4.2.0 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
-	github.com/docker/go-units v0.4.0 // indirect
-	github.com/gofrs/uuid v4.2.0+incompatible // indirect
 	github.com/hashicorp/go-cleanhttp v0.5.2 // indirect
 	github.com/hashicorp/go-retryablehttp v0.7.1 // indirect
 	github.com/hashicorp/go-version v1.6.0 // indirect
-	github.com/mitchellh/mapstructure v1.4.3 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/ryanuber/go-glob v1.0.0 // indirect
 	golang.org/x/text v0.3.7 // indirect

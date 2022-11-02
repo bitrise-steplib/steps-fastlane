@@ -5,9 +5,7 @@ import (
 	"os"
 	"reflect"
 	"runtime"
-	"strings"
 
-	"github.com/bitrise-io/go-steputils/v2/cache"
 	"github.com/bitrise-io/go-steputils/v2/ruby"
 	"github.com/bitrise-io/go-steputils/v2/stepconf"
 	"github.com/bitrise-io/go-utils/v2/command"
@@ -56,32 +54,6 @@ func run() int {
 		buildStep.logger.Println()
 		logger.Errorf(formattedError(fmt.Errorf("Failed to execute Step main logic: %w", err)))
 		return 1
-	}
-
-	if config.EnableCache {
-		fmt.Println()
-		buildStep.logger.Infof("Collecting cache")
-
-		c := cache.New()
-		for _, depFunc := range depsFuncs {
-			includes, excludes, err := depFunc(config.WorkDir)
-			buildStep.logger.Debugf("%s found include path:\n%s\nexclude paths:\n%s", functionName(depFunc), strings.Join(includes, "\n"), strings.Join(excludes, "\n"))
-			if err != nil {
-				buildStep.logger.Warnf("failed to collect dependencies: %s", err.Error())
-				continue
-			}
-
-			for _, item := range includes {
-				c.IncludePath(item)
-			}
-
-			for _, item := range excludes {
-				c.ExcludePath(item)
-			}
-		}
-		if err := c.Commit(); err != nil {
-			buildStep.logger.Warnf("failed to commit paths to cache: %s", err)
-		}
 	}
 
 	return 0
