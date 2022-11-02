@@ -179,16 +179,22 @@ workflows:
     - script:
         inputs:
         - content: |-
-            #!/usr/bin/env bash
             CURRENT_BUILD_NUMBER=${BITRISE_BUILD_NUMBER}
-            if [[ -n "${CURRENT_BUILD_NUMBER}" ]]; then
-              BITRISE_BUILD_NUMBER=$((${CURRENT_BUILD_NUMBER}+1))
+
+            if [[ -z "$E2E_ORIG_BUILD_NUM" ]]; then
+              envman add --key E2E_ORIG_BUILD_NUM --value "$CURRENT_BUILD_NUMBER"
             else
-              BITRISE_BUILD_NUMBER=$((($(gdate +%Y%m%d%H%M%S)-20000000000000)*10000))
-              if [[ -z "${BITRISE_BUILD_NUMBER}" ]]; then
-                echo "error: failed to calculate build number"
-                exit 1
-              fi
+              CURRENT_BUILD_NUMBER="$E2E_ORIG_BUILD_NUM"
+            fi
+
+            BITRISE_BUILD_NUMBER=$((($(gdate +%Y%m%d%H%M%S)-20000000000000)*10000))
+            if [[ -z "${BITRISE_BUILD_NUMBER}" ]]; then
+              echo "error: failed to calculated build number"
+              exit 1
+            fi
+
+            if [[ -n "${CURRENT_BUILD_NUMBER}" ]]; then
+              BITRISE_BUILD_NUMBER=$((${BITRISE_BUILD_NUMBER}+${CURRENT_BUILD_NUMBER}))
             fi
 
             envman add --key BITRISE_BUILD_NUMBER --value "${BITRISE_BUILD_NUMBER}"
