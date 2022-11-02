@@ -49,7 +49,6 @@ github.com/bitrise-io/go-utils/v2/env
 github.com/bitrise-io/go-utils/v2/fileutil
 github.com/bitrise-io/go-utils/v2/log
 github.com/bitrise-io/go-utils/v2/log/colorstring
-github.com/bitrise-io/go-utils/v2/pathutil
 # github.com/bitrise-io/go-xcode v1.0.9
 ## explicit; go 1.15
 github.com/bitrise-io/go-xcode/appleauth
