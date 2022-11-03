@@ -1,6 +1,6 @@
 module github.com/bitrise-io/steps-fastlane
 
-go 1.18
+go 1.17
 
 require (
 	github.com/bitrise-io/bitrise-init v0.0.0-20220504131857-f00a24c7c8ba
