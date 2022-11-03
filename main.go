@@ -11,6 +11,7 @@ import (
 	"github.com/bitrise-io/go-utils/v2/command"
 	"github.com/bitrise-io/go-utils/v2/env"
 	"github.com/bitrise-io/go-utils/v2/log"
+	"github.com/bitrise-io/go-utils/v2/pathutil"
 )
 
 func main() {
@@ -71,16 +72,19 @@ func createStep(logger log.Logger) FastlaneRunner {
 		logger.Warnf("%s", err)
 	}
 
-	return NewFastlaneRunner(inputParser, logger, cmdLocator, cmdFactory, rbyFactory)
+	pathModifier := pathutil.NewPathModifier()
+
+	return NewFastlaneRunner(inputParser, logger, cmdLocator, cmdFactory, rbyFactory, pathModifier)
 }
 
 // FastlaneRunner ...
 type FastlaneRunner struct {
-	inputParser stepconf.InputParser
-	logger      log.Logger
-	cmdFactory  command.Factory
-	cmdLocator  env.CommandLocator
-	rbyFactory  ruby.CommandFactory
+	inputParser  stepconf.InputParser
+	logger       log.Logger
+	cmdFactory   command.Factory
+	cmdLocator   env.CommandLocator
+	rbyFactory   ruby.CommandFactory
+	pathModifier pathutil.PathModifier
 }
 
 // NewFastlaneRunner ...
@@ -90,13 +94,15 @@ func NewFastlaneRunner(
 	commandLocator env.CommandLocator,
 	cmdFactory command.Factory,
 	rbyFactory ruby.CommandFactory,
+	pathModifier pathutil.PathModifier,
 ) FastlaneRunner {
 	return FastlaneRunner{
-		inputParser: stepInputParser,
-		logger:      logger,
-		cmdLocator:  commandLocator,
-		cmdFactory:  cmdFactory,
-		rbyFactory:  rbyFactory,
+		inputParser:  stepInputParser,
+		logger:       logger,
+		cmdLocator:   commandLocator,
+		cmdFactory:   cmdFactory,
+		rbyFactory:   rbyFactory,
+		pathModifier: pathModifier,
 	}
 }
 

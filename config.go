@@ -7,9 +7,8 @@ import (
 	"strings"
 
 	"github.com/bitrise-io/go-steputils/v2/stepconf"
-	"github.com/bitrise-io/go-utils/pathutil"
-	"github.com/bitrise-io/go-utils/retry"
 	"github.com/bitrise-io/go-utils/v2/command"
+	"github.com/bitrise-io/go-utils/v2/retryhttp"
 	"github.com/bitrise-io/go-xcode/appleauth"
 	"github.com/bitrise-io/go-xcode/devportalservice"
 	"github.com/kballard/go-shellquote"
@@ -139,13 +138,13 @@ func (f FastlaneRunner) getWorkdir(config Config) (string, error) {
 	workDir := config.WorkDir
 	if workDir == "" {
 		f.logger.Printf("WorkDir not set, using CurrentWorkingDirectory...")
-		currentDir, err := pathutil.CurrentWorkingDirectoryAbsolutePath()
+		currentDir, err := f.pathModifier.AbsPath(".")
 		if err != nil {
 			return "", fmt.Errorf("Failed to get current dir, error: %s", err)
 		}
 		workDir = currentDir
 	} else {
-		absWorkDir, err := pathutil.AbsPath(workDir)
+		absWorkDir, err := f.pathModifier.AbsPath(workDir)
 		if err != nil {
 			return "", fmt.Errorf("Failed to expand path (%s), error: %s", workDir, err)
 		}
@@ -175,7 +174,7 @@ func (f FastlaneRunner) checkForRbenv(workDir string) {
 func (f FastlaneRunner) selectAppleAuthSource(config Config, authSources []appleauth.Source, authInputs appleauth.Inputs) (appleauth.Credentials, error) {
 	var devportalConnectionProvider *devportalservice.BitriseClient
 	if config.BuildURL != "" && config.BuildAPIToken != "" {
-		devportalConnectionProvider = devportalservice.NewBitriseClient(retry.NewHTTPClient().StandardClient(), config.BuildURL, string(config.BuildAPIToken))
+		devportalConnectionProvider = devportalservice.NewBitriseClient(retryhttp.NewClient(f.logger).StandardClient(), config.BuildURL, string(config.BuildAPIToken))
 	} else {
 		fmt.Println()
 		f.logger.Warnf("Connected Apple Developer Portal Account not found. Step is not running on bitrise.io: BITRISE_BUILD_URL and BITRISE_BUILD_API_TOKEN envs are not set")
