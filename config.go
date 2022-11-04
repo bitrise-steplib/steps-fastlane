@@ -107,7 +107,7 @@ type bitriseConnection string
 const (
 	automatic = "automatic"
 	apiKey    = "api_key"
-	appleId   = "apple_id"
+	appleID   = "apple_id"
 	off       = "off"
 )
 
@@ -122,7 +122,7 @@ func (f FastlaneRunner) parseAuthSources(connection bitriseConnection) ([]applea
 		}, nil
 	case apiKey:
 		return []appleauth.Source{&appleauth.ConnectionAPIKeySource{}}, nil
-	case appleId:
+	case appleID:
 		return []appleauth.Source{&appleauth.ConnectionAppleIDFastlaneSource{}}, nil
 	case off:
 		return []appleauth.Source{

@@ -126,7 +126,7 @@ func Test_GivenAppleIdConnection_WhenParseAuthSources_ThenReceiveAppleIDFastlane
 		&appleauth.InputAppleIDFastlaneSource{},
 	}
 
-	actualValue, err := step.parseAuthSources(appleId)
+	actualValue, err := step.parseAuthSources(appleID)
 
 	assert.NoError(t, err)
 	assert.Equal(t, actualValue, expectedValue)
