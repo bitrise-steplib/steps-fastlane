@@ -108,16 +108,16 @@ func Test_GivenAutomaticConnection_WhenParseAuthSources_ThenReceiveAllSources(t 
 	assert.Equal(t, actualValue, expectedValue)
 }
 
-func Test_GivenAPIKeyConnection_WhenParseAuthSources_ThenReceiveAPIKeySource(t *testing.T) {
+func Test_GivenAPIKeyConnection_WhenParseAuthSources_ThenReceiveConnectionAPIKeySource(t *testing.T) {
 	step := FastlaneRunner{}
 	expectedValue := []appleauth.Source{
-		&appleauth.InputAPIKeySource{},
+		&appleauth.ConnectionAPIKeySource{},
 	}
 
 	actualValue, err := step.parseAuthSources(apiKey)
 
 	assert.NoError(t, err)
-	assert.Equal(t, actualValue, expectedValue)
+	assert.Equal(t, expectedValue, actualValue)
 }
 
 func Test_GivenAppleIDConnection_WhenParseAuthSources_ThenReceiveAppleIDFastlaneSource(t *testing.T) {
@@ -129,7 +129,7 @@ func Test_GivenAppleIDConnection_WhenParseAuthSources_ThenReceiveAppleIDFastlane
 	actualValue, err := step.parseAuthSources(appleID)
 
 	assert.NoError(t, err)
-	assert.Equal(t, actualValue, expectedValue)
+	assert.Equal(t, expectedValue, actualValue)
 }
 
 func Test_GivenOffConnection_WhenParseAuthSources_ThenReceiveInputAPIKeyAndAppleIdFastlaneSources(t *testing.T) {
@@ -143,7 +143,7 @@ func Test_GivenOffConnection_WhenParseAuthSources_ThenReceiveInputAPIKeyAndApple
 	actualValue, err := step.parseAuthSources(off)
 
 	assert.NoError(t, err)
-	assert.Equal(t, actualValue, expectedValue)
+	assert.Equal(t, expectedValue, actualValue)
 }
 
 func Test_GivenGemHomeEnvironmentVariableIsEmpty_WhenValidateGemHome_ThenLogNothing(t *testing.T) {
