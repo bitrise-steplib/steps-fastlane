@@ -120,10 +120,10 @@ func Test_GivenAPIKeyConnection_WhenParseAuthSources_ThenReceiveAPIKeySource(t *
 	assert.Equal(t, actualValue, expectedValue)
 }
 
-func Test_GivenAppleIdConnection_WhenParseAuthSources_ThenReceiveAppleIDFastlaneSource(t *testing.T) {
+func Test_GivenAppleIDConnection_WhenParseAuthSources_ThenReceiveAppleIDFastlaneSource(t *testing.T) {
 	step := FastlaneRunner{}
 	expectedValue := []appleauth.Source{
-		&appleauth.InputAppleIDFastlaneSource{},
+		&appleauth.ConnectionAppleIDFastlaneSource{},
 	}
 
 	actualValue, err := step.parseAuthSources(appleID)
