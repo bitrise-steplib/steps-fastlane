@@ -18,7 +18,7 @@ workflows:
 
   test:
     before_run:
-    - cache
+    # - cache
     - auth-all
 
   auth-all:
@@ -205,7 +205,7 @@ workflows:
         - build_version: $BITRISE_BUILD_NUMBER
         - plist_path: $INFO_PLIST_PATH
         - build_version_offset: $BITRISE_BUILD_VERSION_OFFSET
-        - build_short_version_string: "1.0.2"
+        # - build_short_version_string: "1.0.2"
 
 
   audit-this-step:
