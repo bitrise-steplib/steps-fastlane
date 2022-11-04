@@ -19,12 +19,12 @@ type Config struct {
 	WorkDir string `env:"work_dir,dir"`
 	Lane    string `env:"lane,required"`
 
-	BitriseConnection   string          `env:"connection,opt[automatic,api_key,apple_id,off]"`
-	AppleID             string          `env:"apple_id"`
-	Password            stepconf.Secret `env:"password"`
-	AppSpecificPassword stepconf.Secret `env:"app_password"`
-	APIKeyPath          stepconf.Secret `env:"api_key_path"`
-	APIIssuer           string          `env:"api_issuer"`
+	BitriseConnection   bitriseConnection `env:"connection,opt[automatic,api_key,apple_id,off]"`
+	AppleID             string            `env:"apple_id"`
+	Password            stepconf.Secret   `env:"password"`
+	AppSpecificPassword stepconf.Secret   `env:"app_password"`
+	APIKeyPath          stepconf.Secret   `env:"api_key_path"`
+	APIIssuer           string            `env:"api_issuer"`
 
 	UpdateFastlane bool `env:"update_fastlane,opt[true,false]"`
 	VerboseLog     bool `env:"verbose_log,opt[yes,no]"`
@@ -102,26 +102,35 @@ func (f FastlaneRunner) validateAuthInputs(config Config) (appleauth.Inputs, err
 	return authInputs, nil
 }
 
-func (f FastlaneRunner) parseAuthSources(bitriseConnection string) ([]appleauth.Source, error) {
-	switch bitriseConnection {
-	case "automatic":
+type bitriseConnection string
+
+const (
+	automatic = "automatic"
+	apiKey    = "api_key"
+	appleId   = "apple_id"
+	off       = "off"
+)
+
+func (f FastlaneRunner) parseAuthSources(connection bitriseConnection) ([]appleauth.Source, error) {
+	switch connection {
+	case automatic:
 		return []appleauth.Source{
 			&appleauth.ConnectionAPIKeySource{},
 			&appleauth.ConnectionAppleIDFastlaneSource{},
 			&appleauth.InputAPIKeySource{},
 			&appleauth.InputAppleIDFastlaneSource{},
 		}, nil
-	case "api_key":
+	case apiKey:
 		return []appleauth.Source{&appleauth.ConnectionAPIKeySource{}}, nil
-	case "apple_id":
+	case appleId:
 		return []appleauth.Source{&appleauth.ConnectionAppleIDFastlaneSource{}}, nil
-	case "off":
+	case off:
 		return []appleauth.Source{
 			&appleauth.InputAPIKeySource{},
 			&appleauth.InputAppleIDFastlaneSource{},
 		}, nil
 	default:
-		return nil, fmt.Errorf("invalid connection input: %s", bitriseConnection)
+		return nil, fmt.Errorf("invalid connection input: %s", connection)
 	}
 }
 
