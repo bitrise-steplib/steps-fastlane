@@ -35,7 +35,6 @@ type Config struct {
 	// Used to get Bitrise Apple Developer Portal Connection
 	BuildURL        string          `env:"BITRISE_BUILD_URL"`
 	BuildAPIToken   stepconf.Secret `env:"BITRISE_BUILD_API_TOKEN"`
-	AuthInputs      appleauth.Inputs
 	AuthCredentials appleauth.Credentials
 	LaneOptions     []string
 }

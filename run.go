@@ -103,7 +103,7 @@ func (f FastlaneRunner) Run(config Config, opts EnsureDependenciesOpts) error {
 		}); err != nil {
 			f.logger.Errorf("Failed to walk directory, error: %s", err)
 		}
-		return fmt.Errorf("command (%s) failed, error: %s", cmd.PrintableCommandArgs(), err)
+		return fmt.Errorf("command failed with %s (%s)", err, cmd.PrintableCommandArgs())
 	}
 
 	return nil

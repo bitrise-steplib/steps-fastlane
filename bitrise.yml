@@ -4,17 +4,13 @@ default_step_lib_source: https://github.com/bitrise-io/bitrise-steplib.git
 workflows:
   ci:
     before_run:
-    - audit-this-step
     - go-tests
     after_run:
     - test
-    
+
   go-tests:
     steps:
-    - go-list: {}
-    - golint: {}
-    - errcheck: {}
-    - go-test: {}
+    - git::https://github.com/bitrise-steplib/steps-check.git: { }
 
   test:
     before_run:
@@ -23,12 +19,12 @@ workflows:
 
   auth-all:
     before_run:
-      - auth-test-api-key-connection
-      - auth-test-apple-id-connection
-      - auth-test-api-key-input
-      - auth-test-apple-id-connection-globally-set-app-specific-password
+    - auth-test-api-key-connection
+    - auth-test-apple-id-connection
+    - auth-test-api-key-input
+    - auth-test-apple-id-connection-globally-set-app-specific-password
 
-  cache:  
+  cache:
     envs:
     - SAMPLE_APP_URL: "https://github.com/bitrise-io/sample-apps-flutter-veggieseasons.git"
     - BRANCH: master
@@ -112,7 +108,7 @@ workflows:
         - verbose_log: "yes"
         - connection: apple_id
         - app_password: ""
-        
+
   auth-test-api-key-connection:
     before_run:
     - _auth_prepare
@@ -206,14 +202,3 @@ workflows:
         - plist_path: $INFO_PLIST_PATH
         - build_version_offset: $BITRISE_BUILD_VERSION_OFFSET
         # - build_short_version_string: "1.0.2"
-
-
-  audit-this-step:
-    title: Audit the step
-    steps:
-    - script:
-        inputs:
-        - content: |-
-            #!/bin/bash
-            set -ex
-            stepman audit --step-yml ./step.yml
