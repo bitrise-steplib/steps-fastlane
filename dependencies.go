@@ -98,7 +98,7 @@ func (f FastlaneRunner) InstallDependencies(config Config, opts EnsureDependenci
 	f.logger.Donef("$ %s", cmd.PrintableCommandArgs())
 
 	if err := cmd.Run(); err != nil {
-		return fmt.Errorf("command failed, error: %s", cmd.PrintableCommandArgs(), err)
+		return fmt.Errorf("command failed with %s (%s)", err, cmd.PrintableCommandArgs())
 	}
 
 	return nil
