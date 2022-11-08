@@ -26,7 +26,7 @@ workflows:
 
   cache:
     envs:
-    - SAMPLE_APP_URL: "https://github.com/bitrise-io/sample-apps-flutter-veggieseasons.git"
+    - SAMPLE_APP_URL: https://github.com/bitrise-io/sample-apps-flutter-veggieseasons.git
     - BRANCH: master
     - XCODE_SCHEME: Runner
     steps:
@@ -43,7 +43,7 @@ workflows:
         inputs:
         - repository_url: $SAMPLE_APP_URL
         - branch: $BRANCH
-        - clone_into_dir: "."
+        - clone_into_dir: .
     - path::./:
         title: Smoke test to check if Fastlane receives session-based Apple Developer connection
         inputs:
@@ -149,7 +149,7 @@ workflows:
 
   _auth_prepare:
     envs:
-    - SAMPLE_APP_URL: "https://github.com/bitrise-samples/sample-apps-fastlane-test.git"
+    - SAMPLE_APP_URL: https://github.com/bitrise-samples/sample-apps-fastlane-test.git
     - BRANCH: master
     - INFO_PLIST_PATH: ./sample-apps-fastlane-test/Info.plist
     steps:
@@ -170,8 +170,8 @@ workflows:
         inputs:
         - repository_url: $SAMPLE_APP_URL
         - branch: $BRANCH
-        - clone_into_dir: "."
-    - certificate-and-profile-installer: {}
+        - clone_into_dir: .
+    - certificate-and-profile-installer: { }
     - script:
         inputs:
         - content: |-
@@ -201,4 +201,4 @@ workflows:
         - build_version: $BITRISE_BUILD_NUMBER
         - plist_path: $INFO_PLIST_PATH
         - build_version_offset: $BITRISE_BUILD_VERSION_OFFSET
-        # - build_short_version_string: "1.0.2"
+        - build_short_version_string: 1.0.2
