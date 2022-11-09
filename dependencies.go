@@ -9,12 +9,14 @@ import (
 
 // EnsureDependenciesOpts ...
 type EnsureDependenciesOpts struct {
-	GemVersions gemVersions
-	UseBundler  bool
+	GemVersions    gemVersions
+	UseBundler     bool
+	WorkDir        string
+	UpdateFastlane bool
 }
 
 // InstallDependencies ...
-func (f FastlaneRunner) InstallDependencies(config Config, opts EnsureDependenciesOpts) error {
+func (f FastlaneRunner) InstallDependencies(opts EnsureDependenciesOpts) error {
 	// Install desired Fastlane version
 	if opts.UseBundler {
 		f.logger.Infof("Install bundler")
@@ -26,7 +28,7 @@ func (f FastlaneRunner) InstallDependencies(config Config, opts EnsureDependenci
 			Stderr: os.Stderr,
 			Stdin:  nil,
 			Env:    []string{},
-			Dir:    config.WorkDir,
+			Dir:    opts.WorkDir,
 		})
 		for _, cmd := range cmds {
 			f.logger.Donef("$ %s", cmd.PrintableCommandArgs())
@@ -46,7 +48,7 @@ func (f FastlaneRunner) InstallDependencies(config Config, opts EnsureDependenci
 			Stderr: os.Stderr,
 			Stdin:  nil,
 			Env:    []string{},
-			Dir:    config.WorkDir,
+			Dir:    opts.WorkDir,
 		})
 
 		f.logger.Donef("$ %s", cmd.PrintableCommandArgs())
@@ -55,7 +57,7 @@ func (f FastlaneRunner) InstallDependencies(config Config, opts EnsureDependenci
 		if err := cmd.Run(); err != nil {
 			return fmt.Errorf("command failed with %s (%s)", err, cmd.PrintableCommandArgs())
 		}
-	} else if config.UpdateFastlane {
+	} else if opts.UpdateFastlane {
 		f.logger.Infof("Update system installed Fastlane")
 
 		cmds := f.rbyFactory.CreateGemInstall("fastlane", "", false, false, &command.Opts{
@@ -63,7 +65,7 @@ func (f FastlaneRunner) InstallDependencies(config Config, opts EnsureDependenci
 			Stderr: os.Stderr,
 			Stdin:  nil,
 			Env:    []string{},
-			Dir:    config.WorkDir,
+			Dir:    opts.WorkDir,
 		})
 		for _, cmd := range cmds {
 			f.logger.Donef("$ %s", cmd.PrintableCommandArgs())
@@ -86,7 +88,7 @@ func (f FastlaneRunner) InstallDependencies(config Config, opts EnsureDependenci
 		Stderr: os.Stderr,
 		Stdin:  nil,
 		Env:    []string{},
-		Dir:    config.WorkDir,
+		Dir:    opts.WorkDir,
 	}
 	var cmd command.Command
 	if opts.UseBundler {

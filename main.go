@@ -29,22 +29,14 @@ func run() int {
 		return 1
 	}
 
-	// Determine desired Fastlane version
-	fmt.Println()
-	buildStep.logger.Infof("Determine desired Fastlane version")
-	gemVersions, err := parseGemfileLock(config.WorkDir)
-	if err != nil {
-		buildStep.logger.Println()
-		buildStep.logger.Errorf(err.Error())
-	}
-
-	fmt.Println()
-
 	dependenciesOpts := EnsureDependenciesOpts{
-		GemVersions: gemVersions,
-		UseBundler:  gemVersions.fastlane.Found,
+		GemVersions:    config.GemVersions,
+		UseBundler:     config.GemVersions.fastlane.Found,
+		WorkDir:        config.WorkDir,
+		UpdateFastlane: config.UpdateFastlane,
 	}
-	if err = buildStep.InstallDependencies(config, dependenciesOpts); err != nil {
+
+	if err = buildStep.InstallDependencies(dependenciesOpts); err != nil {
 		buildStep.logger.Println()
 		buildStep.logger.Errorf(formattedError(fmt.Errorf("Failed to install Step dependencies: %w", err)))
 		return 1

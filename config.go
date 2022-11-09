@@ -37,6 +37,7 @@ type Config struct {
 	BuildAPIToken   stepconf.Secret `env:"BITRISE_BUILD_API_TOKEN"`
 	AuthCredentials appleauth.Credentials
 	LaneOptions     []string
+	GemVersions     gemVersions
 }
 
 // ProcessConfig ...
@@ -83,6 +84,16 @@ func (f FastlaneRunner) ProcessConfig() (Config, error) {
 		return Config{}, fmt.Errorf("Failed to parse lane (%s), error: %s", config.Lane, err)
 	}
 	config.LaneOptions = laneOptions
+
+	// Determine desired Fastlane version
+	f.logger.Println()
+	f.logger.Infof("Determine desired Fastlane version")
+	gemVersions, err := parseGemfileLock(config.WorkDir)
+	if err != nil {
+		f.logger.Println()
+		f.logger.Errorf(err.Error())
+	}
+	config.GemVersions = gemVersions
 
 	return config, nil
 }
