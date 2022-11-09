@@ -14,10 +14,9 @@ import (
 	"github.com/kballard/go-shellquote"
 )
 
-// Config contains inputs parsed from environment variables
-type Config struct {
-	WorkDir string `env:"work_dir,dir"`
-	Lane    string `env:"lane,required"`
+type Inputs struct {
+	InputWorkDir string `env:"work_dir,dir"`
+	Lane         string `env:"lane,required"`
 
 	BitriseConnection   bitriseConnection `env:"connection,opt[automatic,api_key,apple_id,off]"`
 	AppleID             string            `env:"apple_id"`
@@ -33,8 +32,14 @@ type Config struct {
 	GemHome string `env:"GEM_HOME"`
 
 	// Used to get Bitrise Apple Developer Portal Connection
-	BuildURL        string          `env:"BITRISE_BUILD_URL"`
-	BuildAPIToken   stepconf.Secret `env:"BITRISE_BUILD_API_TOKEN"`
+	BuildURL      string          `env:"BITRISE_BUILD_URL"`
+	BuildAPIToken stepconf.Secret `env:"BITRISE_BUILD_API_TOKEN"`
+}
+
+// Config contains inputs parsed from environment variables
+type Config struct {
+	Inputs
+	WorkDir         string
 	AuthCredentials appleauth.Credentials
 	LaneOptions     []string
 	GemVersions     gemVersions
@@ -63,7 +68,7 @@ func (f FastlaneRunner) ProcessConfig() (Config, error) {
 
 	f.validateGemHome(config)
 
-	workDir, err := f.getWorkdir(config)
+	workDir, err := f.getWorkDir(config)
 	if err != nil {
 		return Config{}, err
 	}
@@ -151,10 +156,10 @@ func (f FastlaneRunner) validateGemHome(config Config) {
 	f.logger.Warnf("GEM_HOME environment variable is set to:\n%s\nThis can lead to errors as gem lookup path may not contain GEM_HOME.", config.GemHome)
 }
 
-func (f FastlaneRunner) getWorkdir(config Config) (string, error) {
+func (f FastlaneRunner) getWorkDir(config Config) (string, error) {
 	f.logger.Infof("Expand WorkDir")
 
-	workDir := config.WorkDir
+	workDir := config.InputWorkDir
 	if workDir == "" {
 		f.logger.Printf("WorkDir not set, using CurrentWorkingDirectory...")
 		currentDir, err := f.pathModifier.AbsPath(".")
