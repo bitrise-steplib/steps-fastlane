@@ -14,7 +14,7 @@ workflows:
 
   test:
     before_run:
-    # - cache
+    - cache
     - auth-all
 
   auth-all:
