@@ -48,7 +48,7 @@ func (f FastlaneRunner) ProcessConfig() (Config, error) {
 
 	stepconf.Print(config)
 	f.logger.EnableDebugLog(config.VerboseLog)
-	fmt.Println()
+	f.logger.Println()
 
 	authInputs, err := f.validateAuthInputs(config)
 	if err != nil {
@@ -171,7 +171,7 @@ func (f FastlaneRunner) checkForRbenv(workDir string) {
 			Dir:    workDir,
 		})
 
-		fmt.Println()
+		f.logger.Println()
 		f.logger.Donef("$ %s", cmd.PrintableCommandArgs())
 		if err := cmd.Run(); err != nil {
 			f.logger.Warnf("%s", err)
@@ -184,7 +184,7 @@ func (f FastlaneRunner) selectAppleAuthSource(config Config, authSources []apple
 	if config.BuildURL != "" && config.BuildAPIToken != "" {
 		devportalConnectionProvider = devportalservice.NewBitriseClient(retryhttp.NewClient(f.logger).StandardClient(), config.BuildURL, string(config.BuildAPIToken))
 	} else {
-		fmt.Println()
+		f.logger.Println()
 		f.logger.Warnf("Connected Apple Developer Portal Account not found. Step is not running on bitrise.io: BITRISE_BUILD_URL and BITRISE_BUILD_API_TOKEN envs are not set")
 	}
 	var conn *devportalservice.AppleDeveloperConnection
@@ -201,10 +201,10 @@ func (f FastlaneRunner) selectAppleAuthSource(config Config, authSources []apple
 		if _, ok := err.(*appleauth.MissingAuthConfigError); !ok {
 			return appleauth.Credentials{}, fmt.Errorf("Could not configure Apple Service authentication: %v", err)
 		}
-		fmt.Println()
+		f.logger.Println()
 		f.logger.Warnf("No authentication data found matching the selected Apple Service authentication method (%s).", config.BitriseConnection)
 		if conn != nil && (conn.APIKeyConnection == nil && conn.AppleIDConnection == nil) {
-			fmt.Println()
+			f.logger.Println()
 			f.logger.Warnf("%s", notConnected)
 		}
 	}
@@ -221,13 +221,13 @@ func (f FastlaneRunner) handleSessionDataError(err error) {
 	}
 
 	if networkErr, ok := err.(devportalservice.NetworkError); ok && networkErr.Status == http.StatusUnauthorized {
-		fmt.Println()
+		f.logger.Println()
 		f.logger.Warnf("%s", "Unauthorized to query Connected Apple Developer Portal Account. This happens by design, with a public app's PR build, to protect secrets.")
 
 		return
 	}
 
-	fmt.Println()
+	f.logger.Println()
 	f.logger.Errorf("Failed to activate Bitrise Apple Developer Portal connection: %s", err)
 	f.logger.Warnf("Read more: https://devcenter.bitrise.io/getting-started/configuring-bitrise-steps-that-require-apple-developer-account-data/")
 }

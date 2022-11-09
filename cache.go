@@ -24,7 +24,7 @@ var depsFuncs = []depsFunc{
 
 func (f FastlaneRunner) cacheDeps(config Config) {
 	if config.EnableCache {
-		fmt.Println()
+		f.logger.Println()
 		f.logger.Infof("Collecting cache")
 
 		c := cache.New()

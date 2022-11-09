@@ -20,7 +20,7 @@ import (
 // Run ...
 func (f FastlaneRunner) Run(config Config, opts EnsureDependenciesOpts) error {
 	// Run fastlane
-	fmt.Println()
+	f.logger.Println()
 	f.logger.Infof("Run Fastlane")
 
 	var envs []string
@@ -73,12 +73,12 @@ func (f FastlaneRunner) Run(config Config, opts EnsureDependenciesOpts) error {
 	deployPth := filepath.Join(deployDir, "fastlane_env.log")
 
 	if err := cmd.Run(); err != nil {
-		fmt.Println()
+		f.logger.Println()
 		f.logger.Errorf("Fastlane command: (%s) failed", cmd.PrintableCommandArgs())
 		f.logger.Errorf("If you want to send an issue report to fastlane (https://github.com/fastlane/fastlane/issues/new), you can find the output of fastlane env in the following log file:")
-		fmt.Println()
+		f.logger.Println()
 		f.logger.Infof(deployPth)
-		fmt.Println()
+		f.logger.Println()
 
 		if fastlaneDebugInfo, err := f.fastlaneDebugInfo(config.WorkDir, opts.UseBundler, opts.GemVersions.bundler); err != nil {
 			f.logger.Warnf("%s", err)

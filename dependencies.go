@@ -30,7 +30,7 @@ func (f FastlaneRunner) InstallDependencies(config Config, opts EnsureDependenci
 		})
 		for _, cmd := range cmds {
 			f.logger.Donef("$ %s", cmd.PrintableCommandArgs())
-			fmt.Println()
+			f.logger.Println()
 
 			if err := cmd.Run(); err != nil {
 				return fmt.Errorf("command failed with %s (%s)", err, cmd.PrintableCommandArgs())
@@ -38,7 +38,7 @@ func (f FastlaneRunner) InstallDependencies(config Config, opts EnsureDependenci
 		}
 
 		// install Gemfile.lock gems with `bundle [_version_] install ...`
-		fmt.Println()
+		f.logger.Println()
 		f.logger.Infof("Install Fastlane with bundler")
 
 		cmd := f.rbyFactory.CreateBundleInstall(opts.GemVersions.bundler.Version, &command.Opts{
@@ -50,7 +50,7 @@ func (f FastlaneRunner) InstallDependencies(config Config, opts EnsureDependenci
 		})
 
 		f.logger.Donef("$ %s", cmd.PrintableCommandArgs())
-		fmt.Println()
+		f.logger.Println()
 
 		if err := cmd.Run(); err != nil {
 			return fmt.Errorf("command failed with %s (%s)", err, cmd.PrintableCommandArgs())
@@ -76,7 +76,7 @@ func (f FastlaneRunner) InstallDependencies(config Config, opts EnsureDependenci
 		f.logger.Infof("Using system installed Fastlane")
 	}
 
-	fmt.Println()
+	f.logger.Println()
 	f.logger.Infof("Fastlane version")
 
 	name := "fastlane"
