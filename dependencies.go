@@ -26,8 +26,6 @@ func (f FastlaneRunner) InstallDependencies(opts EnsureDependenciesOpts) error {
 		cmds := f.rbyFactory.CreateGemInstall("bundler", opts.GemVersions.bundler.Version, false, true, &command.Opts{
 			Stdout: os.Stdout,
 			Stderr: os.Stderr,
-			Stdin:  nil,
-			Env:    []string{},
 			Dir:    opts.WorkDir,
 		})
 		for _, cmd := range cmds {
@@ -46,8 +44,6 @@ func (f FastlaneRunner) InstallDependencies(opts EnsureDependenciesOpts) error {
 		cmd := f.rbyFactory.CreateBundleInstall(opts.GemVersions.bundler.Version, &command.Opts{
 			Stdout: os.Stdout,
 			Stderr: os.Stderr,
-			Stdin:  nil,
-			Env:    []string{},
 			Dir:    opts.WorkDir,
 		})
 
@@ -63,8 +59,6 @@ func (f FastlaneRunner) InstallDependencies(opts EnsureDependenciesOpts) error {
 		cmds := f.rbyFactory.CreateGemInstall("fastlane", "", false, false, &command.Opts{
 			Stdout: os.Stdout,
 			Stderr: os.Stderr,
-			Stdin:  nil,
-			Env:    []string{},
 			Dir:    opts.WorkDir,
 		})
 		for _, cmd := range cmds {
@@ -86,8 +80,6 @@ func (f FastlaneRunner) InstallDependencies(opts EnsureDependenciesOpts) error {
 	options := &command.Opts{
 		Stdout: os.Stdout,
 		Stderr: os.Stderr,
-		Stdin:  nil,
-		Env:    []string{},
 		Dir:    opts.WorkDir,
 	}
 	var cmd command.Command
