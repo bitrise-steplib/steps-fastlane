@@ -1,8 +1,10 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"os"
+	"os/exec"
 
 	"github.com/bitrise-io/go-utils/v2/command"
 )
@@ -33,7 +35,12 @@ func (f FastlaneRunner) InstallDependencies(opts EnsureDependenciesOpts) error {
 			f.logger.Println()
 
 			if err := cmd.Run(); err != nil {
-				return fmt.Errorf("command failed with %s (%s)", err, cmd.PrintableCommandArgs())
+				var exitErr *exec.ExitError
+				if errors.As(err, &exitErr) {
+					return fmt.Errorf("command failed with exit status %d (%s)", exitErr.ExitCode(), cmd.PrintableCommandArgs())
+				}
+
+				return fmt.Errorf("executing command failed (%s): %w", cmd.PrintableCommandArgs(), err)
 			}
 		}
 
@@ -51,7 +58,12 @@ func (f FastlaneRunner) InstallDependencies(opts EnsureDependenciesOpts) error {
 		f.logger.Println()
 
 		if err := cmd.Run(); err != nil {
-			return fmt.Errorf("command failed with %s (%s)", err, cmd.PrintableCommandArgs())
+			var exitErr *exec.ExitError
+			if errors.As(err, &exitErr) {
+				return fmt.Errorf("command failed with exit status %d (%s)", exitErr.ExitCode(), cmd.PrintableCommandArgs())
+			}
+
+			return fmt.Errorf("executing command failed (%s): %w", cmd.PrintableCommandArgs(), err)
 		}
 	} else if opts.UpdateFastlane {
 		f.logger.Infof("Update system installed Fastlane")
@@ -65,7 +77,12 @@ func (f FastlaneRunner) InstallDependencies(opts EnsureDependenciesOpts) error {
 			f.logger.Donef("$ %s", cmd.PrintableCommandArgs())
 
 			if err := cmd.Run(); err != nil {
-				return fmt.Errorf("command failed with %s (%s)", err, cmd.PrintableCommandArgs())
+				var exitErr *exec.ExitError
+				if errors.As(err, &exitErr) {
+					return fmt.Errorf("command failed with exit status %d (%s)", exitErr.ExitCode(), cmd.PrintableCommandArgs())
+				}
+
+				return fmt.Errorf("executing command failed (%s): %w", cmd.PrintableCommandArgs(), err)
 			}
 		}
 	} else {
@@ -92,7 +109,12 @@ func (f FastlaneRunner) InstallDependencies(opts EnsureDependenciesOpts) error {
 	f.logger.Donef("$ %s", cmd.PrintableCommandArgs())
 
 	if err := cmd.Run(); err != nil {
-		return fmt.Errorf("command failed with %s (%s)", err, cmd.PrintableCommandArgs())
+		var exitErr *exec.ExitError
+		if errors.As(err, &exitErr) {
+			return fmt.Errorf("command failed with exit status %d (%s)", exitErr.ExitCode(), cmd.PrintableCommandArgs())
+		}
+
+		return fmt.Errorf("executing command failed (%s): %w", cmd.PrintableCommandArgs(), err)
 	}
 
 	return nil
