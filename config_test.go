@@ -64,7 +64,8 @@ func Test_GivenGemHomeEnvironmentVariableIsEmpty_WhenValidateGemHome_ThenLogNoth
 	mockLogger := MockLogger{}
 	step := FastlaneRunner{logger: &mockLogger}
 	expectedGemHome := ""
-	config := Config{GemHome: expectedGemHome}
+	inputs := Inputs{GemHome: expectedGemHome}
+	config := Config{Inputs: inputs}
 
 	step.validateGemHome(config)
 
@@ -77,7 +78,8 @@ func Test_GivenGemHomeEnvironmentVariableIsEmpty_WhenValidateGemHome_ThenLogWarn
 	expectedGemHome := "/Users/test/.gem/"
 	expectedGemHomeArray := []interface{}{expectedGemHome}
 	expectedWarningMessage := "GEM_HOME environment variable is set to:\n%s\nThis can lead to errors as gem lookup path may not contain GEM_HOME."
-	config := Config{GemHome: expectedGemHome}
+	inputs := Inputs{GemHome: expectedGemHome}
+	config := Config{Inputs: inputs}
 
 	mockedLogger.On("Warnf", expectedWarningMessage, expectedGemHomeArray)
 
