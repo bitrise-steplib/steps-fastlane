@@ -34,15 +34,15 @@ func run() int {
 		UpdateFastlane: config.UpdateFastlane,
 	}
 
-	if err = buildStep.InstallDependencies(dependenciesOpts); err != nil {
+	if err := buildStep.InstallDependencies(dependenciesOpts); err != nil {
 		buildStep.logger.Println()
 		buildStep.logger.Errorf(formattedError(fmt.Errorf("Failed to install Step dependencies: %w", err)))
 		return 1
 	}
 
 	runOpts := createRunOptions(config)
-	err = buildStep.Run(runOpts)
-	if err != nil {
+
+	if err := buildStep.Run(runOpts); err != nil {
 		buildStep.logger.Println()
 		logger.Errorf(formattedError(fmt.Errorf("Failed to execute Step main logic: %w", err)))
 		return 1
