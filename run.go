@@ -14,17 +14,27 @@ import (
 	"github.com/bitrise-io/go-utils/fileutil"
 	"github.com/bitrise-io/go-utils/pathutil"
 	"github.com/bitrise-io/go-utils/v2/command"
-	"github.com/bitrise-io/go-utils/v2/env"
+	"github.com/bitrise-io/go-xcode/appleauth"
 )
 
+// RunOpts ...
+type RunOpts struct {
+	WorkDir         string
+	AuthCredentials appleauth.Credentials
+	LaneOptions     []string
+	UseBundler      bool
+	GemVersions     gemVersions
+	EnableCache     bool
+}
+
 // Run ...
-func (f FastlaneRunner) Run(config Config, opts EnsureDependenciesOpts) error {
+func (f FastlaneRunner) Run(opts RunOpts) error {
 	// Run fastlane
 	f.logger.Println()
 	f.logger.Infof("Run Fastlane")
 
 	var envs []string
-	authEnvs, err := FastlaneAuthParams(config.AuthCredentials)
+	authEnvs, err := FastlaneAuthParams(opts.AuthCredentials)
 	if err != nil {
 		return fmt.Errorf("Failed to set up Fastlane authentication parameters: %v", err)
 	}
@@ -50,11 +60,11 @@ func (f FastlaneRunner) Run(config Config, opts EnsureDependenciesOpts) error {
 	}
 
 	name := "fastlane"
-	args := config.LaneOptions
+	args := opts.LaneOptions
 	options := &command.Opts{
 		Stdout: os.Stdout,
 		Stderr: os.Stderr,
-		Dir:    config.WorkDir,
+		Dir:    opts.WorkDir,
 		Env:    append(os.Environ(), envs...),
 	}
 	var cmd command.Command
@@ -80,7 +90,7 @@ func (f FastlaneRunner) Run(config Config, opts EnsureDependenciesOpts) error {
 		f.logger.Infof(deployPth)
 		f.logger.Println()
 
-		if fastlaneDebugInfo, err := f.fastlaneDebugInfo(config.WorkDir, opts.UseBundler, opts.GemVersions.bundler); err != nil {
+		if fastlaneDebugInfo, err := f.fastlaneDebugInfo(opts.WorkDir, opts.UseBundler, opts.GemVersions.bundler); err != nil {
 			f.logger.Warnf("%s", err)
 		} else if fastlaneDebugInfo != "" {
 			if err := fileutil.WriteStringToFile(deployPth, fastlaneDebugInfo); err != nil {
@@ -106,11 +116,13 @@ func (f FastlaneRunner) Run(config Config, opts EnsureDependenciesOpts) error {
 		return fmt.Errorf("command failed with %s (%s)", err, cmd.PrintableCommandArgs())
 	}
 
+	f.cacheDeps(opts)
+
 	return nil
 }
 
 func (f FastlaneRunner) fastlaneDebugInfo(workDir string, useBundler bool, bundlerVersion gems.Version) (string, error) {
-	factory, err := ruby.NewCommandFactory(command.NewFactory(env.NewRepository()), env.NewCommandLocator())
+	factory, err := ruby.NewCommandFactory(f.cmdFactory, f.cmdLocator)
 	if err != nil {
 		return "", err
 	}

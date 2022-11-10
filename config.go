@@ -14,6 +14,7 @@ import (
 	"github.com/kballard/go-shellquote"
 )
 
+// Inputs ...
 type Inputs struct {
 	InputWorkDir string `env:"work_dir,dir"`
 	Lane         string `env:"lane,required"`

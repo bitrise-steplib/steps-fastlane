@@ -3,6 +3,8 @@ package main
 import (
 	"fmt"
 	"path/filepath"
+	"reflect"
+	"runtime"
 	"strings"
 
 	"github.com/bitrise-io/bitrise-init/scanners/android"
@@ -22,14 +24,14 @@ var depsFuncs = []depsFunc{
 	androidDeps,
 }
 
-func (f FastlaneRunner) cacheDeps(config Config) {
-	if config.EnableCache {
+func (f FastlaneRunner) cacheDeps(opts RunOpts) {
+	if opts.EnableCache {
 		f.logger.Println()
 		f.logger.Infof("Collecting cache")
 
 		c := cache.New()
 		for _, depFunc := range depsFuncs {
-			includes, excludes, err := depFunc(config.WorkDir)
+			includes, excludes, err := depFunc(opts.WorkDir)
 			f.logger.Debugf("%s found include path:\n%s\nexclude paths:\n%s", functionName(depFunc), strings.Join(includes, "\n"), strings.Join(excludes, "\n"))
 			if err != nil {
 				f.logger.Warnf("failed to collect dependencies: %s", err.Error())
@@ -48,6 +50,10 @@ func (f FastlaneRunner) cacheDeps(config Config) {
 			f.logger.Warnf("failed to commit paths to cache: %s", err)
 		}
 	}
+}
+
+func functionName(i interface{}) string {
+	return runtime.FuncForPC(reflect.ValueOf(i).Pointer()).Name()
 }
 
 func iosDeps(dir string, buildDirName, lockFileName string) ([]string, []string, error) {

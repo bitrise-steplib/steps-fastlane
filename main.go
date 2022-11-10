@@ -3,8 +3,6 @@ package main
 import (
 	"fmt"
 	"os"
-	"reflect"
-	"runtime"
 
 	"github.com/bitrise-io/go-steputils/v2/ruby"
 	"github.com/bitrise-io/go-steputils/v2/stepconf"
@@ -42,24 +40,23 @@ func run() int {
 		return 1
 	}
 
-	err = buildStep.Run(config, dependenciesOpts)
+	runOpts := createRunOptions(config)
+	err = buildStep.Run(runOpts)
 	if err != nil {
 		buildStep.logger.Println()
 		logger.Errorf(formattedError(fmt.Errorf("Failed to execute Step main logic: %w", err)))
 		return 1
 	}
 
-	buildStep.cacheDeps(config)
-
 	return 0
 }
 
 func createStep(logger log.Logger) FastlaneRunner {
 	envRepository := env.NewRepository()
-	inputParser := stepconf.NewInputParser(env.NewRepository())
+	inputParser := stepconf.NewInputParser(envRepository)
 	cmdFactory := command.NewFactory(envRepository)
 	cmdLocator := env.NewCommandLocator()
-	rbyFactory, err := ruby.NewCommandFactory(command.NewFactory(env.NewRepository()), cmdLocator)
+	rbyFactory, err := ruby.NewCommandFactory(cmdFactory, cmdLocator)
 	if err != nil {
 		logger.Warnf("%s", err)
 	}
@@ -98,6 +95,13 @@ func NewFastlaneRunner(
 	}
 }
 
-func functionName(i interface{}) string {
-	return runtime.FuncForPC(reflect.ValueOf(i).Pointer()).Name()
+func createRunOptions(config Config) RunOpts {
+	return RunOpts{
+		WorkDir:         config.WorkDir,
+		AuthCredentials: config.AuthCredentials,
+		LaneOptions:     config.LaneOptions,
+		UseBundler:      config.GemVersions.fastlane.Found,
+		GemVersions:     config.GemVersions,
+		EnableCache:     config.EnableCache,
+	}
 }
