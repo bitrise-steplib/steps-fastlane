@@ -55,7 +55,7 @@ func (f FastlaneRunner) Run(opts RunOpts) error {
 
 	buildlogPth := ""
 	if tempDir, err := pathutil.NormalizedOSTempDirPath("fastlane_logs"); err != nil {
-		f.logger.Errorf("Failed to create temp dir for fastlane logs, error: %s", err)
+		f.logger.Warnf("Failed to create temp dir for fastlane logs, error: %s", err)
 	} else {
 		buildlogPth = tempDir
 		envs = append(envs, "FL_BUILDLOG_PATH="+buildlogPth)
@@ -86,8 +86,8 @@ func (f FastlaneRunner) Run(opts RunOpts) error {
 
 	if err := cmd.Run(); err != nil {
 		f.logger.Println()
-		f.logger.Errorf("Fastlane command: (%s) failed", cmd.PrintableCommandArgs())
-		f.logger.Errorf("If you want to send an issue report to fastlane (https://github.com/fastlane/fastlane/issues/new), you can find the output of fastlane env in the following log file:")
+		f.logger.Warnf("Fastlane command: (%s) failed", cmd.PrintableCommandArgs())
+		f.logger.Warnf("If you want to send an issue report to fastlane (https://github.com/fastlane/fastlane/issues/new), you can find the output of fastlane env in the following log file:")
 		f.logger.Println()
 		f.logger.Infof(deployPth)
 		f.logger.Println()
@@ -113,7 +113,7 @@ func (f FastlaneRunner) Run(opts RunOpts) error {
 			}
 			return nil
 		}); err != nil {
-			f.logger.Errorf("Failed to walk directory, error: %s", err)
+			f.logger.Warnf("Failed to walk directory, error: %s", err)
 		}
 
 		var exitErr *exec.ExitError
