@@ -43,6 +43,7 @@ inputs:
 - lane:
   opts:
     title: fastlane lane
+    summary: The lane to execute.
     description: |
       fastlane lane to run
       $ fastlane [lane]
@@ -50,6 +51,7 @@ inputs:
 - work_dir: $BITRISE_SOURCE_DIR
   opts:
     title: Working directory
+    summary: The working directory to execure the fastlane command in.
     description: |-
       Use this option if the fastlane directory is not in your repository's root.
 
@@ -81,7 +83,7 @@ inputs:
 - api_key_path: ""
   opts:
     title: "API Key: URL"
-    summary: Path to local or remote file
+    summary: Path to local or remote file.
     description: |-
       Specify the path in an URL format where your API key is stored.
       For example: `https://URL/TO/AuthKey_[KEY_ID].p8` or `file:///PATH/TO/AuthKey_[KEY_ID].p8`.
@@ -93,6 +95,7 @@ inputs:
 - api_issuer: ""
   opts:
     title: "API Key: Issuer ID"
+    summary: Your issuer ID from the API Keys page in App Store Connect.
     description: |-
       Issuer ID. Required if **API Key: URL** (`api_key_path`) is specified.
 - apple_id: ""
@@ -104,6 +107,7 @@ inputs:
 - password: ""
   opts:
     title: "Apple ID: Password"
+    summary: Password for the specified Apple ID.
     description: Password for the specified Apple ID.
     is_sensitive: true
 - app_password: ""
@@ -120,6 +124,7 @@ inputs:
 - update_fastlane: "true"
   opts:
     title: Should update fastlane gem before run?
+    summary: Will cause the fastlane gem to be updated before running the lane.
     description: |-
       Should update fastlane gem before run?
       *This option will be skipped if you have a `Gemfile` in the `work_dir` directory.*
@@ -129,7 +134,8 @@ inputs:
 - verbose_log: "no"
   opts:
     title: Enable verbose logging?
-    description: Enable verbose logging?
+    summary: Enable/disable verbose logging.
+    description: Enable/disable verbose logging.
     is_required: true
     value_options:
     - "yes"
@@ -137,6 +143,7 @@ inputs:
 - enable_cache: "yes"
   opts:
     title: Enable collecting files to be included in the build cache
+    summary: Enable/disable collecting files to be included in the build cache.
     description: |-
       If enabled the step will add the following cache items (if they exist):
       - Pods -> Podfile.lock
