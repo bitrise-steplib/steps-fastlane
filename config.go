@@ -96,7 +96,7 @@ func (f FastlaneRunner) ProcessConfig() (Config, error) {
 	// Determine desired Fastlane version
 	f.logger.Println()
 	f.logger.Infof("Determine desired Fastlane version")
-	gemVersions, err := parseGemfileLock(config.WorkDir)
+	gemVersions, err := f.parseGemfileLock(config.WorkDir)
 	if err != nil {
 		f.logger.Println()
 		f.logger.Errorf(err.Error())

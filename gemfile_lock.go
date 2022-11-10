@@ -9,11 +9,11 @@ type gemVersions struct {
 	fastlane, bundler gems.Version
 }
 
-func parseGemfileLock(searchDir string) (gemVersions, error) {
+func (f FastlaneRunner) parseGemfileLock(searchDir string) (gemVersions, error) {
 	content, err := gems.GemFileLockContent(searchDir)
 	if err != nil {
 		if err == gems.ErrGemLockNotFound {
-			log.Printf("Gem lockfile does not exist")
+			f.logger.Printf("Gem lockfile does not exist")
 			return gemVersions{}, nil
 		}
 		return gemVersions{}, err

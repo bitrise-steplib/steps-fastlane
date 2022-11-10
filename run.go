@@ -3,8 +3,10 @@ package main
 import (
 	"bufio"
 	"bytes"
+	"errors"
 	"fmt"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"strings"
 
@@ -113,7 +115,13 @@ func (f FastlaneRunner) Run(opts RunOpts) error {
 		}); err != nil {
 			f.logger.Errorf("Failed to walk directory, error: %s", err)
 		}
-		return fmt.Errorf("command failed with %s (%s)", err, cmd.PrintableCommandArgs())
+
+		var exitErr *exec.ExitError
+		if errors.As(err, &exitErr) {
+			return fmt.Errorf("command failed with exit status %d (%s)", exitErr.ExitCode(), cmd.PrintableCommandArgs())
+		}
+
+		return fmt.Errorf("executing command failed (%s): %w", cmd.PrintableCommandArgs(), err)
 	}
 
 	f.cacheDeps(opts)
