@@ -47,10 +47,12 @@ type Config struct {
 
 // ProcessConfig ...
 func (f FastlaneRunner) ProcessConfig() (Config, error) {
-	var config Config
-	if err := f.inputParser.Parse(&config); err != nil {
-		return config, err
+	var inputs Inputs
+	if err := f.inputParser.Parse(&inputs); err != nil {
+		return Config{}, err
 	}
+
+	config := Config{Inputs: inputs}
 
 	stepconf.Print(config)
 	f.logger.EnableDebugLog(config.VerboseLog)
