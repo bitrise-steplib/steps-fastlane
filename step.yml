@@ -51,7 +51,7 @@ inputs:
 - work_dir: $BITRISE_SOURCE_DIR
   opts:
     title: Working directory
-    summary: The working directory to execure the fastlane command in.
+    summary: The working directory to execute the fastlane command in.
     description: |-
       Use this option if the fastlane directory is not in your repository's root.
 

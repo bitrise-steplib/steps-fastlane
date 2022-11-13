@@ -1,9 +1,11 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
 	"os"
+	"os/exec"
 	"strings"
 
 	"github.com/bitrise-io/go-steputils/v2/stepconf"
@@ -192,7 +194,13 @@ func (f FastlaneRunner) checkForRbenv(workDir string) {
 		f.logger.Println()
 		f.logger.Donef("$ %s", cmd.PrintableCommandArgs())
 		if err := cmd.Run(); err != nil {
-			f.logger.Warnf("%s", err)
+			var exitErr *exec.ExitError
+			if errors.As(err, &exitErr) {
+				f.logger.Warnf("command failed with exit status %d (%s): %w", exitErr.ExitCode(), cmd.PrintableCommandArgs(), errors.New("check the command's output for details"))
+				return
+			}
+
+			f.logger.Warnf("executing command failed (%s): %w", cmd.PrintableCommandArgs(), err)
 		}
 	}
 }
@@ -246,6 +254,6 @@ func (f FastlaneRunner) handleSessionDataError(err error) {
 	}
 
 	f.logger.Println()
-	f.logger.Errorf("Failed to activate Bitrise Apple Developer Portal connection: %s", err)
+	f.logger.Warnf("Failed to activate Bitrise Apple Developer Portal connection: %s", err)
 	f.logger.Warnf("Read more: https://devcenter.bitrise.io/getting-started/configuring-bitrise-steps-that-require-apple-developer-account-data/")
 }
