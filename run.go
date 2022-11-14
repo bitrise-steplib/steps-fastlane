@@ -83,9 +83,9 @@ func (f FastlaneRunner) Run(opts RunOpts) error {
 	}
 	deployPth := filepath.Join(deployDir, "fastlane_env.log")
 
-	if err := cmd.Run(); err != nil {
+	if fastlaneErr := cmd.Run(); fastlaneErr != nil {
 		var exitErr *exec.ExitError
-		if errors.As(err, &exitErr) {
+		if errors.As(fastlaneErr, &exitErr) {
 			f.logger.Warnf("Fastlane command failed with exit status %d (%s)", exitErr.ExitCode(), cmd.PrintableCommandArgs())
 		} else {
 			f.logger.Warnf("Fastlane command failed (%s)", cmd.PrintableCommandArgs())
@@ -119,11 +119,11 @@ func (f FastlaneRunner) Run(opts RunOpts) error {
 			f.logger.Warnf("Failed to walk directory, error: %s", err)
 		}
 
-		if errors.As(err, &exitErr) {
+		if errors.As(fastlaneErr, &exitErr) {
 			return fmt.Errorf("command failed with exit status %d (%s)", exitErr.ExitCode(), cmd.PrintableCommandArgs())
 		}
 
-		return fmt.Errorf("executing command failed (%s): %w", cmd.PrintableCommandArgs(), err)
+		return fmt.Errorf("executing command failed (%s): %w", cmd.PrintableCommandArgs(), fastlaneErr)
 	}
 
 	f.cacheDeps(opts)
