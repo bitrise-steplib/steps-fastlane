@@ -12,7 +12,6 @@ import (
 
 	"github.com/bitrise-io/go-steputils/command/gems"
 	"github.com/bitrise-io/go-steputils/v2/ruby"
-	"github.com/bitrise-io/go-utils/errorutil"
 	"github.com/bitrise-io/go-utils/fileutil"
 	"github.com/bitrise-io/go-utils/pathutil"
 	"github.com/bitrise-io/go-utils/v2/command"
@@ -85,8 +84,12 @@ func (f FastlaneRunner) Run(opts RunOpts) error {
 	deployPth := filepath.Join(deployDir, "fastlane_env.log")
 
 	if err := cmd.Run(); err != nil {
-		f.logger.Println()
-		f.logger.Warnf("Fastlane command: (%s) failed", cmd.PrintableCommandArgs())
+		var exitErr *exec.ExitError
+		if errors.As(err, &exitErr) {
+			f.logger.Warnf("Fastlane command failed with exit status %d (%s)", exitErr.ExitCode(), cmd.PrintableCommandArgs())
+		} else {
+			f.logger.Warnf("Fastlane command failed (%s)", cmd.PrintableCommandArgs())
+		}
 		f.logger.Warnf("If you want to send an issue report to fastlane (https://github.com/fastlane/fastlane/issues/new), you can find the output of fastlane env in the following log file:")
 		f.logger.Println()
 		f.logger.Infof(deployPth)
@@ -116,7 +119,6 @@ func (f FastlaneRunner) Run(opts RunOpts) error {
 			f.logger.Warnf("Failed to walk directory, error: %s", err)
 		}
 
-		var exitErr *exec.ExitError
 		if errors.As(err, &exitErr) {
 			return fmt.Errorf("command failed with exit status %d (%s)", exitErr.ExitCode(), cmd.PrintableCommandArgs())
 		}
@@ -153,10 +155,11 @@ func (f FastlaneRunner) fastlaneDebugInfo(workDir string, useBundler bool, bundl
 
 	f.logger.Debugf("$ %s", cmd.PrintableCommandArgs())
 	if err := cmd.Run(); err != nil {
-		if errorutil.IsExitStatusError(err) {
-			return "", fmt.Errorf("Fastlane command (%s) failed, output: %s", cmd.PrintableCommandArgs(), outBuffer.String())
+		var exitError *exec.ExitError
+		if errors.As(err, &exitError) {
+			return "", fmt.Errorf("Fastlane command failed with exit status %d (%s), output: %s", exitError.ExitCode(), cmd.PrintableCommandArgs(), outBuffer.String())
 		}
-		return "", fmt.Errorf("Fastlane command (%s) failed: %v", cmd.PrintableCommandArgs(), err)
+		return "", fmt.Errorf("Fastlane command failed (%s): %w", cmd.PrintableCommandArgs(), err)
 	}
 
 	return outBuffer.String(), nil
