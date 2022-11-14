@@ -2,7 +2,11 @@ package main
 
 import (
 	"errors"
+	"fmt"
+	"os/exec"
 	"strings"
+
+	"github.com/bitrise-io/go-utils/v2/command"
 )
 
 func formattedError(err error) string {
@@ -64,4 +68,13 @@ func indentedReason(reason string, level int) string {
 		}
 	}
 	return indented
+}
+
+func (f FastlaneRunner) formattedCommandErrorMessage(cmd command.Command, err error) string {
+	var exitErr *exec.ExitError
+	if errors.As(err, &exitErr) {
+		return fmt.Sprintf("command failed with exit status %d (%s): %v", exitErr.ExitCode(), cmd.PrintableCommandArgs(), errors.New("check the command's output for details"))
+	}
+
+	return fmt.Sprintf("executing command failed (%s): %v", cmd.PrintableCommandArgs(), err)
 }

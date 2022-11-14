@@ -1,11 +1,9 @@
 package main
 
 import (
-	"errors"
 	"fmt"
 	"net/http"
 	"os"
-	"os/exec"
 	"strings"
 
 	"github.com/bitrise-io/go-steputils/v2/stepconf"
@@ -194,13 +192,8 @@ func (f FastlaneRunner) checkForRbenv(workDir string) {
 		f.logger.Println()
 		f.logger.Donef("$ %s", cmd.PrintableCommandArgs())
 		if err := cmd.Run(); err != nil {
-			var exitErr *exec.ExitError
-			if errors.As(err, &exitErr) {
-				f.logger.Warnf("command failed with exit status %d (%s): %w", exitErr.ExitCode(), cmd.PrintableCommandArgs(), errors.New("check the command's output for details"))
-				return
-			}
-
-			f.logger.Warnf("executing command failed (%s): %w", cmd.PrintableCommandArgs(), err)
+			errorString := f.formattedCommandErrorMessage(cmd, err)
+			f.logger.Warnf(errorString)
 		}
 	}
 }

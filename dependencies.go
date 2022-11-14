@@ -1,10 +1,7 @@
 package main
 
 import (
-	"errors"
-	"fmt"
 	"os"
-	"os/exec"
 
 	"github.com/bitrise-io/go-utils/v2/command"
 )
@@ -35,12 +32,8 @@ func (f FastlaneRunner) InstallDependencies(opts EnsureDependenciesOpts) error {
 			f.logger.Println()
 
 			if err := cmd.Run(); err != nil {
-				var exitErr *exec.ExitError
-				if errors.As(err, &exitErr) {
-					return fmt.Errorf("command failed with exit status %d (%s): %w", exitErr.ExitCode(), cmd.PrintableCommandArgs(), errors.New("check the command's output for details"))
-				}
-
-				return fmt.Errorf("executing command failed (%s): %w", cmd.PrintableCommandArgs(), err)
+				errorString := f.formattedCommandErrorMessage(cmd, err)
+				f.logger.Errorf(errorString)
 			}
 		}
 
@@ -58,12 +51,8 @@ func (f FastlaneRunner) InstallDependencies(opts EnsureDependenciesOpts) error {
 		f.logger.Println()
 
 		if err := cmd.Run(); err != nil {
-			var exitErr *exec.ExitError
-			if errors.As(err, &exitErr) {
-				return fmt.Errorf("command failed with exit status %d (%s): %w", exitErr.ExitCode(), cmd.PrintableCommandArgs(), errors.New("check the command's output for details"))
-			}
-
-			return fmt.Errorf("executing command failed (%s): %w", cmd.PrintableCommandArgs(), err)
+			errorString := f.formattedCommandErrorMessage(cmd, err)
+			f.logger.Errorf(errorString)
 		}
 	} else if opts.UpdateFastlane {
 		f.logger.Infof("Update system installed Fastlane")
@@ -77,12 +66,8 @@ func (f FastlaneRunner) InstallDependencies(opts EnsureDependenciesOpts) error {
 			f.logger.Donef("$ %s", cmd.PrintableCommandArgs())
 
 			if err := cmd.Run(); err != nil {
-				var exitErr *exec.ExitError
-				if errors.As(err, &exitErr) {
-					return fmt.Errorf("command failed with exit status %d (%s): %w", exitErr.ExitCode(), cmd.PrintableCommandArgs(), errors.New("check the command's output for details"))
-				}
-
-				return fmt.Errorf("executing command failed (%s): %w", cmd.PrintableCommandArgs(), err)
+				errorString := f.formattedCommandErrorMessage(cmd, err)
+				f.logger.Errorf(errorString)
 			}
 		}
 	} else {
@@ -109,12 +94,8 @@ func (f FastlaneRunner) InstallDependencies(opts EnsureDependenciesOpts) error {
 	f.logger.Donef("$ %s", cmd.PrintableCommandArgs())
 
 	if err := cmd.Run(); err != nil {
-		var exitErr *exec.ExitError
-		if errors.As(err, &exitErr) {
-			return fmt.Errorf("command failed with exit status %d (%s): %w", exitErr.ExitCode(), cmd.PrintableCommandArgs(), errors.New("check the command's output for details"))
-		}
-
-		return fmt.Errorf("executing command failed (%s): %w", cmd.PrintableCommandArgs(), err)
+		errorString := f.formattedCommandErrorMessage(cmd, err)
+		f.logger.Errorf(errorString)
 	}
 
 	return nil
