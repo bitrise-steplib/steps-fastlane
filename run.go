@@ -86,7 +86,7 @@ func (f FastlaneRunner) Run(opts RunOpts) error {
 	if fastlaneErr := cmd.Run(); fastlaneErr != nil {
 		var exitErr *exec.ExitError
 		if errors.As(fastlaneErr, &exitErr) {
-			f.logger.Warnf("Fastlane command failed with exit status %d (%s)", exitErr.ExitCode(), cmd.PrintableCommandArgs())
+			f.logger.Warnf("Fastlane command failed with exit status %d (%s): %w", exitErr.ExitCode(), cmd.PrintableCommandArgs(), errors.New("check the command's output for details"))
 		} else {
 			f.logger.Warnf("Fastlane command failed (%s)", cmd.PrintableCommandArgs())
 		}
@@ -157,7 +157,7 @@ func (f FastlaneRunner) fastlaneDebugInfo(workDir string, useBundler bool, bundl
 	if err := cmd.Run(); err != nil {
 		var exitError *exec.ExitError
 		if errors.As(err, &exitError) {
-			return "", fmt.Errorf("Fastlane command failed with exit status %d (%s), output: %s", exitError.ExitCode(), cmd.PrintableCommandArgs(), outBuffer.String())
+			return "", fmt.Errorf("Fastlane command failed with exit status %d (%s), %w", exitError.ExitCode(), cmd.PrintableCommandArgs(), errors.New("check the command's output for details"))
 		}
 		return "", fmt.Errorf("Fastlane command failed (%s): %w", cmd.PrintableCommandArgs(), err)
 	}

@@ -37,7 +37,7 @@ func (f FastlaneRunner) InstallDependencies(opts EnsureDependenciesOpts) error {
 			if err := cmd.Run(); err != nil {
 				var exitErr *exec.ExitError
 				if errors.As(err, &exitErr) {
-					return fmt.Errorf("command failed with exit status %d (%s)", exitErr.ExitCode(), cmd.PrintableCommandArgs())
+					return fmt.Errorf("command failed with exit status %d (%s): %w", exitErr.ExitCode(), cmd.PrintableCommandArgs(), errors.New("check the command's output for details"))
 				}
 
 				return fmt.Errorf("executing command failed (%s): %w", cmd.PrintableCommandArgs(), err)
@@ -60,7 +60,7 @@ func (f FastlaneRunner) InstallDependencies(opts EnsureDependenciesOpts) error {
 		if err := cmd.Run(); err != nil {
 			var exitErr *exec.ExitError
 			if errors.As(err, &exitErr) {
-				return fmt.Errorf("command failed with exit status %d (%s)", exitErr.ExitCode(), cmd.PrintableCommandArgs())
+				return fmt.Errorf("command failed with exit status %d (%s): %w", exitErr.ExitCode(), cmd.PrintableCommandArgs(), errors.New("check the command's output for details"))
 			}
 
 			return fmt.Errorf("executing command failed (%s): %w", cmd.PrintableCommandArgs(), err)
@@ -79,7 +79,7 @@ func (f FastlaneRunner) InstallDependencies(opts EnsureDependenciesOpts) error {
 			if err := cmd.Run(); err != nil {
 				var exitErr *exec.ExitError
 				if errors.As(err, &exitErr) {
-					return fmt.Errorf("command failed with exit status %d (%s)", exitErr.ExitCode(), cmd.PrintableCommandArgs())
+					return fmt.Errorf("command failed with exit status %d (%s): %w", exitErr.ExitCode(), cmd.PrintableCommandArgs(), errors.New("check the command's output for details"))
 				}
 
 				return fmt.Errorf("executing command failed (%s): %w", cmd.PrintableCommandArgs(), err)
@@ -111,7 +111,7 @@ func (f FastlaneRunner) InstallDependencies(opts EnsureDependenciesOpts) error {
 	if err := cmd.Run(); err != nil {
 		var exitErr *exec.ExitError
 		if errors.As(err, &exitErr) {
-			return fmt.Errorf("command failed with exit status %d (%s)", exitErr.ExitCode(), cmd.PrintableCommandArgs())
+			return fmt.Errorf("command failed with exit status %d (%s): %w", exitErr.ExitCode(), cmd.PrintableCommandArgs(), errors.New("check the command's output for details"))
 		}
 
 		return fmt.Errorf("executing command failed (%s): %w", cmd.PrintableCommandArgs(), err)
