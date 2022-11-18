@@ -134,10 +134,11 @@ func (f FastlaneRunner) fastlaneDebugInfo(workDir string, useBundler bool, bundl
 	name := "fastlane"
 	args := []string{"env"}
 	var outBuffer bytes.Buffer
+	outWriter := bufio.NewWriter(&outBuffer)
 	opts := &command.Opts{
 		Stdin:  strings.NewReader("n"),
-		Stdout: bufio.NewWriter(&outBuffer),
-		Stderr: os.Stderr,
+		Stdout: outWriter,
+		Stderr: outWriter,
 		Dir:    workDir,
 	}
 	var cmd command.Command
