@@ -18,6 +18,7 @@ type EnsureDependenciesOpts struct {
 func (f FastlaneRunner) InstallDependencies(opts EnsureDependenciesOpts) error {
 	// Install desired Fastlane version
 	if opts.UseBundler {
+		f.logger.Println()
 		f.logger.Infof("Install bundler")
 
 		// install bundler with `gem install bundler [-v version]`
@@ -53,6 +54,7 @@ func (f FastlaneRunner) InstallDependencies(opts EnsureDependenciesOpts) error {
 			return f.wrapCommandError(cmd, err)
 		}
 	} else if opts.UpdateFastlane {
+		f.logger.Println()
 		f.logger.Infof("Update system installed Fastlane")
 
 		cmds := f.rbyFactory.CreateGemInstall("fastlane", "", false, false, &command.Opts{
@@ -68,6 +70,7 @@ func (f FastlaneRunner) InstallDependencies(opts EnsureDependenciesOpts) error {
 			}
 		}
 	} else {
+		f.logger.Println()
 		f.logger.Infof("Using system installed Fastlane")
 	}
 

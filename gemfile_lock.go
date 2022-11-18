@@ -26,9 +26,9 @@ func (f FastlaneRunner) parseGemfileLock(searchDir string) (gemVersions, error) 
 		return gemVersions, err
 	}
 	if gemVersions.fastlane.Found {
-		log.Infof("Gem lockfile defined Fastlane version: %s", gemVersions.fastlane.Version)
+		log.Printf("Gem lockfile defined Fastlane version: %s", gemVersions.fastlane.Version)
 	} else {
-		log.Infof("No Fastlane version defined in gem lockfile")
+		log.Printf("No Fastlane version defined in gem lockfile")
 	}
 
 	gemVersions.bundler, err = gems.ParseBundlerVersion(content)
@@ -36,9 +36,9 @@ func (f FastlaneRunner) parseGemfileLock(searchDir string) (gemVersions, error) 
 		return gemVersions, err
 	}
 	if gemVersions.bundler.Found {
-		log.Infof("Gem lockfile defined bundler version: %s", gemVersions.bundler.Version)
+		log.Printf("Gem lockfile defined bundler version: %s", gemVersions.bundler.Version)
 	} else {
-		log.Infof("No bundler version defined in gem lockfile")
+		log.Printf("No bundler version defined in gem lockfile")
 	}
 
 	return gemVersions, nil
