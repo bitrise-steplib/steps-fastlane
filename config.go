@@ -52,12 +52,11 @@ func (f FastlaneRunner) ProcessConfig() (Config, error) {
 	if err := f.inputParser.Parse(&inputs); err != nil {
 		return Config{}, err
 	}
+	stepconf.Print(inputs)
+	f.logger.Println()
 
 	config := Config{Inputs: inputs}
-
-	stepconf.Print(config)
 	f.logger.EnableDebugLog(config.VerboseLog)
-	f.logger.Println()
 
 	authInputs, err := f.validateAuthInputs(config)
 	if err != nil {

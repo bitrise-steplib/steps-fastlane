@@ -41,7 +41,6 @@ func run() int {
 	}
 
 	runOpts := createRunOptions(config)
-
 	if err := buildStep.Run(runOpts); err != nil {
 		buildStep.logger.Println()
 		logger.Errorf(formattedError(fmt.Errorf("Failed to execute Step main logic: %w", err)))
