@@ -73,8 +73,8 @@ func indentedReason(reason string, level int) string {
 func (f FastlaneRunner) wrapCommandError(cmd command.Command, err error) error {
 	var exitErr *exec.ExitError
 	if errors.As(err, &exitErr) {
-		return fmt.Errorf("command failed with exit status %d (%s): %v", exitErr.ExitCode(), cmd.PrintableCommandArgs(), errors.New("check the command's output for details"))
+		return fmt.Errorf("command failed with exit status %d (%s): %w", exitErr.ExitCode(), cmd.PrintableCommandArgs(), errors.New("check the command's output for details"))
 	}
 
-	return fmt.Errorf("executing command failed (%s): %v", cmd.PrintableCommandArgs(), err)
+	return fmt.Errorf("executing command failed (%s): %w", cmd.PrintableCommandArgs(), err)
 }
