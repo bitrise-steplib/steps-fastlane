@@ -192,8 +192,8 @@ func (f FastlaneRunner) checkForRbenv(workDir string) {
 		f.logger.Println()
 		f.logger.Donef("$ %s", cmd.PrintableCommandArgs())
 		if err := cmd.Run(); err != nil {
-			errorString := f.formattedCommandErrorMessage(cmd, err)
-			f.logger.Warnf(errorString)
+			err := f.wrapCommandError(cmd, err)
+			f.logger.Warnf(err.Error())
 		}
 	}
 }

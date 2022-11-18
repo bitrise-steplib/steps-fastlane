@@ -32,8 +32,7 @@ func (f FastlaneRunner) InstallDependencies(opts EnsureDependenciesOpts) error {
 			f.logger.Println()
 
 			if err := cmd.Run(); err != nil {
-				errorString := f.formattedCommandErrorMessage(cmd, err)
-				f.logger.Errorf(errorString)
+				return f.wrapCommandError(cmd, err)
 			}
 		}
 
@@ -51,8 +50,7 @@ func (f FastlaneRunner) InstallDependencies(opts EnsureDependenciesOpts) error {
 		f.logger.Println()
 
 		if err := cmd.Run(); err != nil {
-			errorString := f.formattedCommandErrorMessage(cmd, err)
-			f.logger.Errorf(errorString)
+			return f.wrapCommandError(cmd, err)
 		}
 	} else if opts.UpdateFastlane {
 		f.logger.Infof("Update system installed Fastlane")
@@ -66,8 +64,7 @@ func (f FastlaneRunner) InstallDependencies(opts EnsureDependenciesOpts) error {
 			f.logger.Donef("$ %s", cmd.PrintableCommandArgs())
 
 			if err := cmd.Run(); err != nil {
-				errorString := f.formattedCommandErrorMessage(cmd, err)
-				f.logger.Errorf(errorString)
+				return f.wrapCommandError(cmd, err)
 			}
 		}
 	} else {
@@ -94,8 +91,7 @@ func (f FastlaneRunner) InstallDependencies(opts EnsureDependenciesOpts) error {
 	f.logger.Donef("$ %s", cmd.PrintableCommandArgs())
 
 	if err := cmd.Run(); err != nil {
-		errorString := f.formattedCommandErrorMessage(cmd, err)
-		f.logger.Errorf(errorString)
+		return f.wrapCommandError(cmd, err)
 	}
 
 	return nil
