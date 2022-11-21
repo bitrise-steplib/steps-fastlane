@@ -4,17 +4,13 @@ default_step_lib_source: https://github.com/bitrise-io/bitrise-steplib.git
 workflows:
   ci:
     before_run:
-    - audit-this-step
     - go-tests
     after_run:
     - test
-    
+
   go-tests:
     steps:
-    - go-list: {}
-    - golint: {}
-    - errcheck: {}
-    - go-test: {}
+    - git::https://github.com/bitrise-steplib/steps-check.git: { }
 
   test:
     before_run:
@@ -23,14 +19,14 @@ workflows:
 
   auth-all:
     before_run:
-      - auth-test-api-key-connection
-      - auth-test-apple-id-connection
-      - auth-test-api-key-input
-      - auth-test-apple-id-connection-globally-set-app-specific-password
+    - auth-test-api-key-connection
+    - auth-test-apple-id-connection
+    - auth-test-api-key-input
+    - auth-test-apple-id-connection-globally-set-app-specific-password
 
-  cache:  
+  cache:
     envs:
-    - SAMPLE_APP_URL: "https://github.com/bitrise-io/sample-apps-flutter-veggieseasons.git"
+    - SAMPLE_APP_URL: https://github.com/bitrise-io/sample-apps-flutter-veggieseasons.git
     - BRANCH: master
     - XCODE_SCHEME: Runner
     steps:
@@ -47,7 +43,7 @@ workflows:
         inputs:
         - repository_url: $SAMPLE_APP_URL
         - branch: $BRANCH
-        - clone_into_dir: "."
+        - clone_into_dir: .
     - path::./:
         title: Smoke test to check if Fastlane receives session-based Apple Developer connection
         inputs:
@@ -112,7 +108,7 @@ workflows:
         - verbose_log: "yes"
         - connection: apple_id
         - app_password: ""
-        
+
   auth-test-api-key-connection:
     before_run:
     - _auth_prepare
@@ -153,7 +149,7 @@ workflows:
 
   _auth_prepare:
     envs:
-    - SAMPLE_APP_URL: "https://github.com/bitrise-samples/sample-apps-fastlane-test.git"
+    - SAMPLE_APP_URL: https://github.com/bitrise-samples/sample-apps-fastlane-test.git
     - BRANCH: master
     - INFO_PLIST_PATH: ./sample-apps-fastlane-test/Info.plist
     steps:
@@ -174,18 +170,25 @@ workflows:
         inputs:
         - repository_url: $SAMPLE_APP_URL
         - branch: $BRANCH
-        - clone_into_dir: "."
-    - certificate-and-profile-installer: {}
+        - clone_into_dir: .
+    - certificate-and-profile-installer: { }
     - script:
         inputs:
         - content: |-
-            #!/usr/bin/env bash
             CURRENT_BUILD_NUMBER=${BITRISE_BUILD_NUMBER}
+
+            if [[ -z "$E2E_ORIG_BUILD_NUM" ]]; then
+              envman add --key E2E_ORIG_BUILD_NUM --value "$CURRENT_BUILD_NUMBER"
+            else
+              CURRENT_BUILD_NUMBER="$E2E_ORIG_BUILD_NUM"
+            fi
+
             BITRISE_BUILD_NUMBER=$((($(gdate +%Y%m%d%H%M%S)-20000000000000)*10000))
             if [[ -z "${BITRISE_BUILD_NUMBER}" ]]; then
               echo "error: failed to calculated build number"
               exit 1
             fi
+
             if [[ -n "${CURRENT_BUILD_NUMBER}" ]]; then
               BITRISE_BUILD_NUMBER=$((${BITRISE_BUILD_NUMBER}+${CURRENT_BUILD_NUMBER}))
             fi
@@ -198,14 +201,4 @@ workflows:
         - build_version: $BITRISE_BUILD_NUMBER
         - plist_path: $INFO_PLIST_PATH
         - build_version_offset: $BITRISE_BUILD_VERSION_OFFSET
-
-
-  audit-this-step:
-    title: Audit the step
-    steps:
-    - script:
-        inputs:
-        - content: |-
-            #!/bin/bash
-            set -ex
-            stepman audit --step-yml ./step.yml
+        - build_short_version_string: 1.0.2
