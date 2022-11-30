@@ -3,7 +3,6 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 
@@ -59,7 +58,7 @@ func FastlaneAuthParams(authConfig appleauth.Credentials) (map[string]string, er
 			return envs, err
 		}
 		fastlaneAuthFile := filepath.Join(tmpDir, "api_key.json")
-		if err := ioutil.WriteFile(fastlaneAuthFile, fastlaneAPIKeyParams, os.ModePerm); err != nil {
+		if err := os.WriteFile(fastlaneAuthFile, fastlaneAPIKeyParams, os.ModePerm); err != nil {
 			return envs, err
 		}
 
