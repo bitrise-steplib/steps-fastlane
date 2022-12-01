@@ -8,10 +8,10 @@ require (
 	github.com/bitrise-io/go-steputils v1.0.2
 	github.com/bitrise-io/go-steputils/v2 v2.0.0-alpha.14
 	github.com/bitrise-io/go-utils v1.0.2
-	github.com/bitrise-io/go-utils/v2 v2.0.0-alpha.13
+	github.com/bitrise-io/go-utils/v2 v2.0.0-alpha.14
 	github.com/bitrise-io/go-xcode v1.0.9
 	github.com/kballard/go-shellquote v0.0.0-20180428030007-95032a82bc51
-	github.com/stretchr/testify v1.7.1
+	github.com/stretchr/testify v1.8.1
 )
 
 require (
@@ -25,8 +25,8 @@ require (
 	github.com/hashicorp/go-version v1.6.0 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/ryanuber/go-glob v1.0.0 // indirect
-	github.com/stretchr/objx v0.3.0 // indirect
+	github.com/stretchr/objx v0.5.0 // indirect
 	golang.org/x/text v0.3.7 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
-	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b // indirect
+	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
