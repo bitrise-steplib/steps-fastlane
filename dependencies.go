@@ -1,9 +1,8 @@
 package main
 
 import (
-	"os"
-
 	"github.com/bitrise-io/go-utils/v2/command"
+	"os"
 )
 
 // EnsureDependenciesOpts ...
@@ -33,7 +32,7 @@ func (f FastlaneRunner) InstallDependencies(opts EnsureDependenciesOpts) error {
 			f.logger.Println()
 
 			if err := cmd.Run(); err != nil {
-				return f.wrapCommandError(cmd, err)
+				return err
 			}
 		}
 
@@ -51,7 +50,7 @@ func (f FastlaneRunner) InstallDependencies(opts EnsureDependenciesOpts) error {
 		f.logger.Println()
 
 		if err := cmd.Run(); err != nil {
-			return f.wrapCommandError(cmd, err)
+			return err
 		}
 	} else if opts.UpdateFastlane {
 		f.logger.Println()
@@ -66,7 +65,7 @@ func (f FastlaneRunner) InstallDependencies(opts EnsureDependenciesOpts) error {
 			f.logger.Donef("$ %s", cmd.PrintableCommandArgs())
 
 			if err := cmd.Run(); err != nil {
-				return f.wrapCommandError(cmd, err)
+				return err
 			}
 		}
 	} else {
@@ -94,7 +93,7 @@ func (f FastlaneRunner) InstallDependencies(opts EnsureDependenciesOpts) error {
 	f.logger.Donef("$ %s", cmd.PrintableCommandArgs())
 
 	if err := cmd.Run(); err != nil {
-		return f.wrapCommandError(cmd, err)
+		return err
 	}
 
 	return nil
