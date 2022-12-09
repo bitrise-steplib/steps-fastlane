@@ -1,8 +1,9 @@
 package main
 
 import (
-	"github.com/bitrise-io/go-utils/v2/command"
 	"os"
+
+	"github.com/bitrise-io/go-utils/v2/command"
 )
 
 // EnsureDependenciesOpts ...

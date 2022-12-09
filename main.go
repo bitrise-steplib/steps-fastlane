@@ -46,7 +46,7 @@ func run() ExitCode {
 	runOpts := createRunOptions(config)
 	if err := buildStep.Run(runOpts); err != nil {
 		buildStep.logger.Println()
-		logger.Errorf(errorutil.FormattedError(fmt.Errorf("Failed to execute Step main logic: %w", err)))
+		logger.Errorf(errorutil.FormattedError(fmt.Errorf("Failed to execute Step: %w", err)))
 		return Failure
 	}
 
