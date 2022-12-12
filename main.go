@@ -8,6 +8,7 @@ import (
 	"github.com/bitrise-io/go-steputils/v2/stepconf"
 	"github.com/bitrise-io/go-utils/v2/command"
 	"github.com/bitrise-io/go-utils/v2/env"
+	"github.com/bitrise-io/go-utils/v2/errorutil"
 	. "github.com/bitrise-io/go-utils/v2/exitcode"
 	"github.com/bitrise-io/go-utils/v2/log"
 	"github.com/bitrise-io/go-utils/v2/pathutil"
@@ -25,7 +26,7 @@ func run() ExitCode {
 	config, err := buildStep.ProcessConfig()
 	if err != nil {
 		buildStep.logger.Println()
-		buildStep.logger.Errorf(formattedError(fmt.Errorf("Failed to process Step inputs: %w", err)))
+		buildStep.logger.Errorf(errorutil.FormattedError(fmt.Errorf("Failed to process Step inputs: %w", err)))
 		return Failure
 	}
 
@@ -38,14 +39,14 @@ func run() ExitCode {
 
 	if err := buildStep.InstallDependencies(dependenciesOpts); err != nil {
 		buildStep.logger.Println()
-		buildStep.logger.Errorf(formattedError(fmt.Errorf("Failed to install Step dependencies: %w", err)))
+		buildStep.logger.Errorf(errorutil.FormattedError(fmt.Errorf("Failed to install Step dependencies: %w", err)))
 		return Failure
 	}
 
 	runOpts := createRunOptions(config)
 	if err := buildStep.Run(runOpts); err != nil {
 		buildStep.logger.Println()
-		logger.Errorf(formattedError(fmt.Errorf("Failed to execute Step main logic: %w", err)))
+		logger.Errorf(errorutil.FormattedError(fmt.Errorf("Failed to execute Step: %w", err)))
 		return Failure
 	}
 

@@ -112,7 +112,7 @@ you can find the output of fastlane env in the following log file: %s`, deployPt
 			f.logger.Warnf("Failed to walk directory, error: %s", err)
 		}
 
-		return fmt.Errorf("running Fastlane failed: %w", f.wrapCommandError(cmd, fastlaneErr))
+		return fmt.Errorf("running Fastlane failed: %w", fastlaneErr)
 	}
 
 	f.cacheDeps(opts)

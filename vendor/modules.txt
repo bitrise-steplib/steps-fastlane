@@ -41,10 +41,11 @@ github.com/bitrise-io/go-utils/parseutil
 github.com/bitrise-io/go-utils/pathutil
 github.com/bitrise-io/go-utils/pointers
 github.com/bitrise-io/go-utils/sliceutil
-# github.com/bitrise-io/go-utils/v2 v2.0.0-alpha.14
+# github.com/bitrise-io/go-utils/v2 v2.0.0-alpha.15
 ## explicit; go 1.17
 github.com/bitrise-io/go-utils/v2/command
 github.com/bitrise-io/go-utils/v2/env
+github.com/bitrise-io/go-utils/v2/errorutil
 github.com/bitrise-io/go-utils/v2/exitcode
 github.com/bitrise-io/go-utils/v2/log
 github.com/bitrise-io/go-utils/v2/log/colorstring
