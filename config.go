@@ -197,6 +197,33 @@ func (f FastlaneRunner) checkForRbenv(workDir string) {
 	}
 }
 
+func (f FastlaneRunner) checkRubyVersion(useBundler bool, bundlerVersion string) {
+	var versionCmd command.Command
+	if useBundler {
+		versionCmd = f.rbyFactory.CreateBundleExec("ruby", []string{"--version"}, bundlerVersion, nil)
+	} else {
+		versionCmd = f.rbyFactory.Create("ruby", []string{"--version"}, nil)
+	}
+	output, err := versionCmd.RunAndReturnTrimmedCombinedOutput()
+	if err != nil {
+		f.logger.Warnf("Failed to check active Ruby version: %s", err)
+		f.logger.Printf("Output: %s", output)
+		return
+	}
+	// Example output:
+	// ruby 3.2.1 (2023-02-08 revision 31819e82c8) [arm64-darwin22]
+	versionSlice := strings.Split(output, " ")
+	if len(versionSlice) < 2 {
+		f.logger.Warnf("Unrecognized Ruby version: %s", versionSlice)
+	}
+	version := versionSlice[1]
+
+	f.logger.Println()
+	f.logger.Infof("Active Ruby version: %s", version)
+
+	logRubyVersion(version)
+}
+
 func (f FastlaneRunner) selectAppleAuthSource(config Config, authSources []appleauth.Source, authInputs appleauth.Inputs) (appleauth.Credentials, error) {
 	f.logger.Println()
 	f.logger.Infof("Reading Apple Developer Portal authentication data")
