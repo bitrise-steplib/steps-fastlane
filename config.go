@@ -184,6 +184,8 @@ func (f FastlaneRunner) checkForRbenv(workDir string) {
 	f.logger.Println()
 	f.logger.Infof("Checking rbenv version")
 	if _, err := f.cmdLocator.LookPath("rbenv"); err != nil {
+		f.logger.Warnf("rbenv not found: %s", err)
+
 		cmd := f.rbyFactory.Create("rbenv", []string{"versions"}, &command.Opts{
 			Stderr: os.Stderr,
 			Stdout: os.Stdout,
