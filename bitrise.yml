@@ -84,10 +84,10 @@ workflows:
                 exit 1
             fi
 
-#  auth-test-apple-id-connection:
-#    before_run:
-#    - _auth_prepare
-#    steps:
+  auth-test-apple-id-connection:
+    before_run:
+    - _auth_prepare
+    steps:
 #    - path::./:
 #        inputs:
 #        - lane: release
