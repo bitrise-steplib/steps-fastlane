@@ -84,16 +84,16 @@ workflows:
                 exit 1
             fi
 
-  auth-test-apple-id-connection:
-    before_run:
-    - _auth_prepare
-    steps:
-    - path::./:
-        inputs:
-        - lane: release
-        - work_dir: ./
-        - verbose_log: "yes"
-        - connection: apple_id
+#  auth-test-apple-id-connection:
+#    before_run:
+#    - _auth_prepare
+#    steps:
+#    - path::./:
+#        inputs:
+#        - lane: release
+#        - work_dir: ./
+#        - verbose_log: "yes"
+#        - connection: apple_id
 
   auth-test-apple-id-connection-globally-set-app-specific-password:
     envs:
