@@ -1,5 +1,7 @@
 package step
 
+import "errors"
+
 // Error is an error occuring top level in a step
 type Error struct {
 	StepID, Tag, ShortMsg string
@@ -33,4 +35,12 @@ func NewErrorWithRecommendations(stepID, tag string, err error, shortMsg string,
 
 func (e *Error) Error() string {
 	return e.Err.Error()
+}
+
+func (e *Error) Unwrap() error {
+	if err := errors.Unwrap(e.Err); err != nil {
+		return err
+	}
+
+	return nil
 }

@@ -127,5 +127,5 @@ func (f FastlaneRunner) reportRubyVersion(useBundler bool, bundlerVersion string
 	f.logger.Println()
 	f.logger.Infof("Active Ruby version: %s", version)
 
-	logRubyVersion(version)
+	f.tracker.logEffectiveRubyVersion(version)
 }
