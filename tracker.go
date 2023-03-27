@@ -27,7 +27,7 @@ func (t *stepTracker) logEffectiveRubyVersion(versionString string) {
 	properties := analytics.Properties{
 		"effective_ruby_version": versionString,
 	}
-	t.tracker.Enqueue("step_save_cache_archive_uploaded", properties)
+	t.tracker.Enqueue("step_ruby_version_selected", properties)
 }
 
 func (t *stepTracker) wait() {
