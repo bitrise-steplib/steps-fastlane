@@ -17,7 +17,7 @@ type EnsureDependenciesOpts struct {
 
 // InstallDependencies ...
 func (f FastlaneRunner) InstallDependencies(opts EnsureDependenciesOpts) error {
-	f.reportRubyVersion(opts.UseBundler, opts.GemVersions.bundler.Version)
+	f.reportRubyVersion(opts.UseBundler, opts.GemVersions.bundler.Version, opts.WorkDir)
 
 	// Install desired Fastlane version
 	if opts.UseBundler {
@@ -103,12 +103,17 @@ func (f FastlaneRunner) InstallDependencies(opts EnsureDependenciesOpts) error {
 	return nil
 }
 
-func (f FastlaneRunner) reportRubyVersion(useBundler bool, bundlerVersion string) {
+func (f FastlaneRunner) reportRubyVersion(useBundler bool, bundlerVersion string, workDir string) {
 	var versionCmd command.Command
+	options := &command.Opts{
+		Stdout: os.Stdout,
+		Stderr: os.Stderr,
+		Dir:    workDir,
+	}
 	if useBundler {
-		versionCmd = f.rbyFactory.CreateBundleExec("ruby", []string{"--version"}, bundlerVersion, nil)
+		versionCmd = f.rbyFactory.CreateBundleExec("ruby", []string{"--version"}, bundlerVersion, options)
 	} else {
-		versionCmd = f.rbyFactory.Create("ruby", []string{"--version"}, nil)
+		versionCmd = f.rbyFactory.Create("ruby", []string{"--version"}, options)
 	}
 	output, err := versionCmd.RunAndReturnTrimmedCombinedOutput()
 	if err != nil {
