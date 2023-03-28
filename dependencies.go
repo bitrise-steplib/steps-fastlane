@@ -119,7 +119,7 @@ func (f FastlaneRunner) reportRubyVersion(useBundler bool, bundlerVersion string
 	// Example output:
 	// ruby 3.2.1 (2023-02-08 revision 31819e82c8) [arm64-darwin22]
 	versionSlice := strings.Split(output, " ")
-	if len(versionSlice) < 2 {
+	if len(versionSlice) < 2 || versionSlice[0] != "ruby" {
 		f.logger.Warnf("Unrecognized Ruby version: %s", versionSlice)
 	}
 	version := versionSlice[1]
