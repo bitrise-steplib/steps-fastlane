@@ -183,7 +183,8 @@ func (f FastlaneRunner) getWorkDir(config Config) (string, error) {
 func (f FastlaneRunner) checkForRbenv(workDir string) {
 	f.logger.Println()
 	f.logger.Infof("Checking rbenv version")
-	if _, err := f.cmdLocator.LookPath("rbenv"); err != nil {
+	if _, err := f.cmdLocator.LookPath("rbenv"); err == nil {
+
 		cmd := f.rbyFactory.Create("rbenv", []string{"versions"}, &command.Opts{
 			Stderr: os.Stderr,
 			Stdout: os.Stdout,
@@ -194,6 +195,8 @@ func (f FastlaneRunner) checkForRbenv(workDir string) {
 		if err := cmd.Run(); err != nil {
 			f.logger.Warnf(err.Error())
 		}
+	} else {
+		f.logger.Warnf("rbenv not found: %s", err)
 	}
 }
 

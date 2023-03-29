@@ -50,6 +50,8 @@ func run() ExitCode {
 		return Failure
 	}
 
+	buildStep.tracker.wait()
+
 	return Success
 }
 
@@ -64,8 +66,9 @@ func createStep(logger log.Logger) FastlaneRunner {
 	}
 
 	pathModifier := pathutil.NewPathModifier()
+	tracker := newStepTracker(envRepository, logger)
 
-	return NewFastlaneRunner(inputParser, logger, cmdLocator, cmdFactory, rbyFactory, pathModifier)
+	return NewFastlaneRunner(inputParser, logger, cmdLocator, cmdFactory, rbyFactory, pathModifier, tracker)
 }
 
 // FastlaneRunner ...
@@ -76,6 +79,7 @@ type FastlaneRunner struct {
 	cmdLocator   env.CommandLocator
 	rbyFactory   ruby.CommandFactory
 	pathModifier pathutil.PathModifier
+	tracker      stepTracker
 }
 
 // NewFastlaneRunner ...
@@ -86,6 +90,7 @@ func NewFastlaneRunner(
 	cmdFactory command.Factory,
 	rbyFactory ruby.CommandFactory,
 	pathModifier pathutil.PathModifier,
+	tracker stepTracker,
 ) FastlaneRunner {
 	return FastlaneRunner{
 		inputParser:  stepInputParser,
@@ -94,6 +99,7 @@ func NewFastlaneRunner(
 		cmdFactory:   cmdFactory,
 		rbyFactory:   rbyFactory,
 		pathModifier: pathModifier,
+		tracker:      tracker,
 	}
 }
 

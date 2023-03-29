@@ -2,6 +2,7 @@ package main
 
 import (
 	"os"
+	"strings"
 
 	"github.com/bitrise-io/go-utils/v2/command"
 )
@@ -16,6 +17,8 @@ type EnsureDependenciesOpts struct {
 
 // InstallDependencies ...
 func (f FastlaneRunner) InstallDependencies(opts EnsureDependenciesOpts) error {
+	f.reportRubyVersion(opts.UseBundler, opts.GemVersions.bundler.Version, opts.WorkDir)
+
 	// Install desired Fastlane version
 	if opts.UseBundler {
 		f.logger.Println()
@@ -98,4 +101,36 @@ func (f FastlaneRunner) InstallDependencies(opts EnsureDependenciesOpts) error {
 	}
 
 	return nil
+}
+
+func (f FastlaneRunner) reportRubyVersion(useBundler bool, bundlerVersion string, workDir string) {
+	var versionCmd command.Command
+	options := &command.Opts{
+		Stdout: os.Stdout,
+		Stderr: os.Stderr,
+		Dir:    workDir,
+	}
+	if useBundler {
+		versionCmd = f.rbyFactory.CreateBundleExec("ruby", []string{"--version"}, bundlerVersion, options)
+	} else {
+		versionCmd = f.rbyFactory.Create("ruby", []string{"--version"}, options)
+	}
+	output, err := versionCmd.RunAndReturnTrimmedCombinedOutput()
+	if err != nil {
+		f.logger.Warnf("Failed to check active Ruby version: %s", err)
+		f.logger.Printf("Output: %s", output)
+		return
+	}
+	// Example output:
+	// ruby 3.2.1 (2023-02-08 revision 31819e82c8) [arm64-darwin22]
+	versionSlice := strings.Split(output, " ")
+	if len(versionSlice) < 2 || versionSlice[0] != "ruby" {
+		f.logger.Warnf("Unrecognized Ruby version: %s", versionSlice)
+	}
+	version := versionSlice[1]
+
+	f.logger.Println()
+	f.logger.Infof("Active Ruby version: %s", version)
+
+	f.tracker.logEffectiveRubyVersion(version)
 }
