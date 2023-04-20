@@ -106,9 +106,7 @@ func (f FastlaneRunner) InstallDependencies(opts EnsureDependenciesOpts) error {
 func (f FastlaneRunner) reportRubyVersion(useBundler bool, bundlerVersion string, workDir string) {
 	var versionCmd command.Command
 	options := &command.Opts{
-		Stdout: os.Stdout,
-		Stderr: os.Stderr,
-		Dir:    workDir,
+		Dir: workDir,
 	}
 	if useBundler {
 		versionCmd = f.rbyFactory.CreateBundleExec("ruby", []string{"--version"}, bundlerVersion, options)
