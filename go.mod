@@ -1,6 +1,6 @@
 module github.com/bitrise-io/steps-fastlane
 
-go 1.17
+go 1.20
 
 require (
 	github.com/bitrise-io/bitrise-init v0.0.0-20220504131857-f00a24c7c8ba
@@ -9,7 +9,7 @@ require (
 	github.com/bitrise-io/go-steputils/v2 v2.0.0-alpha.17
 	github.com/bitrise-io/go-utils v1.0.9
 	github.com/bitrise-io/go-utils/v2 v2.0.0-alpha.16
-	github.com/bitrise-io/go-xcode v1.0.15
+	github.com/bitrise-io/go-xcode v1.0.16
 	github.com/kballard/go-shellquote v0.0.0-20180428030007-95032a82bc51
 	github.com/stretchr/testify v1.8.4
 )
