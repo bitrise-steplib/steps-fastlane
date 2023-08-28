@@ -150,7 +150,7 @@ workflows:
   _auth_prepare:
     envs:
     - SAMPLE_APP_URL: https://github.com/bitrise-samples/sample-apps-fastlane-test.git
-    - BRANCH: deployment-target-update
+    - BRANCH: master
     - INFO_PLIST_PATH: ./sample-apps-fastlane-test/Info.plist
     steps:
     - script:
