@@ -4,7 +4,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/bitrise-io/go-steputils/command/rubycommand"
+	"github.com/bitrise-io/go-steputils/v2/ruby"
 	"github.com/bitrise-io/go-utils/v2/command"
 )
 
@@ -105,7 +105,7 @@ func (f FastlaneRunner) InstallDependencies(opts EnsureDependenciesOpts) error {
 }
 
 func (f FastlaneRunner) reportRubyVersion(useBundler bool, bundlerVersion string, workDir string) {
-	if rubycommand.RubyInstallType() == rubycommand.ASDFRuby {
+	if f.rubyEnvironment.RubyInstallType() == ruby.ASDFRuby {
 		f.logger.Println()
 		f.logger.Infof("Checking selected Ruby version")
 
@@ -119,7 +119,7 @@ func (f FastlaneRunner) reportRubyVersion(useBundler bool, bundlerVersion string
 		if err := cmd.Run(); err != nil {
 			f.logger.Warnf("Failed to print selected Ruby version: %s", err)
 		}
-	} else if rubycommand.RubyInstallType() == rubycommand.RbenvRuby {
+	} else if f.rubyEnvironment.RubyInstallType() == ruby.RbenvRuby {
 		f.logger.Println()
 		f.logger.Infof("Checking selected Ruby version")
 		if _, err := f.cmdLocator.LookPath("rbenv"); err == nil {
