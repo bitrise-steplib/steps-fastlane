@@ -4,13 +4,10 @@ import (
 	"github.com/bitrise-io/go-steputils/step"
 )
 
-// BitriseConfigMap ...
 type BitriseConfigMap map[string]string
 
-// Warnings ...
 type Warnings []string
 
-// Errors ...
 type Errors []string
 
 // Icon is potential app icon.
@@ -20,19 +17,15 @@ type Icon struct {
 	Path     string
 }
 
-// Icons is an array of icons
 type Icons []Icon
 
-// ErrorWithRecommendations ...
 type ErrorWithRecommendations struct {
 	Error           string
 	Recommendations step.Recommendation
 }
 
-// ErrorsWithRecommendations is an array with an Error and its Recommendations
 type ErrorsWithRecommendations []ErrorWithRecommendations
 
-// ScanResultModel ...
 type ScanResultModel struct {
 	ScannerToOptionRoot                  map[string]OptionNode                `json:"options,omitempty" yaml:"options,omitempty"`
 	ScannerToBitriseConfigMap            map[string]BitriseConfigMap          `json:"configs,omitempty" yaml:"configs,omitempty"`
@@ -43,7 +36,14 @@ type ScanResultModel struct {
 	Icons                                []Icon                               `json:"-" yaml:"-"`
 }
 
-// AddErrorWithRecommendation ...
+type SSHKeyActivation int
+
+const (
+	SSHKeyActivationNone = iota
+	SSHKeyActivationMandatory
+	SSHKeyActivationConditional
+)
+
 func (result *ScanResultModel) AddErrorWithRecommendation(platform string, recommendation ErrorWithRecommendations) {
 	if result.ScannerToErrorsWithRecommendations == nil {
 		result.ScannerToErrorsWithRecommendations = map[string]ErrorsWithRecommendations{}

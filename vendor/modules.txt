@@ -1,23 +1,24 @@
-# github.com/beevik/etree v1.1.0
-## explicit
+# github.com/beevik/etree v1.2.0
+## explicit; go 1.13
 github.com/beevik/etree
-# github.com/bitrise-io/bitrise v0.0.0-20220719135434-7f794d69d858
-## explicit; go 1.16
+# github.com/bitrise-io/bitrise v0.0.0-20230920132712-a20cb0493953
+## explicit; go 1.17
+github.com/bitrise-io/bitrise/exitcode
 github.com/bitrise-io/bitrise/models
-# github.com/bitrise-io/bitrise-init v0.0.0-20220504131857-f00a24c7c8ba
-## explicit; go 1.16
+# github.com/bitrise-io/bitrise-init v0.0.0-20230901074816-efe492d99277
+## explicit; go 1.18
 github.com/bitrise-io/bitrise-init/analytics
 github.com/bitrise-io/bitrise-init/models
 github.com/bitrise-io/bitrise-init/scanners/android
 github.com/bitrise-io/bitrise-init/steps
 github.com/bitrise-io/bitrise-init/utility
-# github.com/bitrise-io/envman v0.0.0-20220512153504-166d59151b78
-## explicit; go 1.16
+# github.com/bitrise-io/envman v0.0.0-20230802102824-1300c57d49c4
+## explicit; go 1.18
 github.com/bitrise-io/envman/models
-# github.com/bitrise-io/go-android/v2 v2.0.0-alpha.3
+# github.com/bitrise-io/go-android/v2 v2.0.0-alpha.5
 ## explicit; go 1.16
 github.com/bitrise-io/go-android/v2/cache
-# github.com/bitrise-io/go-steputils v1.0.5
+# github.com/bitrise-io/go-steputils v1.0.6
 ## explicit; go 1.15
 github.com/bitrise-io/go-steputils/cache
 github.com/bitrise-io/go-steputils/command/gems
@@ -25,7 +26,7 @@ github.com/bitrise-io/go-steputils/command/rubycommand
 github.com/bitrise-io/go-steputils/input
 github.com/bitrise-io/go-steputils/step
 github.com/bitrise-io/go-steputils/tools
-# github.com/bitrise-io/go-steputils/v2 v2.0.0-alpha.17
+# github.com/bitrise-io/go-steputils/v2 v2.0.0-alpha.20
 ## explicit; go 1.17
 github.com/bitrise-io/go-steputils/v2/ruby
 github.com/bitrise-io/go-steputils/v2/stepconf
@@ -41,7 +42,7 @@ github.com/bitrise-io/go-utils/parseutil
 github.com/bitrise-io/go-utils/pathutil
 github.com/bitrise-io/go-utils/pointers
 github.com/bitrise-io/go-utils/sliceutil
-# github.com/bitrise-io/go-utils/v2 v2.0.0-alpha.16
+# github.com/bitrise-io/go-utils/v2 v2.0.0-alpha.19
 ## explicit; go 1.17
 github.com/bitrise-io/go-utils/v2/analytics
 github.com/bitrise-io/go-utils/v2/command
@@ -56,19 +57,19 @@ github.com/bitrise-io/go-utils/v2/retryhttp
 ## explicit; go 1.20
 github.com/bitrise-io/go-xcode/appleauth
 github.com/bitrise-io/go-xcode/devportalservice
-# github.com/bitrise-io/stepman v0.0.0-20220718172049-e5ae0a09c2f2
-## explicit; go 1.16
+# github.com/bitrise-io/stepman v0.0.0-20230728094915-939f0fe5c19a
+## explicit; go 1.18
 github.com/bitrise-io/stepman/models
 # github.com/davecgh/go-spew v1.1.1
 ## explicit
 github.com/davecgh/go-spew/spew
-# github.com/gofrs/uuid v4.3.1+incompatible
+# github.com/gofrs/uuid v4.4.0+incompatible
 ## explicit
 github.com/gofrs/uuid
 # github.com/hashicorp/go-cleanhttp v0.5.2
 ## explicit; go 1.13
 github.com/hashicorp/go-cleanhttp
-# github.com/hashicorp/go-retryablehttp v0.7.1
+# github.com/hashicorp/go-retryablehttp v0.7.4
 ## explicit; go 1.13
 github.com/hashicorp/go-retryablehttp
 # github.com/hashicorp/go-version v1.6.0
@@ -86,8 +87,8 @@ github.com/pmezard/go-difflib/difflib
 # github.com/ryanuber/go-glob v1.0.0
 ## explicit
 github.com/ryanuber/go-glob
-# github.com/stretchr/objx v0.5.0
-## explicit; go 1.12
+# github.com/stretchr/objx v0.5.1
+## explicit; go 1.13
 github.com/stretchr/objx
 # github.com/stretchr/testify v1.8.4
 ## explicit; go 1.20

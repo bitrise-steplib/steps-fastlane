@@ -1,8 +1,6 @@
 package models
 
 import (
-	"errors"
-
 	bitriseModels "github.com/bitrise-io/bitrise/models"
 	envmanModels "github.com/bitrise-io/envman/models"
 )
@@ -17,7 +15,7 @@ const (
 	DeployWorkflowID WorkflowID = "deploy"
 
 	// FormatVersion ...
-	FormatVersion = bitriseModels.Version
+	FormatVersion = bitriseModels.FormatVersion
 
 	defaultSteplibSource = "https://github.com/bitrise-io/bitrise-steplib.git"
 )
@@ -30,9 +28,7 @@ type ConfigBuilderModel struct {
 // NewDefaultConfigBuilder ...
 func NewDefaultConfigBuilder() *ConfigBuilderModel {
 	return &ConfigBuilderModel{
-		workflowBuilderMap: map[WorkflowID]*workflowBuilderModel{
-			PrimaryWorkflowID: newDefaultWorkflowBuilder(),
-		},
+		workflowBuilderMap: map[WorkflowID]*workflowBuilderModel{},
 	}
 }
 
@@ -56,19 +52,23 @@ func (builder *ConfigBuilderModel) SetWorkflowDescriptionTo(workflow WorkflowID,
 	workflowBuilder.Description = description
 }
 
+// SetWorkflowSummaryTo ...
+func (builder *ConfigBuilderModel) SetWorkflowSummaryTo(workflow WorkflowID, summary string) {
+	workflowBuilder := builder.workflowBuilderMap[workflow]
+	if workflowBuilder == nil {
+		workflowBuilder = newDefaultWorkflowBuilder()
+		builder.workflowBuilderMap[workflow] = workflowBuilder
+	}
+	workflowBuilder.Summary = summary
+}
+
 // Generate ...
 func (builder *ConfigBuilderModel) Generate(projectType string, appEnvs ...envmanModels.EnvironmentItemModel) (bitriseModels.BitriseDataModel, error) {
-	primaryWorkflowBuilder, ok := builder.workflowBuilderMap[PrimaryWorkflowID]
-	if !ok || primaryWorkflowBuilder == nil || len(primaryWorkflowBuilder.Steps) == 0 {
-		return bitriseModels.BitriseDataModel{}, errors.New("primary workflow not defined")
-	}
-
 	workflows := map[string]bitriseModels.WorkflowModel{}
 	for workflowID, workflowBuilder := range builder.workflowBuilderMap {
 		workflows[string(workflowID)] = workflowBuilder.generate()
 	}
 
-	triggerMap := []bitriseModels.TriggerMapItemModel{}
 	app := bitriseModels.AppModel{
 		Environments: appEnvs,
 	}
@@ -77,7 +77,6 @@ func (builder *ConfigBuilderModel) Generate(projectType string, appEnvs ...envma
 		FormatVersion:        FormatVersion,
 		DefaultStepLibSource: defaultSteplibSource,
 		ProjectType:          projectType,
-		TriggerMap:           triggerMap,
 		Workflows:            workflows,
 		App:                  app,
 	}, nil

@@ -34,6 +34,9 @@ const (
 	// Now, if this type is selected:
 	// - we must show an input field to the user and it is NOT required to be filled, can be empty, and any name for the key will be the placeholder value for the input field
 	TypeOptionalUserInput Type = "user_input_optional"
+
+	// UserInputOptionDefaultValue can be used as a value (forValue) for adding a default new option to a TypeUserInput and TypeOptionalUserInput OptionNode via AddOption or AddConfig.
+	UserInputOptionDefaultValue = ""
 )
 
 // OptionNode ...

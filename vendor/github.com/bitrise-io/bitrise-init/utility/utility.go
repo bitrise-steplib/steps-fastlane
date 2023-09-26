@@ -2,6 +2,7 @@ package utility
 
 import (
 	"encoding/json"
+	"os"
 	"path/filepath"
 	"strings"
 
@@ -54,4 +55,13 @@ func RelPath(basePth, pth string) (string, error) {
 	}
 
 	return filepath.Rel(absBasePth, absPth)
+}
+
+// FileExists ...
+func FileExists(filename string) bool {
+	info, err := os.Stat(filename)
+	if os.IsNotExist(err) {
+		return false
+	}
+	return !info.IsDir()
 }
