@@ -3,11 +3,9 @@ package main
 import (
 	"fmt"
 	"net/http"
-	"os"
 	"strings"
 
 	"github.com/bitrise-io/go-steputils/v2/stepconf"
-	"github.com/bitrise-io/go-utils/v2/command"
 	"github.com/bitrise-io/go-utils/v2/retryhttp"
 	"github.com/bitrise-io/go-xcode/appleauth"
 	"github.com/bitrise-io/go-xcode/devportalservice"
@@ -75,8 +73,6 @@ func (f FastlaneRunner) ProcessConfig() (Config, error) {
 		return Config{}, err
 	}
 	config.WorkDir = workDir
-
-	f.checkForRbenv(workDir)
 
 	// Select and fetch Apple authenication source
 	authConfig, err := f.selectAppleAuthSource(config, authSources, authInputs)
@@ -178,26 +174,6 @@ func (f FastlaneRunner) getWorkDir(config Config) (string, error) {
 
 	f.logger.Donef("Expanded WorkDir: %s", workDir)
 	return workDir, nil
-}
-
-func (f FastlaneRunner) checkForRbenv(workDir string) {
-	f.logger.Println()
-	f.logger.Infof("Checking rbenv version")
-	if _, err := f.cmdLocator.LookPath("rbenv"); err == nil {
-
-		cmd := f.rbyFactory.Create("rbenv", []string{"versions"}, &command.Opts{
-			Stderr: os.Stderr,
-			Stdout: os.Stdout,
-			Dir:    workDir,
-		})
-
-		f.logger.Donef("$ %s", cmd.PrintableCommandArgs())
-		if err := cmd.Run(); err != nil {
-			f.logger.Warnf(err.Error())
-		}
-	} else {
-		f.logger.Warnf("rbenv not found: %s", err)
-	}
 }
 
 func (f FastlaneRunner) selectAppleAuthSource(config Config, authSources []appleauth.Source, authInputs appleauth.Inputs) (appleauth.Credentials, error) {
