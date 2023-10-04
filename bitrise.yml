@@ -26,8 +26,8 @@ workflows:
 
   cache:
     envs:
-    - SAMPLE_APP_URL: https://github.com/bitrise-io/sample-apps-flutter-veggieseasons.git
-    - BRANCH: master
+    - SAMPLE_APP_URL: https://github.com/bitrise-io/Bitrise-Flutter-Sample.git
+    - BRANCH: BE-1195-fastlane-test
     - XCODE_SCHEME: Runner
     steps:
     - script:
@@ -58,11 +58,6 @@ workflows:
         - scheme: $XCODE_SCHEME
         - configuration: Release
         - distribution_method: development
-    - flutter-installer:
-        run_if: "true"
-        title: Install Flutter
-        inputs:
-        - installation_bundle_url: https://storage.googleapis.com/flutter_infra_release/releases/stable/macos/flutter_macos_2.2.3-stable.zip
     - path::./:
         title: Test building a Flutter project
         inputs:
