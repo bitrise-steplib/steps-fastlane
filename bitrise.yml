@@ -26,8 +26,8 @@ workflows:
 
   cache:
     envs:
-    - SAMPLE_APP_URL: https://github.com/bitrise-io/Bitrise-Flutter-Sample.git
-    - BRANCH: BE-1195-fastlane-test
+    - SAMPLE_APP_URL: https://github.com/bitrise-io/sample-apps-flutter-veggieseasons.git
+    - BRANCH: BE-1195-update-sample
     - XCODE_SCHEME: Runner
     steps:
     - script:
