@@ -2,12 +2,14 @@ package android
 
 import (
 	"errors"
+	"fmt"
 	"os"
 	"path/filepath"
 
+	"github.com/bitrise-io/bitrise-init/analytics"
 	"github.com/bitrise-io/bitrise-init/models"
-	"github.com/bitrise-io/bitrise-init/steps"
-	envmanModels "github.com/bitrise-io/envman/models"
+	"github.com/bitrise-io/bitrise-init/utility"
+	"github.com/bitrise-io/go-utils/log"
 	"github.com/bitrise-io/go-utils/pathutil"
 )
 
@@ -16,37 +18,107 @@ type fileGroups [][]string
 var pathUtilIsPathExists = pathutil.IsPathExists
 var filePathWalk = filepath.Walk
 
-// Constants ...
-const (
-	ScannerName       = "android"
-	ConfigName        = "android-config"
-	DefaultConfigName = "default-android-config"
-
-	ProjectLocationInputKey     = "project_location"
-	ProjectLocationInputEnvKey  = "PROJECT_LOCATION"
-	ProjectLocationInputTitle   = "The root directory of an Android project"
-	ProjectLocationInputSummary = "The root directory of your Android project, stored as an Environment Variable. In your Workflows, you can specify paths relative to this path. You can change this at any time."
-
-	ModuleBuildGradlePathInputKey = "build_gradle_path"
-
-	VariantInputKey     = "variant"
-	VariantInputEnvKey  = "VARIANT"
-	VariantInputTitle   = "Variant"
-	VariantInputSummary = "Your Android build variant. You can add variants at any time, as well as further configure your existing variants later."
-
-	ModuleInputKey     = "module"
-	ModuleInputEnvKey  = "MODULE"
-	ModuleInputTitle   = "Module"
-	ModuleInputSummary = "Modules provide a container for your Android project's source code, resource files, and app level settings, such as the module-level build file and Android manifest file. Each module can be independently built, tested, and debugged. You can add new modules to your Bitrise builds at any time."
-
-	GradlewPathInputKey = "gradlew_path"
-)
-
 // Project is an Android project on the filesystem
 type Project struct {
-	RelPath  string
-	Icons    models.Icons
-	Warnings models.Warnings
+	RelPath               string
+	UsesKotlinBuildScript bool
+	Icons                 models.Icons
+	Warnings              models.Warnings
+}
+
+func detect(searchDir string) ([]Project, error) {
+	projectFiles := fileGroups{
+		{"build.gradle", gradleKotlinBuildFile},
+		{"settings.gradle", gradleKotlinSettingsFile},
+	}
+	skipDirs := []string{".git", "CordovaLib", "node_modules"}
+
+	log.TInfof("Searching for android files")
+
+	projectRoots, err := walkMultipleFileGroups(searchDir, projectFiles, skipDirs)
+	if err != nil {
+		return nil, fmt.Errorf("failed to search for build.gradle files, error: %s", err)
+	}
+
+	log.TPrintf("%d android files detected", len(projectRoots))
+	for _, file := range projectRoots {
+		log.TPrintf("- %s", file)
+	}
+
+	if len(projectRoots) == 0 {
+		return nil, nil
+	}
+	log.TSuccessf("Platform detected")
+
+	projects, err := parseProjects(searchDir, projectRoots)
+	if err != nil {
+		return nil, err
+	}
+
+	return projects, nil
+}
+
+func parseProjects(searchDir string, projectRoots []string) ([]Project, error) {
+	var (
+		lastErr  error
+		projects []Project
+	)
+
+	for _, projectRoot := range projectRoots {
+		var warnings models.Warnings
+
+		log.TInfof("Investigating Android project: %s", projectRoot)
+
+		exists, err := containsLocalProperties(projectRoot)
+		if err != nil {
+			lastErr = err
+			log.TWarnf("%s", err)
+
+			continue
+		}
+		if exists {
+			containsLocalPropertiesWarning := fmt.Sprintf("the local.properties file should NOT be checked into Version Control Systems, as it contains information specific to your local configuration, the location of the file is: %s", filepath.Join(projectRoot, "local.properties"))
+			warnings = []string{containsLocalPropertiesWarning}
+		}
+
+		if err := checkGradlew(projectRoot); err != nil {
+			lastErr = err
+			log.TWarnf("%s", err)
+
+			continue
+		}
+
+		relProjectRoot, err := filepath.Rel(searchDir, projectRoot)
+		if err != nil {
+			lastErr = err
+			log.TWarnf("%s", err)
+
+			continue
+		}
+
+		icons, err := LookupIcons(projectRoot, searchDir)
+		if err != nil {
+			analytics.LogInfo("android-icon-lookup", analytics.DetectorErrorData("android", err), "Failed to lookup android icon")
+		}
+
+		kotlinBuildScriptBased := usesKotlinBuildScripts(projectRoot)
+		projects = append(projects, Project{
+			RelPath:               relProjectRoot,
+			UsesKotlinBuildScript: kotlinBuildScriptBased,
+			Icons:                 icons,
+			Warnings:              warnings,
+		})
+	}
+
+	if len(projects) == 0 {
+		return []Project{}, lastErr
+	}
+
+	return projects, nil
+}
+
+func usesKotlinBuildScripts(projectRoot string) bool {
+	return utility.FileExists(filepath.Join(projectRoot, gradleKotlinBuildFile)) && utility.FileExists(filepath.Join(projectRoot, gradleKotlinSettingsFile))
 }
 
 func walk(src string, fn func(path string, info os.FileInfo) error) error {
@@ -138,75 +210,35 @@ that the right Gradle version is installed and used for the build. More info/gui
 	return nil
 }
 
-func (scanner *Scanner) generateConfigBuilder(isPrivateRepository bool) models.ConfigBuilderModel {
-	configBuilder := models.NewDefaultConfigBuilder()
+type configBuildingParams struct {
+	name            string
+	useKotlinScript bool
+}
 
-	projectLocationEnv, gradlewPath, moduleEnv, variantEnv := "$"+ProjectLocationInputEnvKey, "$"+ProjectLocationInputEnvKey+"/gradlew", "$"+ModuleInputEnvKey, "$"+VariantInputEnvKey
+func configBuildingParameters(projects []Project) []configBuildingParams {
+	regularProjectCount := 0
+	kotlinBuildScriptProjectCount := 0
 
-	//-- primary
-	configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.DefaultPrepareStepListV2(steps.PrepareListParams{
-		ShouldIncludeCache:       true,
-		ShouldIncludeActivateSSH: isPrivateRepository,
-	})...)
-	configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.InstallMissingAndroidToolsStepListItem(
-		envmanModels.EnvironmentItemModel{GradlewPathInputKey: gradlewPath},
-	))
-	configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.AndroidUnitTestStepListItem(
-		envmanModels.EnvironmentItemModel{
-			ProjectLocationInputKey: projectLocationEnv,
-		},
-		envmanModels.EnvironmentItemModel{
-			VariantInputKey: variantEnv,
-		},
-	))
-	configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.DefaultDeployStepListV2(true)...)
-	configBuilder.SetWorkflowDescriptionTo(models.PrimaryWorkflowID, primaryWorkflowDescription)
+	for _, project := range projects {
+		if project.UsesKotlinBuildScript {
+			kotlinBuildScriptProjectCount += 1
+		} else {
+			regularProjectCount += 1
+		}
+	}
 
-	//-- deploy
-	configBuilder.AppendStepListItemsTo(models.DeployWorkflowID, steps.DefaultPrepareStepListV2(steps.PrepareListParams{
-		ShouldIncludeCache:       true,
-		ShouldIncludeActivateSSH: isPrivateRepository,
-	})...)
-	configBuilder.AppendStepListItemsTo(models.DeployWorkflowID, steps.InstallMissingAndroidToolsStepListItem(
-		envmanModels.EnvironmentItemModel{GradlewPathInputKey: gradlewPath},
-	))
-
-	configBuilder.AppendStepListItemsTo(models.DeployWorkflowID, steps.ChangeAndroidVersionCodeAndVersionNameStepListItem(
-		envmanModels.EnvironmentItemModel{ModuleBuildGradlePathInputKey: filepath.Join(projectLocationEnv, moduleEnv, "build.gradle")},
-	))
-
-	configBuilder.AppendStepListItemsTo(models.DeployWorkflowID, steps.AndroidLintStepListItem(
-		envmanModels.EnvironmentItemModel{
-			ProjectLocationInputKey: projectLocationEnv,
-		},
-		envmanModels.EnvironmentItemModel{
-			VariantInputKey: variantEnv,
-		},
-	))
-	configBuilder.AppendStepListItemsTo(models.DeployWorkflowID, steps.AndroidUnitTestStepListItem(
-		envmanModels.EnvironmentItemModel{
-			ProjectLocationInputKey: projectLocationEnv,
-		},
-		envmanModels.EnvironmentItemModel{
-			VariantInputKey: variantEnv,
-		},
-	))
-
-	configBuilder.AppendStepListItemsTo(models.DeployWorkflowID, steps.AndroidBuildStepListItem(
-		envmanModels.EnvironmentItemModel{
-			ProjectLocationInputKey: projectLocationEnv,
-		},
-		envmanModels.EnvironmentItemModel{
-			ModuleInputKey: moduleEnv,
-		},
-		envmanModels.EnvironmentItemModel{
-			VariantInputKey: variantEnv,
-		},
-	))
-	configBuilder.AppendStepListItemsTo(models.DeployWorkflowID, steps.SignAPKStepListItem())
-	configBuilder.AppendStepListItemsTo(models.DeployWorkflowID, steps.DefaultDeployStepListV2(true)...)
-
-	configBuilder.SetWorkflowDescriptionTo(models.DeployWorkflowID, deployWorkflowDescription)
-
-	return *configBuilder
+	var params []configBuildingParams
+	if 0 < regularProjectCount {
+		params = append(params, configBuildingParams{
+			name:            ConfigName,
+			useKotlinScript: false,
+		})
+	}
+	if 0 < kotlinBuildScriptProjectCount {
+		params = append(params, configBuildingParams{
+			name:            ConfigNameKotlinScript,
+			useKotlinScript: true,
+		})
+	}
+	return params
 }

@@ -1,258 +1,186 @@
 package steps
 
 const (
-	// ActivateSSHKeyID ...
-	ActivateSSHKeyID = "activate-ssh-key"
-	// ActivateSSHKeyVersion ...
+	ActivateSSHKeyID      = "activate-ssh-key"
 	ActivateSSHKeyVersion = "4"
 )
 
 const (
-	// AndroidLintID ...
-	AndroidLintID = "android-lint"
-	// AndroidLintVersion ...
+	AndroidLintID      = "android-lint"
 	AndroidLintVersion = "0"
 )
 
 const (
-	// AndroidUnitTestID ...
-	AndroidUnitTestID = "android-unit-test"
-	// AndroidUnitTestVersion ...
+	AndroidUnitTestID      = "android-unit-test"
 	AndroidUnitTestVersion = "1"
 )
 
 const (
-	// AndroidBuildID ...
-	AndroidBuildID = "android-build"
-	// AndroidBuildVersion ...
+	AndroidBuildID      = "android-build"
 	AndroidBuildVersion = "1"
 )
 
 const (
-	// GitCloneID ...
-	GitCloneID = "git-clone"
-	// GitCloneVersion ...
-	GitCloneVersion = "6"
+	GitCloneID      = "git-clone"
+	GitCloneVersion = "8"
 )
 
 const (
-	// CachePullID ...
-	CachePullID = "cache-pull"
-	// CachePullVersion ...
-	CachePullVersion = "2"
+	CacheRestoreGradleID         = "restore-gradle-cache"
+	CacheRestoreGradleVersion    = "1"
+	CacheRestoreCocoapodsID      = "restore-cocoapods-cache"
+	CacheRestoreCocoapodsVersion = "1"
+	CacheRestoreCarthageID       = "restore-carthage-cache"
+	CacheRestoreCarthageVersion  = "1"
+	CacheRestoreNPMID            = "restore-npm-cache"
+	CacheRestoreNPMVersion       = "1"
+	CacheRestoreSPMID            = "restore-spm-cache"
+	CacheRestoreSPMVersion       = "1"
+	CacheRestoreDartID           = "restore-dart-cache"
+	CacheRestoreDartVersion      = "1"
+
+	CacheSaveGradleID         = "save-gradle-cache"
+	CacheSaveGradleVersion    = "1"
+	CacheSaveCocoapodsID      = "save-cocoapods-cache"
+	CacheSaveCocoapodsVersion = "1"
+	CacheSaveCarthageID       = "save-carthage-cache"
+	CacheSaveCarthageVersion  = "1"
+	CacheSaveNPMID            = "save-npm-cache"
+	CacheSaveNPMVersion       = "1"
+	CacheSaveSPMID            = "save-spm-cache"
+	CacheSaveSPMVersion       = "1"
+	CacheSaveDartID           = "save-dart-cache"
+	CacheSaveDartVersion      = "1"
 )
 
 const (
-	// CachePushID ...
-	CachePushID = "cache-push"
-	// CachePushVersion ...
-	CachePushVersion = "2"
-)
-
-const (
-	// CertificateAndProfileInstallerID ...
-	CertificateAndProfileInstallerID = "certificate-and-profile-installer"
-	// CertificateAndProfileInstallerVersion ...
+	CertificateAndProfileInstallerID      = "certificate-and-profile-installer"
 	CertificateAndProfileInstallerVersion = "1"
 )
 
 const (
-	// ChangeAndroidVersionCodeAndVersionNameID ...
-	ChangeAndroidVersionCodeAndVersionNameID = "change-android-versioncode-and-versionname"
-	// ChangeAndroidVersionCodeAndVersionNameVersion ...
+	ChangeAndroidVersionCodeAndVersionNameID      = "change-android-versioncode-and-versionname"
 	ChangeAndroidVersionCodeAndVersionNameVersion = "1"
 )
 
 const (
-	// DeployToBitriseIoID ...
-	DeployToBitriseIoID = "deploy-to-bitrise-io"
-	// DeployToBitriseIoVersion ...
+	DeployToBitriseIoID      = "deploy-to-bitrise-io"
 	DeployToBitriseIoVersion = "2"
 )
 
 const (
-	// ScriptID ...
-	ScriptID = "script"
-	// ScriptVersion ...
-	ScriptVersion = "1"
-	// ScriptDefaultTitle ...
-	ScriptDefaultTitle = "Do anything with Script step"
-)
-
-const (
-	// SignAPKID ...
-	SignAPKID = "sign-apk"
-	// SignAPKVersion ...
+	SignAPKID      = "sign-apk"
 	SignAPKVersion = "1"
 )
 
 const (
-	// InstallMissingAndroidToolsID ...
-	InstallMissingAndroidToolsID = "install-missing-android-tools"
-	// InstallMissingAndroidToolsVersion ...
+	InstallMissingAndroidToolsID      = "install-missing-android-tools"
 	InstallMissingAndroidToolsVersion = "3"
 )
 
 const (
-	// FastlaneID ...
-	FastlaneID = "fastlane"
-	// FastlaneVersion ...
+	FastlaneID      = "fastlane"
 	FastlaneVersion = "3"
 )
 
 const (
-	// CocoapodsInstallID ...
-	CocoapodsInstallID = "cocoapods-install"
-	// CocoapodsInstallVersion ...
+	CocoapodsInstallID      = "cocoapods-install"
 	CocoapodsInstallVersion = "2"
 )
 
 const (
-	// CarthageID ...
-	CarthageID = "carthage"
-	// CarthageVersion ...
+	CarthageID      = "carthage"
 	CarthageVersion = "3"
 )
 
 const (
-	// RecreateUserSchemesID ...
-	RecreateUserSchemesID = "recreate-user-schemes"
-	// RecreateUserSchemesVersion ...
-	RecreateUserSchemesVersion = "1"
+	XcodeArchiveID      = "xcode-archive"
+	XcodeArchiveVersion = "5"
 )
 
 const (
-	// XcodeArchiveID ...
-	XcodeArchiveID = "xcode-archive"
-	// XcodeArchiveVersion ...
-	XcodeArchiveVersion = "4"
+	XcodeTestID      = "xcode-test"
+	XcodeTestVersion = "5"
 )
 
 const (
-	// XcodeTestID ...
-	XcodeTestID = "xcode-test"
-	// XcodeTestVersion ...
-	XcodeTestVersion = "4"
+	XcodeBuildForTestID      = "xcode-build-for-test"
+	XcodeBuildForTestVersion = "3"
 )
 
 const (
-	// XcodeBuildForTestID ...
-	XcodeBuildForTestID = "xcode-build-for-test"
-	// XcodeBuildForTestVersion ...
-	XcodeBuildForTestVersion = "1"
-)
-
-const (
-	// XcodeArchiveMacID ...
-	XcodeArchiveMacID = "xcode-archive-mac"
-	// XcodeArchiveMacVersion ...
+	XcodeArchiveMacID      = "xcode-archive-mac"
 	XcodeArchiveMacVersion = "1"
 )
 
 const (
-	// ExportXCArchiveID ...
-	ExportXCArchiveID = "export-xcarchive"
-	// ExportXCArchiveVersion ...
+	ExportXCArchiveID      = "export-xcarchive"
 	ExportXCArchiveVersion = "4"
 )
 
 const (
-	// XcodeTestMacID ...
-	XcodeTestMacID = "xcode-test-mac"
-	// XcodeTestMacVersion ...
+	XcodeTestMacID      = "xcode-test-mac"
 	XcodeTestMacVersion = "1"
 )
 
 const (
-	// CordovaArchiveID ...
-	CordovaArchiveID = "cordova-archive"
-	// CordovaArchiveVersion ...
+	CordovaArchiveID      = "cordova-archive"
 	CordovaArchiveVersion = "3"
 )
 
 const (
-	// IonicArchiveID ...
-	IonicArchiveID = "ionic-archive"
-	// IonicArchiveVersion ...
+	IonicArchiveID      = "ionic-archive"
 	IonicArchiveVersion = "2"
 )
 
 const (
-	// GenerateCordovaBuildConfigID ...
-	GenerateCordovaBuildConfigID = "generate-cordova-build-configuration"
-	// GenerateCordovaBuildConfigVersion ...
+	GenerateCordovaBuildConfigID      = "generate-cordova-build-configuration"
 	GenerateCordovaBuildConfigVersion = "0"
 )
 
 const (
-	// JasmineTestRunnerID ...
-	JasmineTestRunnerID = "jasmine-runner"
-	// JasmineTestRunnerVersion ...
+	JasmineTestRunnerID      = "jasmine-runner"
 	JasmineTestRunnerVersion = "0"
 )
 
 const (
-	// KarmaJasmineTestRunnerID ...
-	KarmaJasmineTestRunnerID = "karma-jasmine-runner"
-	// KarmaJasmineTestRunnerVersion ...
+	KarmaJasmineTestRunnerID      = "karma-jasmine-runner"
 	KarmaJasmineTestRunnerVersion = "0"
 )
 
 const (
-	// NpmID ...
-	NpmID = "npm"
-	// NpmVersion ...
+	NpmID      = "npm"
 	NpmVersion = "1"
 )
 
 const (
-	// ExpoDetachID ...
-	ExpoDetachID = "expo-detach"
-	// ExpoDetachVersion ...
-	ExpoDetachVersion = "1"
-)
-
-const (
-	// RunEASBuildID ...
-	RunEASBuildID = "run-eas-build"
-	// RunEASBuildVersion ...
+	RunEASBuildID      = "run-eas-build"
 	RunEASBuildVersion = "0"
 )
 
-// RunEASBuildPlatforms ...
 var RunEASBuildPlatforms = []string{"all", "android", "ios"}
 
 const (
-	// YarnID ...
-	YarnID = "yarn"
-	// YarnVersion ...
+	YarnID      = "yarn"
 	YarnVersion = "0"
 )
 
 const (
-	// FlutterInstallID ...
-	FlutterInstallID = "flutter-installer"
-	// FlutterInstallVersion ...
+	FlutterInstallID      = "flutter-installer"
 	FlutterInstallVersion = "0"
 )
 
 const (
-	// FlutterTestID ...
-	FlutterTestID = "flutter-test"
-	// FlutterTestVersion ...
+	FlutterTestID      = "flutter-test"
 	FlutterTestVersion = "1"
 )
 
 const (
-	// FlutterAnalyzeID ...
-	FlutterAnalyzeID = "flutter-analyze"
-	// FlutterAnalyzeVersion ...
+	FlutterAnalyzeID      = "flutter-analyze"
 	FlutterAnalyzeVersion = "0"
 )
 
 const (
-	// FlutterBuildID ...
-	FlutterBuildID = "flutter-build"
-	// FlutterBuildVersion ...
+	FlutterBuildID      = "flutter-build"
 	FlutterBuildVersion = "0"
 )

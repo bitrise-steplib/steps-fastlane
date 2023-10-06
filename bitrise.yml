@@ -51,6 +51,9 @@ workflows:
         - work_dir: ./
         - verbose_log: "yes"
         - connection: apple_id
+    - flutter-installer:
+        inputs:
+        - flutter_version: 3.13.6
     - manage-ios-code-signing:
         run_if: "true"
         inputs:
@@ -58,11 +61,6 @@ workflows:
         - scheme: $XCODE_SCHEME
         - configuration: Release
         - distribution_method: development
-    - flutter-installer:
-        run_if: "true"
-        title: Install Flutter
-        inputs:
-        - installation_bundle_url: https://storage.googleapis.com/flutter_infra_release/releases/stable/macos/flutter_macos_2.2.3-stable.zip
     - path::./:
         title: Test building a Flutter project
         inputs:

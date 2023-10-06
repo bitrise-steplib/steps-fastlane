@@ -65,21 +65,24 @@ func createStep(logger log.Logger) FastlaneRunner {
 		logger.Warnf("%s", err)
 	}
 
+	rubyEnv := ruby.NewEnvironment(rbyFactory, cmdLocator, logger)
+
 	pathModifier := pathutil.NewPathModifier()
 	tracker := newStepTracker(envRepository, logger)
 
-	return NewFastlaneRunner(inputParser, logger, cmdLocator, cmdFactory, rbyFactory, pathModifier, tracker)
+	return NewFastlaneRunner(inputParser, logger, cmdLocator, cmdFactory, rbyFactory, rubyEnv, pathModifier, tracker)
 }
 
 // FastlaneRunner ...
 type FastlaneRunner struct {
-	inputParser  stepconf.InputParser
-	logger       log.Logger
-	cmdFactory   command.Factory
-	cmdLocator   env.CommandLocator
-	rbyFactory   ruby.CommandFactory
-	pathModifier pathutil.PathModifier
-	tracker      stepTracker
+	inputParser     stepconf.InputParser
+	logger          log.Logger
+	cmdFactory      command.Factory
+	cmdLocator      env.CommandLocator
+	rbyFactory      ruby.CommandFactory
+	rubyEnvironment ruby.Environment
+	pathModifier    pathutil.PathModifier
+	tracker         stepTracker
 }
 
 // NewFastlaneRunner ...
@@ -89,17 +92,19 @@ func NewFastlaneRunner(
 	commandLocator env.CommandLocator,
 	cmdFactory command.Factory,
 	rbyFactory ruby.CommandFactory,
+	rubyEnvironment ruby.Environment,
 	pathModifier pathutil.PathModifier,
 	tracker stepTracker,
 ) FastlaneRunner {
 	return FastlaneRunner{
-		inputParser:  stepInputParser,
-		logger:       logger,
-		cmdLocator:   commandLocator,
-		cmdFactory:   cmdFactory,
-		rbyFactory:   rbyFactory,
-		pathModifier: pathModifier,
-		tracker:      tracker,
+		inputParser:     stepInputParser,
+		logger:          logger,
+		cmdLocator:      commandLocator,
+		cmdFactory:      cmdFactory,
+		rbyFactory:      rbyFactory,
+		rubyEnvironment: rubyEnvironment,
+		pathModifier:    pathModifier,
+		tracker:         tracker,
 	}
 }
 

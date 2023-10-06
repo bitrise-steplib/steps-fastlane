@@ -6,6 +6,7 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/bitrise-io/bitrise/exitcode"
 	envmanModels "github.com/bitrise-io/envman/models"
 	"github.com/bitrise-io/go-utils/pointers"
 	stepmanModels "github.com/bitrise-io/stepman/models"
@@ -551,6 +552,11 @@ func validateStages(config *BitriseDataModel) ([]string, error) {
 		for _, stageWorkflow := range stage.Workflows {
 			found := false
 			stageWorkflowID, err := GetWorkflowIDFromListItemModel(stageWorkflow)
+
+			if isUtilityWorkflow(stageWorkflowID) {
+				return stageWarnings, fmt.Errorf("workflow (%s) defined in stage (%s), is a utility workflow", stageWorkflowID, ID)
+			}
+
 			if err != nil {
 				return stageWarnings, err
 			}
@@ -567,6 +573,10 @@ func validateStages(config *BitriseDataModel) ([]string, error) {
 	}
 
 	return stageWarnings, nil
+}
+
+func isUtilityWorkflow(workflowID string) bool {
+	return strings.HasPrefix(workflowID, "_")
 }
 
 func validateWorkflows(config *BitriseDataModel) ([]string, error) {
@@ -963,6 +973,9 @@ func MergeStepWith(step, otherStep stepmanModels.StepModel) (stepmanModels.StepM
 	if otherStep.Timeout != nil {
 		step.Timeout = pointers.NewIntPtr(*otherStep.Timeout)
 	}
+	if otherStep.NoOutputTimeout != nil {
+		step.NoOutputTimeout = pointers.NewIntPtr(*otherStep.NoOutputTimeout)
+	}
 
 	for _, input := range step.Inputs {
 		key, _, err := input.GetKeyValuePair()
@@ -1026,15 +1039,26 @@ func GetStageIDFromListItemModel(stageListItem StageListItemModel) (string, erro
 // ----------------------------
 // --- StepIDData
 
+// GetStepIDAndStep returns the Step ID and Step model described by the stepListItem.
+// Use this on validated BitriseDataModels.
+func (stepListItem StepListItemModel) GetStepIDAndStep() (string, stepmanModels.StepModel) {
+	for key, value := range stepListItem {
+		return key, value
+	}
+	return "", stepmanModels.StepModel{}
+}
+
 // GetStepIDStepDataPair ...
 func GetStepIDStepDataPair(stepListItem StepListItemModel) (string, stepmanModels.StepModel, error) {
+	if len(stepListItem) == 0 {
+		return "", stepmanModels.StepModel{}, errors.New("StepListItem does not contain a key-value pair")
+	}
+
 	if len(stepListItem) > 1 {
 		return "", stepmanModels.StepModel{}, errors.New("StepListItem contains more than 1 key-value pair")
 	}
-	for key, value := range stepListItem {
-		return key, value, nil
-	}
-	return "", stepmanModels.StepModel{}, errors.New("StepListItem does not contain a key-value pair")
+	stepID, step := stepListItem.GetStepIDAndStep()
+	return stepID, step, nil
 }
 
 // detaches source from the step node
@@ -1126,9 +1150,6 @@ func CreateStepIDDataFromString(compositeVersionStr, defaultStepLibSource string
 	}
 
 	version := getStepVersion(compositeVersionStr)
-	if src == "git" && version == "" {
-		version = "master"
-	}
 
 	return StepIDData{
 		IDorURI:       id,
@@ -1163,24 +1184,56 @@ func (sIDData StepIDData) IsUniqueResourceID() bool {
 // ----------------------------
 // --- BuildRunResults
 
-// IsStepLibUpdated ...
 func (buildRes BuildRunResultsModel) IsStepLibUpdated(stepLib string) bool {
 	return (buildRes.StepmanUpdates[stepLib] > 0)
 }
 
-// IsBuildFailed ...
 func (buildRes BuildRunResultsModel) IsBuildFailed() bool {
 	return len(buildRes.FailedSteps) > 0
 }
 
-// HasFailedSkippableSteps ...
+func (buildRes BuildRunResultsModel) ExitCode() int {
+	if !buildRes.IsBuildFailed() {
+		return 0
+	}
+
+	if buildRes.isBuildAbortedWithNoOutputTimeout() {
+		return exitcode.CLIAbortedWithNoOutputTimeout
+	}
+
+	if buildRes.isBuildAbortedWithTimeout() {
+		return exitcode.CLIAbortedWithCustomTimeout
+	}
+
+	return exitcode.CLIFailed
+}
+
 func (buildRes BuildRunResultsModel) HasFailedSkippableSteps() bool {
 	return len(buildRes.FailedSkippableSteps) > 0
 }
 
-// ResultsCount ...
 func (buildRes BuildRunResultsModel) ResultsCount() int {
 	return len(buildRes.SuccessSteps) + len(buildRes.FailedSteps) + len(buildRes.FailedSkippableSteps) + len(buildRes.SkippedSteps)
+}
+
+func (buildRes BuildRunResultsModel) isBuildAbortedWithTimeout() bool {
+	for _, stepResult := range buildRes.FailedSteps {
+		if stepResult.Status == StepRunStatusAbortedWithCustomTimeout {
+			return true
+		}
+	}
+
+	return false
+}
+
+func (buildRes BuildRunResultsModel) isBuildAbortedWithNoOutputTimeout() bool {
+	for _, stepResult := range buildRes.FailedSteps {
+		if stepResult.Status == StepRunStatusAbortedWithNoOutputTimeout {
+			return true
+		}
+	}
+
+	return false
 }
 
 func (buildRes BuildRunResultsModel) unorderedResults() []StepRunResultsModel {
@@ -1190,7 +1243,6 @@ func (buildRes BuildRunResultsModel) unorderedResults() []StepRunResultsModel {
 	return append(results, buildRes.SkippedSteps...)
 }
 
-//OrderedResults ...
 func (buildRes BuildRunResultsModel) OrderedResults() []StepRunResultsModel {
 	results := make([]StepRunResultsModel, buildRes.ResultsCount())
 	unorderedResults := buildRes.unorderedResults()

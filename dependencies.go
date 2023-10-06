@@ -4,6 +4,7 @@ import (
 	"os"
 	"strings"
 
+	"github.com/bitrise-io/go-steputils/v2/ruby"
 	"github.com/bitrise-io/go-utils/v2/command"
 )
 
@@ -104,6 +105,40 @@ func (f FastlaneRunner) InstallDependencies(opts EnsureDependenciesOpts) error {
 }
 
 func (f FastlaneRunner) reportRubyVersion(useBundler bool, bundlerVersion string, workDir string) {
+	if f.rubyEnvironment.RubyInstallType() == ruby.ASDFRuby {
+		f.logger.Println()
+		f.logger.Infof("Checking selected Ruby version")
+
+		cmd := f.rbyFactory.Create("asdf", []string{"current", "ruby"}, &command.Opts{
+			Stderr: os.Stderr,
+			Stdout: os.Stdout,
+			Dir:    workDir,
+		})
+
+		f.logger.Donef("$ %s", cmd.PrintableCommandArgs())
+		if err := cmd.Run(); err != nil {
+			f.logger.Warnf("Failed to print selected Ruby version: %s", err)
+		}
+	} else if f.rubyEnvironment.RubyInstallType() == ruby.RbenvRuby {
+		f.logger.Println()
+		f.logger.Infof("Checking selected Ruby version")
+		if _, err := f.cmdLocator.LookPath("rbenv"); err == nil {
+
+			cmd := f.rbyFactory.Create("rbenv", []string{"versions"}, &command.Opts{
+				Stderr: os.Stderr,
+				Stdout: os.Stdout,
+				Dir:    workDir,
+			})
+
+			f.logger.Donef("$ %s", cmd.PrintableCommandArgs())
+			if err := cmd.Run(); err != nil {
+				f.logger.Warnf(err.Error())
+			}
+		} else {
+			f.logger.Warnf("rbenv not found: %s", err)
+		}
+	}
+
 	var versionCmd command.Command
 	options := &command.Opts{
 		Dir: workDir,

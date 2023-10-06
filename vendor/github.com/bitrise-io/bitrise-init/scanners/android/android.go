@@ -1,14 +1,57 @@
 package android
 
 import (
-	"fmt"
 	"path/filepath"
 
 	"gopkg.in/yaml.v2"
 
-	"github.com/bitrise-io/bitrise-init/analytics"
 	"github.com/bitrise-io/bitrise-init/models"
-	"github.com/bitrise-io/go-utils/log"
+	"github.com/bitrise-io/bitrise-init/steps"
+	envmanModels "github.com/bitrise-io/envman/models"
+)
+
+const (
+	ScannerName                   = "android"
+	ConfigName                    = "android-config"
+	ConfigNameKotlinScript        = "android-config-kts"
+	DefaultConfigName             = "default-android-config"
+	DefaultConfigNameKotlinScript = "default-android-config-kts"
+
+	testsWorkflowID         = "run_tests"
+	testsWorkflowSummary    = "Run your Android unit tests and get the test report."
+	testWorkflowDescription = "The workflow will first clone your Git repository, cache your Gradle dependencies, install Android tools, run your Android unit tests and save the test report."
+
+	buildWorkflowID          = "build_apk"
+	buildWorkflowSummary     = "Run your Android unit tests and create an APK file to install your app on a device or share it with your team."
+	buildWorkflowDescription = "The workflow will first clone your Git repository, install Android tools, set the project's version code based on the build number, run Android lint and unit tests, build the project's APK file and save it."
+
+	ProjectLocationInputKey     = "project_location"
+	ProjectLocationInputEnvKey  = "PROJECT_LOCATION"
+	ProjectLocationInputTitle   = "The root directory of an Android project"
+	ProjectLocationInputSummary = "The root directory of your Android project, stored as an Environment Variable. In your Workflows, you can specify paths relative to this path. You can change this at any time."
+
+	ModuleBuildGradlePathInputKey = "build_gradle_path"
+
+	VariantInputKey     = "variant"
+	VariantInputEnvKey  = "VARIANT"
+	VariantInputTitle   = "Variant"
+	VariantInputSummary = "Your Android build variant. You can add variants at any time, as well as further configure your existing variants later."
+
+	ModuleInputKey     = "module"
+	ModuleInputEnvKey  = "MODULE"
+	ModuleInputTitle   = "Module"
+	ModuleInputSummary = "Modules provide a container for your Android project's source code, resource files, and app level settings, such as the module-level build file and Android manifest file. Each module can be independently built, tested, and debugged. You can add new modules to your Bitrise builds at any time."
+
+	BuildScriptInputTitle   = "Does your app use Kotlin build scripts?"
+	BuildScriptInputSummary = "The workflow configuration slightly differs based on what language (Groovy or Kotlin) you used in your build scripts."
+
+	GradlewPathInputKey = "gradlew_path"
+
+	CacheLevelInputKey = "cache_level"
+	CacheLevelNone     = "none"
+
+	gradleKotlinBuildFile    = "build.gradle.kts"
+	gradleKotlinSettingsFile = "settings.gradle.kts"
 )
 
 // Scanner ...
@@ -22,12 +65,12 @@ func NewScanner() *Scanner {
 }
 
 // Name ...
-func (Scanner) Name() string {
+func (scanner *Scanner) Name() string {
 	return ScannerName
 }
 
 // ExcludedScannerNames ...
-func (*Scanner) ExcludedScannerNames() []string {
+func (scanner *Scanner) ExcludedScannerNames() []string {
 	return nil
 }
 
@@ -38,95 +81,6 @@ func (scanner *Scanner) DetectPlatform(searchDir string) (_ bool, err error) {
 
 	detected := len(projects) > 0
 	return detected, err
-}
-
-func detect(searchDir string) ([]Project, error) {
-	projectFiles := fileGroups{
-		{"build.gradle", "build.gradle.kts"},
-		{"settings.gradle", "settings.gradle.kts"},
-	}
-	skipDirs := []string{".git", "CordovaLib", "node_modules"}
-
-	log.TInfof("Searching for android files")
-
-	projectRoots, err := walkMultipleFileGroups(searchDir, projectFiles, skipDirs)
-	if err != nil {
-		return nil, fmt.Errorf("failed to search for build.gradle files, error: %s", err)
-	}
-
-	log.TPrintf("%d android files detected", len(projectRoots))
-	for _, file := range projectRoots {
-		log.TPrintf("- %s", file)
-	}
-
-	if len(projectRoots) == 0 {
-		return nil, nil
-	}
-	log.TSuccessf("Platform detected")
-
-	projects, err := parseProjects(searchDir, projectRoots)
-	if err != nil {
-		return nil, err
-	}
-
-	return projects, nil
-}
-
-func parseProjects(searchDir string, projectRoots []string) ([]Project, error) {
-	var (
-		lastErr  error
-		projects []Project
-	)
-
-	for _, projectRoot := range projectRoots {
-		var warnings models.Warnings
-
-		log.TInfof("Investigating Android project: %s", projectRoot)
-
-		exists, err := containsLocalProperties(projectRoot)
-		if err != nil {
-			lastErr = err
-			log.TWarnf("%s", err)
-
-			continue
-		}
-		if exists {
-			containsLocalPropertiesWarning := fmt.Sprintf("the local.properties file should NOT be checked into Version Control Systems, as it contains information specific to your local configuration, the location of the file is: %s", filepath.Join(projectRoot, "local.properties"))
-			warnings = []string{containsLocalPropertiesWarning}
-		}
-
-		if err := checkGradlew(projectRoot); err != nil {
-			lastErr = err
-			log.TWarnf("%s", err)
-
-			continue
-		}
-
-		relProjectRoot, err := filepath.Rel(searchDir, projectRoot)
-		if err != nil {
-			lastErr = err
-			log.TWarnf("%s", err)
-
-			continue
-		}
-
-		icons, err := LookupIcons(projectRoot, searchDir)
-		if err != nil {
-			analytics.LogInfo("android-icon-lookup", analytics.DetectorErrorData("android", err), "Failed to lookup android icon")
-		}
-
-		projects = append(projects, Project{
-			RelPath:  relProjectRoot,
-			Icons:    icons,
-			Warnings: warnings,
-		})
-	}
-
-	if len(projects) == 0 {
-		return []Project{}, lastErr
-	}
-
-	return projects, nil
 }
 
 // Options ...
@@ -144,7 +98,11 @@ func (scanner *Scanner) Options() (models.OptionNode, models.Warnings, models.Ic
 			iconIDs[i] = icon.Filename
 		}
 
-		configOption := models.NewConfigOption(ConfigName, iconIDs)
+		name := ConfigName
+		if project.UsesKotlinBuildScript {
+			name = ConfigNameKotlinScript
+		}
+		configOption := models.NewConfigOption(name, iconIDs)
 		moduleOption := models.NewOption(ModuleInputTitle, ModuleInputSummary, ModuleInputEnvKey, models.TypeUserInput)
 		variantOption := models.NewOption(VariantInputTitle, VariantInputSummary, VariantInputEnvKey, models.TypeOptionalUserInput)
 
@@ -161,49 +119,145 @@ func (scanner *Scanner) DefaultOptions() models.OptionNode {
 	projectLocationOption := models.NewOption(ProjectLocationInputTitle, ProjectLocationInputSummary, ProjectLocationInputEnvKey, models.TypeUserInput)
 	moduleOption := models.NewOption(ModuleInputTitle, ModuleInputSummary, ModuleInputEnvKey, models.TypeUserInput)
 	variantOption := models.NewOption(VariantInputTitle, VariantInputSummary, VariantInputEnvKey, models.TypeOptionalUserInput)
-	configOption := models.NewConfigOption(DefaultConfigName, nil)
 
-	projectLocationOption.AddOption("", moduleOption)
-	moduleOption.AddOption("", variantOption)
-	variantOption.AddConfig("", configOption)
+	buildScriptOption := models.NewOption(BuildScriptInputTitle, BuildScriptInputSummary, "", models.TypeSelector)
+	regularConfigOption := models.NewConfigOption(DefaultConfigName, nil)
+	kotlinScriptConfigOption := models.NewConfigOption(DefaultConfigNameKotlinScript, nil)
+
+	projectLocationOption.AddOption(models.UserInputOptionDefaultValue, moduleOption)
+	moduleOption.AddOption(models.UserInputOptionDefaultValue, variantOption)
+	variantOption.AddOption(models.UserInputOptionDefaultValue, buildScriptOption)
+
+	buildScriptOption.AddConfig("yes", kotlinScriptConfigOption)
+	buildScriptOption.AddOption("no", regularConfigOption)
 
 	return *projectLocationOption
 }
 
 // Configs ...
-func (scanner *Scanner) Configs(isPrivateRepository bool) (models.BitriseConfigMap, error) {
-	configBuilder := scanner.generateConfigBuilder(isPrivateRepository)
-
-	config, err := configBuilder.Generate(ScannerName)
-	if err != nil {
-		return models.BitriseConfigMap{}, err
-	}
-
-	data, err := yaml.Marshal(config)
-	if err != nil {
-		return models.BitriseConfigMap{}, err
-	}
-
-	return models.BitriseConfigMap{
-		ConfigName: string(data),
-	}, nil
+func (scanner *Scanner) Configs(sshKeyActivation models.SSHKeyActivation) (models.BitriseConfigMap, error) {
+	params := configBuildingParameters(scanner.Projects)
+	return scanner.generateConfigs(sshKeyActivation, params)
 }
 
 // DefaultConfigs ...
 func (scanner *Scanner) DefaultConfigs() (models.BitriseConfigMap, error) {
-	configBuilder := scanner.generateConfigBuilder(true)
+	params := []configBuildingParams{
+		{name: DefaultConfigName, useKotlinScript: false},
+		{name: DefaultConfigNameKotlinScript, useKotlinScript: true},
+	}
+	return scanner.generateConfigs(models.SSHKeyActivationConditional, params)
+}
 
-	config, err := configBuilder.Generate(ScannerName)
-	if err != nil {
-		return models.BitriseConfigMap{}, err
+func (scanner *Scanner) generateConfigs(sshKeyActivation models.SSHKeyActivation, params []configBuildingParams) (models.BitriseConfigMap, error) {
+	bitriseDataMap := models.BitriseConfigMap{}
+
+	for _, param := range params {
+		configBuilder := scanner.generateConfigBuilder(sshKeyActivation, param.useKotlinScript)
+
+		config, err := configBuilder.Generate(ScannerName)
+		if err != nil {
+			return models.BitriseConfigMap{}, err
+		}
+
+		data, err := yaml.Marshal(config)
+		if err != nil {
+			return models.BitriseConfigMap{}, err
+		}
+
+		bitriseDataMap[param.name] = string(data)
 	}
 
-	data, err := yaml.Marshal(config)
-	if err != nil {
-		return models.BitriseConfigMap{}, err
-	}
+	return bitriseDataMap, nil
+}
 
-	return models.BitriseConfigMap{
-		DefaultConfigName: string(data),
-	}, nil
+func (scanner *Scanner) generateConfigBuilder(sshKeyActivation models.SSHKeyActivation, useKotlinBuildScript bool) models.ConfigBuilderModel {
+	configBuilder := models.NewDefaultConfigBuilder()
+
+	projectLocationEnv, gradlewPath, moduleEnv, variantEnv := "$"+ProjectLocationInputEnvKey, "$"+ProjectLocationInputEnvKey+"/gradlew", "$"+ModuleInputEnvKey, "$"+VariantInputEnvKey
+
+	//-- test
+	configBuilder.AppendStepListItemsTo(testsWorkflowID, steps.DefaultPrepareStepList(steps.PrepareListParams{
+		SSHKeyActivation: sshKeyActivation})...)
+	configBuilder.AppendStepListItemsTo(testsWorkflowID, steps.RestoreGradleCache())
+	configBuilder.AppendStepListItemsTo(testsWorkflowID, steps.InstallMissingAndroidToolsStepListItem(
+		envmanModels.EnvironmentItemModel{GradlewPathInputKey: gradlewPath},
+	))
+	configBuilder.AppendStepListItemsTo(testsWorkflowID, steps.AndroidUnitTestStepListItem(
+		envmanModels.EnvironmentItemModel{
+			ProjectLocationInputKey: projectLocationEnv,
+		},
+		envmanModels.EnvironmentItemModel{
+			VariantInputKey: variantEnv,
+		},
+		envmanModels.EnvironmentItemModel{
+			CacheLevelInputKey: CacheLevelNone,
+		},
+	))
+	configBuilder.AppendStepListItemsTo(testsWorkflowID, steps.SaveGradleCache())
+	configBuilder.AppendStepListItemsTo(testsWorkflowID, steps.DefaultDeployStepList()...)
+	configBuilder.SetWorkflowSummaryTo(testsWorkflowID, testsWorkflowSummary)
+	configBuilder.SetWorkflowDescriptionTo(testsWorkflowID, testWorkflowDescription)
+
+	//-- build
+	configBuilder.AppendStepListItemsTo(buildWorkflowID, steps.DefaultPrepareStepList(steps.PrepareListParams{
+		SSHKeyActivation: sshKeyActivation,
+	})...)
+	configBuilder.AppendStepListItemsTo(buildWorkflowID, steps.InstallMissingAndroidToolsStepListItem(
+		envmanModels.EnvironmentItemModel{GradlewPathInputKey: gradlewPath},
+	))
+
+	basePath := filepath.Join(projectLocationEnv, moduleEnv)
+	path := filepath.Join(basePath, "build.gradle")
+	if useKotlinBuildScript {
+		path = filepath.Join(basePath, gradleKotlinBuildFile)
+	}
+	configBuilder.AppendStepListItemsTo(buildWorkflowID, steps.ChangeAndroidVersionCodeAndVersionNameStepListItem(
+		envmanModels.EnvironmentItemModel{ModuleBuildGradlePathInputKey: path},
+	))
+
+	configBuilder.AppendStepListItemsTo(buildWorkflowID, steps.AndroidLintStepListItem(
+		envmanModels.EnvironmentItemModel{
+			ProjectLocationInputKey: projectLocationEnv,
+		},
+		envmanModels.EnvironmentItemModel{
+			VariantInputKey: variantEnv,
+		},
+		envmanModels.EnvironmentItemModel{
+			CacheLevelInputKey: CacheLevelNone,
+		},
+	))
+	configBuilder.AppendStepListItemsTo(buildWorkflowID, steps.AndroidUnitTestStepListItem(
+		envmanModels.EnvironmentItemModel{
+			ProjectLocationInputKey: projectLocationEnv,
+		},
+		envmanModels.EnvironmentItemModel{
+			VariantInputKey: variantEnv,
+		},
+		envmanModels.EnvironmentItemModel{
+			CacheLevelInputKey: CacheLevelNone,
+		},
+	))
+
+	configBuilder.AppendStepListItemsTo(buildWorkflowID, steps.AndroidBuildStepListItem(
+		envmanModels.EnvironmentItemModel{
+			ProjectLocationInputKey: projectLocationEnv,
+		},
+		envmanModels.EnvironmentItemModel{
+			ModuleInputKey: moduleEnv,
+		},
+		envmanModels.EnvironmentItemModel{
+			VariantInputKey: variantEnv,
+		},
+		envmanModels.EnvironmentItemModel{
+			CacheLevelInputKey: CacheLevelNone,
+		},
+	))
+	configBuilder.AppendStepListItemsTo(buildWorkflowID, steps.SignAPKStepListItem())
+	configBuilder.AppendStepListItemsTo(buildWorkflowID, steps.DefaultDeployStepList()...)
+
+	configBuilder.SetWorkflowDescriptionTo(buildWorkflowID, buildWorkflowDescription)
+	configBuilder.SetWorkflowSummaryTo(buildWorkflowID, buildWorkflowSummary)
+
+	return *configBuilder
 }
