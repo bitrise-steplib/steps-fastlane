@@ -1,92 +1,92 @@
-# Fastlane
+# fastlane
 
-This step runs the [`fastlane`](https://fastlane.tools) lane specified as input.
+[![Step changelog](https://shields.io/github/v/release/bitrise-io/steps-fastlane?include_prereleases&label=changelog&color=blueviolet)](https://github.com/bitrise-io/steps-fastlane/releases)
 
-## How to use this Step
+Runs your fastlane lane on [bitrise.io](https://www.bitrise.io).
 
-Can be run directly with the [bitrise CLI](https://github.com/bitrise-io/bitrise),
-just `git clone` this repository, `cd` into it's folder in your Terminal/Command Line
-and call `bitrise run test`.
+<details>
+<summary>Description</summary>
 
-*Check the `bitrise.yml` file for required inputs which have to be
-added to your `.bitrise.secrets.yml` file!*
+fastlane is an open-source app automation tool for iOS, Android and for most cross-platform frameworks, for example, React Native, Xamarin and Flutter.
+**fastlane** Step helps you integrate your lane to your Bitrise Workflow and runs your lane based on the fastlane actions with minimal configuration.
+If your Apple Developer Portal account is [connected to Bitrise](https://devcenter.bitrise.io/getting-started/connecting-to-services/configuring-bitrise-steps-that-require-apple-developer-account-data/), the `FASTLANE_SESSION` Environment Variable will pass on the session data to fastlane.
 
-Step by step:
+### Configuring the Step
 
-1. Open up your Terminal / Command Line
-2. `git clone` the repository
-3. `cd` into the directory of the step (the one you just `git clone`d)
-5. Create a `.bitrise.secrets.yml` file in the same directory of `bitrise.yml`
-   (the `.bitrise.secrets.yml` is a git ignored file, you can store your secrets in it)
-6. Check the `bitrise.yml` file for any secret you should set in `.bitrise.secrets.yml`
-  * Best practice is to mark these options with something like `# define these in your .bitrise.secrets.yml`, in the `app:envs` section.
-7. Once you have all the required secret parameters in your `.bitrise.secrets.yml` you can just run this step with the [bitrise CLI](https://github.com/bitrise-io/bitrise): `bitrise run test`
+Before you start configuring the Step, make sure you've [connected to Apple services either by API key, Apple ID or through Fastlane Step's input fields](https://devcenter.bitrise.io/getting-started/connecting-to-services/bitrise-steps-and-their-authentication-methods/#fastlane-step).
+1. Add the **fastlane** Step to your Workflow after the **Git Clone Repository** Step or any other dependency Step.
+1. Based on your project's fastlane setup, you can add your project's default lane or a custom lane in the **fastlane lane** input.
+2. If your fastlane directory is not available in your repository's root, then you can add the parent directory of fastlane directory in the **Working directory** input.
+3. If your project doesn't contain a fastlane gem in your project's Gemfile, you can use the **Should update fastlane gem before run** input.
+Set this input to `true` so that the Step can install the latest fastlane version to your project.
+If a gem lockfile (Gemfile.lock or gems.locked) includes the fastlane gem in the working directory, that specific fastlane version will be installed.
+4. Select `yes` in the **Enable verbose logging** input if you wish to run your build in debug mode and print out error additional debug logs.
+5. Select `yes` in the **Enable collecting files to be included in the build cache** to cache pods, Carthage and Android dependencies.
 
-An example `.bitrise.secrets.yml` file:
+### Troubleshooting
+If you run your lane on Bitrise and your build fails on the **fastlane** Step, the logs won't reveal too much about the error since it's most likely related to the fastlane file's configuration.
+We recommend you swap your fastlane actions for Bitrise Steps which will bring out the problem.
 
-```
-envs:
-- A_SECRET_PARAM_ONE: the value for secret one
-- A_SECRET_PARAM_TWO: the value for secret two
-```
+### Useful links
+- [About fastlane](https://docs.fastlane.tools)
+- [Connecting your Apple Developer Account to Bitrise](https://devcenter.bitrise.io/getting-started/connecting-to-services/configuring-bitrise-steps-that-require-apple-developer-account-data/)
+- [Running fastlane on Bitrise](https://devcenter.bitrise.io/tutorials/fastlane/fastlane-index/)
 
-## How to create your own step
+### Related Steps
+- [Deploy to iTunes Connect/Deliver](https://www.bitrise.io/integrations/steps/deploy-to-itunesconnect-deliver)
+- [iOS Auto Provision](https://www.bitrise.io/integrations/steps/ios-auto-provision)
+- [Fastlane Match](https://www.bitrise.io/integrations/steps/fastlane-match)
+</details>
 
-1. Create a new git repository for your step (**don't fork** the *step template*, create a *new* repository)
-2. Copy the [step template](https://github.com/bitrise-steplib/step-template) files into your repository
-3. Fill the `step.sh` with your functionality
-4. Wire out your inputs to `step.yml` (`inputs` section)
-5. Fill out the other parts of the `step.yml` too
-6. Provide test values for the inputs in the `bitrise.yml`
-7. Run your step with `bitrise run test` - if it works, you're ready
+## 🧩 Get started
 
-__For Step development guidelines & best practices__ check this documentation: [https://github.com/bitrise-io/bitrise/blob/master/_docs/step-development-guideline.md](https://github.com/bitrise-io/bitrise/blob/master/_docs/step-development-guideline.md).
+Add this step directly to your workflow in the [Bitrise Workflow Editor](https://devcenter.bitrise.io/steps-and-workflows/steps-and-workflows-index/).
 
-**NOTE:**
+You can also run this step directly with [Bitrise CLI](https://github.com/bitrise-io/bitrise).
 
-If you want to use your step in your project's `bitrise.yml`:
+### Examples
 
-1. git push the step into it's repository
-2. reference it in your `bitrise.yml` with the `git::PUBLIC-GIT-CLONE-URL@BRANCH` step reference style:
-
-```
-- git::https://github.com/user/my-step.git@branch:
-   title: My step
-   inputs:
-   - my_input_1: "my value 1"
-   - my_input_2: "my value 2"
+Run the `tests` lane from the current dir:
+```yaml
+- fastlane:
+    inputs:
+    - lane: tests
+    - work_dir: ./
 ```
 
-You can find more examples of step reference styles
-in the [bitrise CLI repository](https://github.com/bitrise-io/bitrise/blob/master/_examples/tutorials/steps-and-workflows/bitrise.yml#L65).
 
-## How to contribute to this Step
+## ⚙️ Configuration
 
-1. Fork this repository
-2. `git clone` it
-3. Create a branch you'll work on
-4. To use/test the step just follow the **How to use this Step** section
-5. Do the changes you want to
-6. Run/test the step before sending your contribution
-  * You can also test the step in your `bitrise` project, either on your Mac or on [bitrise.io](https://www.bitrise.io)
-  * You just have to replace the step ID in your project's `bitrise.yml` with either a relative path, or with a git URL format
-  * (relative) path format: instead of `- original-step-id:` use `- path::./relative/path/of/script/on/your/Mac:`
-  * direct git URL format: instead of `- original-step-id:` use `- git::https://github.com/user/step.git@branch:`
-  * You can find more example of alternative step referencing at: https://github.com/bitrise-io/bitrise/blob/master/_examples/tutorials/steps-and-workflows/bitrise.yml
-7. Once you're done just commit your changes & create a Pull Request
+<details>
+<summary>Inputs</summary>
 
+| Key | Description | Flags | Default |
+| --- | --- | --- | --- |
+| `lane` | fastlane lane to run $ fastlane [lane]  | required |  |
+| `work_dir` | Use this option if the fastlane directory is not in your repository's root.  Working directory should be the parent directory of your Fastfile's directory.  For example:  * If the Fastfile path is `./here/is/my/fastlane/Fastfile` * Then the Fastfile's directory is `./here/is/my/fastlane` * So the Working Directory should be `./here/is/my` |  | `$BITRISE_SOURCE_DIR` |
+| `connection` | The input determines the method used for Apple Service authentication. By default, any enabled Bitrise Apple Developer connection is used and other authentication-related Step inputs are ignored.  There are two types of Apple Developer connection you can enable on Bitrise: one is based on an API key of the App Store Connect API, the other is the session-based authentication with an Apple ID. You can choose which type of Bitrise Apple Developer connection to use or you can tell the Step to only use the Step inputs for authentication: - `automatic`: Use any enabled Apple Developer connection, either based on Apple ID authentication or API key authentication.  Step inputs are only used as a fallback. API key authentication has priority over Apple ID authentication in both cases. - `api_key`: Use the Apple Developer connection based on API key authentication. Authentication-related Step inputs are ignored. - `apple_id`: Use the Apple Developer connection based on Apple ID authentication and the **Application-specific password** Step input. Other authentication-related Step inputs are ignored. - `off`: Do not use any already configured Apple Developer Connection. Only authentication-related Step inputs are considered. | required | `automatic` |
+| `api_key_path` | Specify the path in an URL format where your API key is stored. For example: `https://URL/TO/AuthKey_[KEY_ID].p8` or `file:///PATH/TO/AuthKey_[KEY_ID].p8`. **NOTE:** The Step will only recognize the API key if the filename includes the  `KEY_ID` value as shown on the examples above.  You can upload your key on the **Generic File Storage** tab in the Workflow Editor and set the Environment Variable for the file here.  For example: `$BITRISEIO_MYKEY_URL` |  |  |
+| `api_issuer` | Issuer ID. Required if **API Key: URL** (`api_key_path`) is specified. |  |  |
+| `apple_id` | Email for Apple ID login. | sensitive |  |
+| `password` | Password for the specified Apple ID. | sensitive |  |
+| `app_password` | Use this input if TFA is enabled on the Apple ID but no app-specific password has been added to the used Bitrise Apple ID connection.  **NOTE:** Application-specific passwords can be created on the [AppleID Website](https://appleid.apple.com). It can be used to bypass two-factor authentication. | sensitive |  |
+| `update_fastlane` | Should update fastlane gem before run? *This option will be skipped if you have a `Gemfile` in the `work_dir` directory.* |  | `true` |
+| `verbose_log` | Enable/disable verbose logging. | required | `no` |
+| `enable_cache` | If enabled the step will add the following cache items (if they exist): - Pods -> Podfile.lock - Carthage -> Cartfile.resolved - Android dependencies | required | `yes` |
+</details>
 
-## Share your own Step
+<details>
+<summary>Outputs</summary>
+There are no outputs defined in this step
+</details>
 
-You can share your Step or step version with the [bitrise CLI](https://github.com/bitrise-io/bitrise). If you use the `bitrise.yml` included in this repository, all you have to do is:
+## 🙋 Contributing
 
-1. In your Terminal / Command Line `cd` into this directory (where the `bitrise.yml` of the step is located)
-1. Run: `bitrise run test` to test the step
-1. Run: `bitrise run audit-this-step` to audit the `step.yml`
-1. Check the `share-this-step` workflow in the `bitrise.yml`, and fill out the
-   `envs` if you haven't done so already (don't forget to bump the version number if this is an update
-   of your step!)
-1. Then run: `bitrise run share-this-step` to share the step (version) you specified in the `envs`
-1. Send the Pull Request, as described in the logs of `bitrise run share-this-step`
+We welcome [pull requests](https://github.com/bitrise-io/steps-fastlane/pulls) and [issues](https://github.com/bitrise-io/steps-fastlane/issues) against this repository.
 
-That's all ;)
+For pull requests, work on your changes in a forked repository and use the Bitrise CLI to [run step tests locally](https://devcenter.bitrise.io/bitrise-cli/run-your-first-build/).
+
+Learn more about developing steps:
+
+- [Create your own step](https://devcenter.bitrise.io/contributors/create-your-own-step/)
+- [Testing your Step](https://devcenter.bitrise.io/contributors/testing-and-versioning-your-steps/)

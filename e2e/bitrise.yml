@@ -1,0 +1,194 @@
+format_version: "13"
+default_step_lib_source: https://github.com/bitrise-io/bitrise-steplib.git
+
+app:
+  envs:
+  # Shared test secrets
+  - BITFALL_APPSTORECONNECT_API_KEY_ISSUER_ID: $BITFALL_APPSTORECONNECT_API_KEY_ISSUER_ID
+  - BITFALL_APPSTORECONNECT_API_KEY_URL: $BITFALL_APPSTORECONNECT_API_KEY_URL
+  - ITUNES_CONNECT_APP_SPECIFIC_PASSWORD: $ITUNES_CONNECT_APP_SPECIFIC_PASSWORD
+
+workflows:
+  test_auth-all:
+    before_run:
+    - _auth-test-api-key-connection
+    - _auth-test-apple-id-connection
+    - _auth-test-api-key-input
+    - _auth-test-apple-id-connection-globally-set-app-specific-password
+
+  test_cache:
+    envs:
+    - SAMPLE_APP_URL: https://github.com/bitrise-io/sample-apps-flutter-veggieseasons.git
+    - BRANCH: master
+    - XCODE_SCHEME: Runner
+    steps:
+    - script:
+        inputs:
+        - content: rm -rf ./_tmp
+    - change-workdir:
+        title: Switch working dir to test/_tmp dir
+        run_if: "true"
+        inputs:
+        - path: ./_tmp
+        - is_create_path: true
+    - git::https://github.com/bitrise-steplib/bitrise-step-simple-git-clone:
+        inputs:
+        - repository_url: $SAMPLE_APP_URL
+        - branch: $BRANCH
+        - clone_into_dir: .
+    - path::./:
+        title: Smoke test to check if Fastlane receives session-based Apple Developer connection
+        inputs:
+        - lane: test_fastlane_session
+        - work_dir: ./
+        - verbose_log: "yes"
+        - connection: apple_id
+    - flutter-installer:
+        inputs:
+        - flutter_version: 3.13.6
+    - manage-ios-code-signing:
+        run_if: "true"
+        inputs:
+        - project_path: ./ios/Runner.xcworkspace
+        - scheme: $XCODE_SCHEME
+        - configuration: Release
+        - distribution_method: development
+    - path::./:
+        title: Test building a Flutter project
+        inputs:
+        - lane: build
+        - work_dir: ./
+        - verbose_log: "yes"
+        - connection: "off"
+    - script:
+        inputs:
+        - content: |-
+            set -ex
+            if [[ -z "$BITRISE_CACHE_EXCLUDE_PATHS" ]] ; then
+                echo "BITRISE_CACHE_EXCLUDE_PATHS is empty"
+                exit 1
+            fi
+
+            if [[ -z "$BITRISE_CACHE_INCLUDE_PATHS" ]] ; then
+                echo "BITRISE_CACHE_INCLUDE_PATHS is empty"
+                exit 1
+            fi
+
+  _auth-test-apple-id-connection:
+    before_run:
+    - _auth_prepare
+    steps:
+    - path::./:
+        inputs:
+        - lane: release
+        - work_dir: ./
+        - verbose_log: "yes"
+        - connection: apple_id
+
+  _auth-test-apple-id-connection-globally-set-app-specific-password:
+    envs:
+    - FASTLANE_APPLE_APPLICATION_SPECIFIC_PASSWORD: $ITUNES_CONNECT_APP_SPECIFIC_PASSWORD
+    before_run:
+    - _auth_prepare
+    steps:
+    - path::./:
+        inputs:
+        - lane: release
+        - work_dir: ./
+        - verbose_log: "yes"
+        - connection: apple_id
+        - app_password: ""
+
+  _auth-test-api-key-connection:
+    before_run:
+    - _auth_prepare
+    steps:
+    - path::./:
+        inputs:
+        - lane: release
+        - work_dir: ./
+        - verbose_log: "yes"
+        - connection: api_key
+
+  _auth-test-api-key-input:
+    before_run:
+    - _auth_prepare
+    steps:
+    - path::./:
+        inputs:
+        - lane: release
+        - work_dir: ./
+        - verbose_log: "yes"
+        - connection: "off"
+        - api_issuer: $BITFALL_APPSTORECONNECT_API_KEY_ISSUER_ID
+        - api_key_path: $BITFALL_APPSTORECONNECT_API_KEY_URL
+
+  _auth-test-tfa-disabled-apple-id-connection:
+    title: Test Apple ID connection authentication using TFA disabled account
+    description: |-
+      Use this workflow for manual testing TFA disabled Apple ID.
+    before_run:
+    - _auth_prepare
+    steps:
+    - path::./:
+        inputs:
+        - lane: release
+        - work_dir: ./
+        - verbose_log: "yes"
+        - connection: apple_id
+
+  _auth_prepare:
+    envs:
+    - SAMPLE_APP_URL: https://github.com/bitrise-samples/sample-apps-fastlane-test.git
+    - BRANCH: master
+    - INFO_PLIST_PATH: ./sample-apps-fastlane-test/Info.plist
+    steps:
+    - script:
+        title: Clean saved Fastlane session cookie
+        inputs:
+        - content: rm -rf ~/.fastlane
+    - script:
+        inputs:
+        - content: rm -rf ./_tmp
+    - change-workdir:
+        title: Switch working dir to test/_tmp dir
+        run_if: "true"
+        inputs:
+        - path: ./_tmp
+        - is_create_path: true
+    - git::https://github.com/bitrise-steplib/bitrise-step-simple-git-clone:
+        inputs:
+        - repository_url: $SAMPLE_APP_URL
+        - branch: $BRANCH
+        - clone_into_dir: .
+    - certificate-and-profile-installer: { }
+    - script:
+        inputs:
+        - content: |-
+            CURRENT_BUILD_NUMBER=${BITRISE_BUILD_NUMBER}
+
+            if [[ -z "$E2E_ORIG_BUILD_NUM" ]]; then
+              envman add --key E2E_ORIG_BUILD_NUM --value "$CURRENT_BUILD_NUMBER"
+            else
+              CURRENT_BUILD_NUMBER="$E2E_ORIG_BUILD_NUM"
+            fi
+
+            BITRISE_BUILD_NUMBER=$((($(gdate +%Y%m%d%H%M%S)-20000000000000)*10000))
+            if [[ -z "${BITRISE_BUILD_NUMBER}" ]]; then
+              echo "error: failed to calculated build number"
+              exit 1
+            fi
+
+            if [[ -n "${CURRENT_BUILD_NUMBER}" ]]; then
+              BITRISE_BUILD_NUMBER=$((${BITRISE_BUILD_NUMBER}+${CURRENT_BUILD_NUMBER}))
+            fi
+
+            envman add --key BITRISE_BUILD_NUMBER --value "${BITRISE_BUILD_NUMBER}"
+    - set-xcode-build-number:
+        title: Set Build Number
+        run_if: "true"
+        inputs:
+        - build_version: $BITRISE_BUILD_NUMBER
+        - plist_path: $INFO_PLIST_PATH
+        - build_version_offset: $BITRISE_BUILD_VERSION_OFFSET
+        - build_short_version_string: 1.0.2
