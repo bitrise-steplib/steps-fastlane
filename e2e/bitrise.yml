@@ -22,9 +22,9 @@ app:
 workflows:
   test_auth-all:
     before_run:
-    - _auth-test-api-key-connection
-    # - _auth-test-apple-id-connection
-    - _auth-test-api-key-input
+    # - _auth-test-api-key-connection
+    - _auth-test-apple-id-connection
+    # - _auth-test-api-key-input
     - _auth-test-apple-id-connection-globally-set-app-specific-password
 
   test_cache:

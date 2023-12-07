@@ -20,6 +20,8 @@ type fastlaneAPIKey struct {
 
 // FastlaneAuthParams converts Apple credentials to Fastlane env vars and arguments
 func FastlaneAuthParams(authConfig appleauth.Credentials) (map[string]string, error) {
+	fmt.Printf("Auth config: %+v\n", authConfig)
+
 	envs := make(map[string]string)
 	if authConfig.AppleID != nil {
 		// Set as environment variables
