@@ -29,7 +29,7 @@ func FastlaneAuthParams(authConfig appleauth.Credentials) (map[string]string, er
 	if authConfig.APIKey != nil {
 		fmt.Printf("API key: %+v\n", *authConfig.APIKey)
 	}
-	
+
 	envs := make(map[string]string)
 	if authConfig.AppleID != nil {
 		// Set as environment variables
