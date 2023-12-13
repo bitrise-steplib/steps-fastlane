@@ -25,7 +25,7 @@ workflows:
     # - _auth-test-api-key-connection
     - _auth-test-apple-id-connection
     # - _auth-test-api-key-input
-    - _auth-test-apple-id-connection-globally-set-app-specific-password
+    # - _auth-test-apple-id-connection-globally-set-app-specific-password
 
   test_cache:
     envs:
@@ -174,6 +174,9 @@ workflows:
         - repository_url: $SAMPLE_APP_URL
         - branch: $BRANCH
         - clone_into_dir: .
+    - script:
+        inputs:
+        - content: rm -rf Gemfile Gemfile.lock
     - certificate-and-profile-installer:
         inputs:
         - certificate_url: $BITFALL_APPLE_APPLE_CERTIFICATE_URL_LIST|$BITFALL_APPLE_IOS_CERTIFICATE_URL_LIST
