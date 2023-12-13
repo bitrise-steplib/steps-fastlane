@@ -1,11 +1,11 @@
 # github.com/beevik/etree v1.2.0
 ## explicit; go 1.13
 github.com/beevik/etree
-# github.com/bitrise-io/bitrise v0.0.0-20230920132712-a20cb0493953
+# github.com/bitrise-io/bitrise v0.0.0-20231201125551-92d4629867c3
 ## explicit; go 1.17
 github.com/bitrise-io/bitrise/exitcode
 github.com/bitrise-io/bitrise/models
-# github.com/bitrise-io/bitrise-init v0.0.0-20230901074816-efe492d99277
+# github.com/bitrise-io/bitrise-init v0.0.0-20231030091557-cb74e61d668e
 ## explicit; go 1.18
 github.com/bitrise-io/bitrise-init/analytics
 github.com/bitrise-io/bitrise-init/models
@@ -26,11 +26,11 @@ github.com/bitrise-io/go-steputils/command/rubycommand
 github.com/bitrise-io/go-steputils/input
 github.com/bitrise-io/go-steputils/step
 github.com/bitrise-io/go-steputils/tools
-# github.com/bitrise-io/go-steputils/v2 v2.0.0-alpha.21
+# github.com/bitrise-io/go-steputils/v2 v2.0.0-alpha.22
 ## explicit; go 1.17
 github.com/bitrise-io/go-steputils/v2/ruby
 github.com/bitrise-io/go-steputils/v2/stepconf
-# github.com/bitrise-io/go-utils v1.0.9
+# github.com/bitrise-io/go-utils v1.0.10
 ## explicit; go 1.13
 github.com/bitrise-io/go-utils/colorstring
 github.com/bitrise-io/go-utils/command
@@ -42,7 +42,7 @@ github.com/bitrise-io/go-utils/parseutil
 github.com/bitrise-io/go-utils/pathutil
 github.com/bitrise-io/go-utils/pointers
 github.com/bitrise-io/go-utils/sliceutil
-# github.com/bitrise-io/go-utils/v2 v2.0.0-alpha.19
+# github.com/bitrise-io/go-utils/v2 v2.0.0-alpha.20
 ## explicit; go 1.17
 github.com/bitrise-io/go-utils/v2/analytics
 github.com/bitrise-io/go-utils/v2/command
@@ -69,7 +69,7 @@ github.com/gofrs/uuid
 # github.com/hashicorp/go-cleanhttp v0.5.2
 ## explicit; go 1.13
 github.com/hashicorp/go-cleanhttp
-# github.com/hashicorp/go-retryablehttp v0.7.4
+# github.com/hashicorp/go-retryablehttp v0.7.5
 ## explicit; go 1.13
 github.com/hashicorp/go-retryablehttp
 # github.com/hashicorp/go-version v1.6.0
