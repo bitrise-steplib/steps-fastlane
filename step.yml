@@ -153,3 +153,8 @@ inputs:
     - "yes"
     - "no"
     is_required: true
+outputs:
+- APP_STORE_CONNECT_API_KEY_PATH:
+  opts:
+    title: Fastlane Auth File
+    description: This Env Var will be populated when using API Key based App Store Connect API Auth. Fastlane uses this Env Var for Auth automatically.
