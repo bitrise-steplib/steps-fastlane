@@ -95,13 +95,13 @@ func Test_GivenGemHomeEnvironmentVariableIsEmpty_WhenValidateGemHome_ThenLogWarn
 
 func Test_GivenLaneParams_WhenProcessConfig_ThenLaneOptionsIncludeParams(t *testing.T) {
 	envRepo := env.NewRepository()
-	envRepo.Set("lane", "deploy")
-	envRepo.Set("lane_params", "track:beta")
-	envRepo.Set("work_dir", ".")
-	envRepo.Set("connection", "automatic")
-	envRepo.Set("update_fastlane", "true")
-	envRepo.Set("verbose_log", "no")
-	envRepo.Set("enable_cache", "yes")
+	assert.NoError(t, envRepo.Set("lane", "deploy"))
+	assert.NoError(t, envRepo.Set("lane_params", "track:beta"))
+	assert.NoError(t, envRepo.Set("work_dir", "."))
+	assert.NoError(t, envRepo.Set("connection", "automatic"))
+	assert.NoError(t, envRepo.Set("update_fastlane", "true"))
+	assert.NoError(t, envRepo.Set("verbose_log", "no"))
+	assert.NoError(t, envRepo.Set("enable_cache", "yes"))
 
 	inputParser := stepconf.NewInputParser(envRepo)
 	logger := log.NewLogger()
