@@ -48,6 +48,14 @@ inputs:
       fastlane lane to run
       $ fastlane [lane]
     is_required: true
+- lane_params: ""
+  opts:
+    title: Additional lane parameters
+    summary: Parameters to pass to the lane.
+    description: |
+      Optional additional parameters appended to the fastlane command.
+      Example: `track:beta firebase:true`
+    is_required: false
 - work_dir: $BITRISE_SOURCE_DIR
   opts:
     title: Working directory

@@ -16,6 +16,7 @@ import (
 type Inputs struct {
 	InputWorkDir string `env:"work_dir,dir"`
 	Lane         string `env:"lane,required"`
+	LaneParams   string `env:"lane_params"`
 
 	BitriseConnection   bitriseConnection `env:"connection,opt[automatic,api_key,apple_id,off]"`
 	AppleID             string            `env:"apple_id"`
@@ -85,6 +86,13 @@ func (f FastlaneRunner) ProcessConfig() (Config, error) {
 	laneOptions, err := shellquote.Split(config.Lane)
 	if err != nil {
 		return Config{}, fmt.Errorf("Failed to parse lane (%s), error: %s", config.Lane, err)
+	}
+	if params := strings.TrimSpace(config.LaneParams); params != "" {
+		extra, err := shellquote.Split(params)
+		if err != nil {
+			return Config{}, fmt.Errorf("Failed to parse lane parameters (%s), error: %s", config.LaneParams, err)
+		}
+		laneOptions = append(laneOptions, extra...)
 	}
 	config.LaneOptions = laneOptions
 
