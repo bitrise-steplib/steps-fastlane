@@ -3,6 +3,11 @@ package main
 import (
 	"testing"
 
+	"github.com/bitrise-io/go-steputils/v2/stepconf"
+	"github.com/bitrise-io/go-utils/v2/command"
+	"github.com/bitrise-io/go-utils/v2/env"
+	"github.com/bitrise-io/go-utils/v2/log"
+	"github.com/bitrise-io/go-utils/v2/pathutil"
 	"github.com/bitrise-io/go-xcode/appleauth"
 	"github.com/stretchr/testify/assert"
 )
@@ -86,4 +91,25 @@ func Test_GivenGemHomeEnvironmentVariableIsEmpty_WhenValidateGemHome_ThenLogWarn
 	step.validateGemHome(config)
 
 	mockedLogger.AssertCalled(t, "Warnf", expectedWarningMessage, expectedGemHomeArray)
+}
+
+func Test_GivenLaneParams_WhenProcessConfig_ThenLaneOptionsIncludeParams(t *testing.T) {
+	envRepo := env.NewRepository()
+	assert.NoError(t, envRepo.Set("lane", "deploy"))
+	assert.NoError(t, envRepo.Set("lane_params", "track:beta"))
+	assert.NoError(t, envRepo.Set("work_dir", "."))
+	assert.NoError(t, envRepo.Set("connection", "automatic"))
+	assert.NoError(t, envRepo.Set("update_fastlane", "true"))
+	assert.NoError(t, envRepo.Set("verbose_log", "no"))
+	assert.NoError(t, envRepo.Set("enable_cache", "yes"))
+
+	inputParser := stepconf.NewInputParser(envRepo)
+	logger := log.NewLogger()
+	tracker := newStepTracker(envRepo, logger)
+	step := NewFastlaneRunner(inputParser, logger, env.NewCommandLocator(), command.NewFactory(envRepo), nil, nil, pathutil.NewPathModifier(), tracker)
+
+	config, err := step.ProcessConfig()
+
+	assert.NoError(t, err)
+	assert.Equal(t, []string{"deploy", "track:beta"}, config.LaneOptions)
 }

@@ -9,7 +9,7 @@ import (
 	"github.com/bitrise-io/go-utils/v2/command"
 	"github.com/bitrise-io/go-utils/v2/env"
 	"github.com/bitrise-io/go-utils/v2/errorutil"
-	. "github.com/bitrise-io/go-utils/v2/exitcode"
+	exitcode "github.com/bitrise-io/go-utils/v2/exitcode"
 	"github.com/bitrise-io/go-utils/v2/log"
 	"github.com/bitrise-io/go-utils/v2/pathutil"
 )
@@ -19,15 +19,15 @@ func main() {
 	os.Exit(int(exitCode))
 }
 
-func run() ExitCode {
+func run() exitcode.ExitCode {
 	logger := log.NewLogger()
 	buildStep := createStep(logger)
 
 	config, err := buildStep.ProcessConfig()
 	if err != nil {
 		buildStep.logger.Println()
-		buildStep.logger.Errorf(errorutil.FormattedError(fmt.Errorf("Failed to process Step inputs: %w", err)))
-		return Failure
+		buildStep.logger.Errorf(errorutil.FormattedError(fmt.Errorf("failed to process Step inputs: %w", err)))
+		return exitcode.Failure
 	}
 
 	dependenciesOpts := EnsureDependenciesOpts{
@@ -39,20 +39,20 @@ func run() ExitCode {
 
 	if err := buildStep.InstallDependencies(dependenciesOpts); err != nil {
 		buildStep.logger.Println()
-		buildStep.logger.Errorf(errorutil.FormattedError(fmt.Errorf("Failed to install Step dependencies: %w", err)))
-		return Failure
+		buildStep.logger.Errorf(errorutil.FormattedError(fmt.Errorf("failed to install Step dependencies: %w", err)))
+		return exitcode.Failure
 	}
 
 	runOpts := createRunOptions(config)
 	if err := buildStep.Run(runOpts); err != nil {
 		buildStep.logger.Println()
-		logger.Errorf(errorutil.FormattedError(fmt.Errorf("Failed to execute Step: %w", err)))
-		return Failure
+		logger.Errorf(errorutil.FormattedError(fmt.Errorf("failed to execute Step: %w", err)))
+		return exitcode.Failure
 	}
 
 	buildStep.tracker.wait()
 
-	return Success
+	return exitcode.Success
 }
 
 func createStep(logger log.Logger) FastlaneRunner {

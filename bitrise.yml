@@ -65,6 +65,7 @@ workflows:
         title: Test building a Flutter project
         inputs:
         - lane: build
+        - lane_params: platform:ios
         - work_dir: ./
         - verbose_log: "yes"
         - connection: "off"
