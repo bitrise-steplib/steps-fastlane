@@ -59,12 +59,12 @@ func (f FastlaneRunner) ProcessConfig() (Config, error) {
 
 	authInputs, err := f.validateAuthInputs(config)
 	if err != nil {
-		return Config{}, fmt.Errorf("Issue with authentication related inputs: %v", err)
+		return Config{}, fmt.Errorf("issue with authentication related inputs: %v", err)
 	}
 
 	authSources, err := f.parseAuthSources(config.BitriseConnection)
 	if err != nil {
-		return Config{}, fmt.Errorf("Invalid Input: %v", err)
+		return Config{}, fmt.Errorf("invalid input: %v", err)
 	}
 
 	f.validateGemHome(config)
@@ -85,12 +85,12 @@ func (f FastlaneRunner) ProcessConfig() (Config, error) {
 	// Split lane option
 	laneOptions, err := shellquote.Split(config.Lane)
 	if err != nil {
-		return Config{}, fmt.Errorf("Failed to parse lane (%s), error: %s", config.Lane, err)
+		return Config{}, fmt.Errorf("failed to parse lane (%s), error: %s", config.Lane, err)
 	}
 	if params := strings.TrimSpace(config.LaneParams); params != "" {
 		extra, err := shellquote.Split(params)
 		if err != nil {
-			return Config{}, fmt.Errorf("Failed to parse lane parameters (%s), error: %s", config.LaneParams, err)
+			return Config{}, fmt.Errorf("failed to parse lane parameters (%s), error: %s", config.LaneParams, err)
 		}
 		laneOptions = append(laneOptions, extra...)
 	}
@@ -169,13 +169,13 @@ func (f FastlaneRunner) getWorkDir(config Config) (string, error) {
 		f.logger.Printf("WorkDir not set, using CurrentWorkingDirectory...")
 		currentDir, err := f.pathModifier.AbsPath(".")
 		if err != nil {
-			return "", fmt.Errorf("Failed to get current dir, error: %s", err)
+			return "", fmt.Errorf("failed to get current dir, error: %s", err)
 		}
 		workDir = currentDir
 	} else {
 		absWorkDir, err := f.pathModifier.AbsPath(workDir)
 		if err != nil {
-			return "", fmt.Errorf("Failed to expand path (%s), error: %s", workDir, err)
+			return "", fmt.Errorf("failed to expand path (%s), error: %s", workDir, err)
 		}
 		workDir = absWorkDir
 	}
@@ -206,7 +206,7 @@ func (f FastlaneRunner) selectAppleAuthSource(config Config, authSources []apple
 	authConfig, err := appleauth.Select(conn, authSources, authInputs)
 	if err != nil {
 		if _, ok := err.(*appleauth.MissingAuthConfigError); !ok {
-			return appleauth.Credentials{}, fmt.Errorf("Could not configure Apple Service authentication: %v", err)
+			return appleauth.Credentials{}, fmt.Errorf("could not configure Apple Service authentication: %v", err)
 		}
 		f.logger.Warnf("No authentication data found matching the selected Apple Service authentication method (%s).", config.BitriseConnection)
 		if conn != nil && (conn.APIKeyConnection == nil && conn.AppleIDConnection == nil) {

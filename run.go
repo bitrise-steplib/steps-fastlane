@@ -37,7 +37,7 @@ func (f FastlaneRunner) Run(opts RunOpts) error {
 	var envs []string
 	authEnvs, err := FastlaneAuthParams(opts.AuthCredentials)
 	if err != nil {
-		return fmt.Errorf("Failed to set up Fastlane authentication parameters: %v", err)
+		return fmt.Errorf("failed to set up Fastlane authentication parameters: %v", err)
 	}
 	var globallySetAuthEnvs []string
 	for envKey, envValue := range authEnvs {
@@ -103,7 +103,7 @@ you can find the output of fastlane env in the following log file: %s`, deployPt
 			if !info.IsDir() {
 				if relLogPath, err := filepath.Rel(buildlogPth, path); err != nil {
 					return err
-				} else if err := os.Rename(path, filepath.Join(deployDir, strings.Replace(relLogPath, "/", "_", -1))); err != nil {
+				} else if err := os.Rename(path, filepath.Join(deployDir, strings.ReplaceAll(relLogPath, "/", "_"))); err != nil {
 					return err
 				}
 			}
@@ -147,9 +147,9 @@ func (f FastlaneRunner) fastlaneDebugInfo(workDir string, useBundler bool, bundl
 	if err := cmd.Run(); err != nil {
 		var exitError *exec.ExitError
 		if errors.As(err, &exitError) {
-			return "", fmt.Errorf("Fastlane command failed with exit status %d (%s), %w", exitError.ExitCode(), cmd.PrintableCommandArgs(), errors.New("check the command's output for details"))
+			return "", fmt.Errorf("fastlane command failed with exit status %d (%s), %w", exitError.ExitCode(), cmd.PrintableCommandArgs(), errors.New("check the command's output for details"))
 		}
-		return "", fmt.Errorf("Fastlane command failed (%s): %w", cmd.PrintableCommandArgs(), err)
+		return "", fmt.Errorf("fastlane command failed (%s): %w", cmd.PrintableCommandArgs(), err)
 	}
 
 	return outBuffer.String(), nil
