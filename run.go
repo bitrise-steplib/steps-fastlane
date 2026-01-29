@@ -25,7 +25,6 @@ type RunOpts struct {
 	LaneOptions     []string
 	UseBundler      bool
 	GemVersions     gemVersions
-	EnableCache     bool
 }
 
 // Run ...
@@ -114,8 +113,6 @@ you can find the output of fastlane env in the following log file: %s`, deployPt
 
 		return fmt.Errorf("running Fastlane failed: %w", fastlaneErr)
 	}
-
-	f.cacheDeps(opts)
 
 	return nil
 }
