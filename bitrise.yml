@@ -63,7 +63,7 @@ workflows:
         - connection: apple_id
     - flutter-installer:
         inputs:
-        - flutter_version: 3.13.6
+        - version: 3.13.6
     - manage-ios-code-signing:
         run_if: "true"
         inputs:
