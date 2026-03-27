@@ -19,9 +19,4 @@ workflows:
   ci:
     before_run:
     - check
-    after_run:
-    - test
-
-  test:
-    before_run:
     - e2e

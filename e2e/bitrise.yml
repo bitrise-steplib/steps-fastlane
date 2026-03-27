@@ -15,19 +15,10 @@ app:
   - BITFALL_APPSTORECONNECT_API_KEY_ISSUER_ID: $BITFALL_APPSTORECONNECT_API_KEY_ISSUER_ID
 
 workflows:
-  auth-all:
-    before_run:
-    - auth-test-api-key-connection
-    - auth-test-apple-id-connection
-    - auth-test-api-key-input
-    - auth-test-apple-id-connection-globally-set-app-specific-password
-
-  test_cache:
+  test_session_exists:
     envs:
     - SAMPLE_APP_URL: https://github.com/bitrise-io/sample-apps-flutter-veggieseasons.git
-    - PROJECT_PATH: ./ios/Runner.xcworkspace
     - BRANCH: master
-    - XCODE_SCHEME: Runner
     steps:
     - script:
         inputs:
@@ -50,6 +41,38 @@ workflows:
         - work_dir: ./
         - verbose_log: "yes"
         - connection: apple_id
+
+  test_build_flutter:
+    description: Builds an iOS Flutter project
+    steps:
+    - bitrise-run:
+        run_if: |-
+          {{ not (envcontain "BITRISEIO_STACK_ID" "android") }}
+        inputs:
+        - workflow_id: utility_test_build_flutter
+        - bitrise_config_path: ./e2e/bitrise.yml
+
+  utility_test_build_flutter:
+    envs:
+    - SAMPLE_APP_URL: https://github.com/bitrise-io/sample-apps-flutter-veggieseasons.git
+    - PROJECT_PATH: ./ios/Runner.xcworkspace
+    - BRANCH: master
+    - XCODE_SCHEME: Runner
+    steps:
+    - script:
+        inputs:
+        - content: rm -rf ./_tmp
+    - change-workdir:
+        title: Switch working dir to test/_tmp dir
+        run_if: "true"
+        inputs:
+        - path: ./_tmp
+        - is_create_path: true
+    - git::https://github.com/bitrise-steplib/bitrise-step-simple-git-clone:
+        inputs:
+        - repository_url: $SAMPLE_APP_URL
+        - branch: $BRANCH
+        - clone_into_dir: .
     - flutter-installer:
         inputs:
         - version: 3.13.6
@@ -60,6 +83,10 @@ workflows:
         - scheme: $XCODE_SCHEME
         - configuration: Release
         - distribution_method: development
+        - keychain_path: $BITRISE_KEYCHAIN_PATH
+        - keychain_password: $BITRISE_KEYCHAIN_PASSWORD
+        - certificate_url_list: $BITFALL_APPLE_APPLE_CERTIFICATE_URL_LIST|$BITFALL_APPLE_IOS_CERTIFICATE_URL_LIST
+        - passphrase_list: $BITFALL_APPLE_APPLE_CERTIFICATE_PASSPHRASE_LIST|$BITFALL_APPLE_IOS_CERTIFICATE_PASSPHRASE_LIST
     - path::./:
         title: Test building a Flutter project
         inputs:
@@ -81,7 +108,7 @@ workflows:
                 exit 1
             fi
 
-  auth-test-apple-id-connection:
+  manual_test_auth_apple_id_connection:
     before_run:
     - _auth_prepare
     steps:
@@ -92,7 +119,7 @@ workflows:
         - verbose_log: "yes"
         - connection: apple_id
 
-  auth-test-apple-id-connection-globally-set-app-specific-password:
+  manual_test_auth_apple_id_connection_globally_set_app_specific_password:
     envs:
     - FASTLANE_APPLE_APPLICATION_SPECIFIC_PASSWORD: $APP_SPECIFIC_PASSWORD
     before_run:
@@ -106,7 +133,7 @@ workflows:
         - connection: apple_id
         - app_password: ""
 
-  auth-test-api-key-connection:
+  manual_test_auth_api_key_connection:
     before_run:
     - _auth_prepare
     steps:
@@ -117,7 +144,7 @@ workflows:
         - verbose_log: "yes"
         - connection: api_key
 
-  auth-test-api-key-input:
+  manual_test_auth_api_key_input:
     before_run:
     - _auth_prepare
     steps:
@@ -127,22 +154,8 @@ workflows:
         - work_dir: ./
         - verbose_log: "yes"
         - connection: "off"
-        - api_issuer: $AUTH_API_ISSUER
-        - api_key_path: $BITRISEIO_AUTH_API_KEY_PATH_URL
-
-  auth-test-tfa-disabled-apple-id-connection:
-    title: Test Apple ID connection authentication using TFA disabled account
-    description: |-
-      Use this workflow for manual testing TFA disabled Apple ID.
-    before_run:
-    - _auth_prepare
-    steps:
-    - path::./:
-        inputs:
-        - lane: release
-        - work_dir: ./
-        - verbose_log: "yes"
-        - connection: apple_id
+        - api_issuer: $BITFALL_APPSTORECONNECT_API_KEY_ISSUER_ID
+        - api_key_path: $BITFALL_APPSTORECONNECT_API_KEY_URL
 
   _auth_prepare:
     envs:
@@ -182,7 +195,7 @@ workflows:
 
             BITRISE_BUILD_NUMBER=$((($(gdate +%Y%m%d%H%M%S)-20000000000000)*10000))
             if [[ -z "${BITRISE_BUILD_NUMBER}" ]]; then
-              echo "error: failed to calculated build number"
+              echo "error: failed to calculate build number"
               exit 1
             fi
 
