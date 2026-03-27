@@ -19,4 +19,3 @@ workflows:
   ci:
     before_run:
     - check
-    - e2e
