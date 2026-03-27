@@ -4,18 +4,28 @@ default_step_lib_source: https://github.com/bitrise-io/bitrise-steplib.git
 workflows:
   ci:
     before_run:
-    - go-tests
+    - check
     after_run:
     - test
 
-  go-tests:
+  check:
     steps:
     - git::https://github.com/bitrise-steplib/steps-check.git: { }
+
+  e2e:
+    steps:
+    - git::https://github.com/bitrise-steplib/steps-check.git:
+        inputs:
+        - workflow: e2e
+
+  generate_readme:
+    steps:
+    - git::https://github.com/bitrise-steplib/steps-readme-generator.git@main: { }
 
   test:
     before_run:
     - cache
-    - auth-all
+    # - auth-all
 
   auth-all:
     before_run:
