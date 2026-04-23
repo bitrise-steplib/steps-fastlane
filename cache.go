@@ -11,9 +11,10 @@ import (
 	androidCache "github.com/bitrise-io/go-android/v2/cache"
 	"github.com/bitrise-io/go-steputils/cache"
 	"github.com/bitrise-io/go-utils/log"
-	"github.com/bitrise-io/go-utils/pathutil"
+	pathutilv1 "github.com/bitrise-io/go-utils/pathutil"
 	"github.com/bitrise-io/go-utils/v2/command"
 	"github.com/bitrise-io/go-utils/v2/env"
+	"github.com/bitrise-io/go-utils/v2/pathutil"
 )
 
 type depsFunc func(dir string) ([]string, []string, error)
@@ -70,7 +71,7 @@ func (f FastlaneRunner) iosDeps(dir string, buildDirName, lockFileName string) (
 	buildDirToLockFile := map[string]string{}
 	for _, lock := range locks {
 		buildDir := filepath.Join(filepath.Dir(lock), buildDirName)
-		exist, err := pathutil.IsPathExists(buildDir)
+		exist, err := pathutilv1.IsPathExists(buildDir)
 		if err != nil {
 			return nil, nil, err
 		}
