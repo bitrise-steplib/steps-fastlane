@@ -21,7 +21,6 @@ Before you start configuring the Step, make sure you've [connected to Apple serv
 Set this input to `true` so that the Step can install the latest fastlane version to your project.
 If a gem lockfile (Gemfile.lock or gems.locked) includes the fastlane gem in the working directory, that specific fastlane version will be installed.
 4. Select `yes` in the **Enable verbose logging** input if you wish to run your build in debug mode and print out error additional debug logs.
-5. Select `yes` in the **Enable collecting files to be included in the build cache** to cache pods, Carthage and Android dependencies.
 
 ### Troubleshooting
 If you run your lane on Bitrise and your build fails on the **fastlane** Step, the logs won't reveal too much about the error since it's most likely related to the fastlane file's configuration.
@@ -62,7 +61,6 @@ You can also run this step directly with [Bitrise CLI](https://github.com/bitris
 | `app_password` | Use this input if TFA is enabled on the Apple ID but no app-specific password has been added to the used Bitrise Apple ID connection.  **NOTE:** Application-specific passwords can be created on the [AppleID Website](https://appleid.apple.com). It can be used to bypass two-factor authentication. | sensitive |  |
 | `update_fastlane` | Should update fastlane gem before run? *This option will be skipped if you have a `Gemfile` in the `work_dir` directory.* |  | `true` |
 | `verbose_log` | Enable/disable verbose logging. | required | `no` |
-| `enable_cache` | If enabled the step will add the following cache items (if they exist): - Pods -> Podfile.lock - Carthage -> Cartfile.resolved - Android dependencies | required | `yes` |
 </details>
 
 <details>

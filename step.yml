@@ -16,7 +16,6 @@ description: |-
   Set this input to `true` so that the Step can install the latest fastlane version to your project.
   If a gem lockfile (Gemfile.lock or gems.locked) includes the fastlane gem in the working directory, that specific fastlane version will be installed.
   4. Select `yes` in the **Enable verbose logging** input if you wish to run your build in debug mode and print out error additional debug logs.
-  5. Select `yes` in the **Enable collecting files to be included in the build cache** to cache pods, Carthage and Android dependencies.
 
   ### Troubleshooting
   If you run your lane on Bitrise and your build fails on the **fastlane** Step, the logs won't reveal too much about the error since it's most likely related to the fastlane file's configuration.
@@ -141,16 +140,3 @@ inputs:
     value_options:
     - "yes"
     - "no"
-- enable_cache: "yes"
-  opts:
-    title: Enable collecting files to be included in the build cache
-    summary: Enable/disable collecting files to be included in the build cache.
-    description: |-
-      If enabled the step will add the following cache items (if they exist):
-      - Pods -> Podfile.lock
-      - Carthage -> Cartfile.resolved
-      - Android dependencies
-    value_options:
-    - "yes"
-    - "no"
-    is_required: true

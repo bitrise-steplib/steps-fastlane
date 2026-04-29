@@ -115,6 +115,5 @@ func createRunOptions(config Config) RunOpts {
 		LaneOptions:     config.LaneOptions,
 		UseBundler:      config.GemVersions.fastlane.Found,
 		GemVersions:     config.GemVersions,
-		EnableCache:     config.EnableCache,
 	}
 }

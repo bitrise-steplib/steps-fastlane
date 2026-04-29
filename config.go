@@ -26,7 +26,6 @@ type Inputs struct {
 
 	UpdateFastlane bool `env:"update_fastlane,opt[true,false]"`
 	VerboseLog     bool `env:"verbose_log,opt[yes,no]"`
-	EnableCache    bool `env:"enable_cache,opt[yes,no]"`
 
 	GemHome string `env:"GEM_HOME"`
 
