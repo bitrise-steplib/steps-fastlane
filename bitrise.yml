@@ -1,147 +1,21 @@
-format_version: "10"
+format_version: "11"
 default_step_lib_source: https://github.com/bitrise-io/bitrise-steplib.git
 
 workflows:
-  ci:
-    before_run:
-    - go-tests
-    after_run:
-    - test
-
-  go-tests:
+  check:
     steps:
     - git::https://github.com/bitrise-steplib/steps-check.git: { }
 
-  test:
-    before_run:
-    - auth-all
-
-  auth-all:
-    before_run:
-    - auth-test-api-key-connection
-    - auth-test-apple-id-connection
-    - auth-test-api-key-input
-    - auth-test-apple-id-connection-globally-set-app-specific-password
-
-  auth-test-apple-id-connection:
-    before_run:
-    - _auth_prepare
+  e2e:
     steps:
-    - path::./:
+    - git::https://github.com/bitrise-steplib/steps-check.git:
         inputs:
-        - lane: release
-        - work_dir: ./
-        - verbose_log: "yes"
-        - connection: apple_id
+        - workflow: e2e
 
-  auth-test-apple-id-connection-globally-set-app-specific-password:
-    envs:
-    - FASTLANE_APPLE_APPLICATION_SPECIFIC_PASSWORD: $APP_SPECIFIC_PASSWORD
-    before_run:
-    - _auth_prepare
-    steps:
-    - path::./:
-        inputs:
-        - lane: release
-        - work_dir: ./
-        - verbose_log: "yes"
-        - connection: apple_id
-        - app_password: ""
-
-  auth-test-api-key-connection:
-    before_run:
-    - _auth_prepare
-    steps:
-    - path::./:
-        inputs:
-        - lane: release
-        - work_dir: ./
-        - verbose_log: "yes"
-        - connection: api_key
-
-  auth-test-api-key-input:
-    before_run:
-    - _auth_prepare
-    steps:
-    - path::./:
-        inputs:
-        - lane: release
-        - work_dir: ./
-        - verbose_log: "yes"
-        - connection: "off"
-        - api_issuer: $AUTH_API_ISSUER
-        - api_key_path: $BITRISEIO_AUTH_API_KEY_PATH_URL
-
-  auth-test-tfa-disabled-apple-id-connection:
-    title: Test Apple ID connection authentication using TFA disabled account
-    description: |-
-      Use this workflow for manual testing TFA disabled Apple ID.
-    before_run:
-    - _auth_prepare
-    steps:
-    - path::./:
-        inputs:
-        - lane: release
-        - work_dir: ./
-        - verbose_log: "yes"
-        - connection: apple_id
-
-  _auth_prepare:
-    envs:
-    - SAMPLE_APP_URL: https://github.com/bitrise-samples/sample-apps-fastlane-test.git
-    - BRANCH: master
-    - INFO_PLIST_PATH: ./sample-apps-fastlane-test/Info.plist
-    steps:
-    - script:
-        title: Clean saved Fastlane session cookie
-        inputs:
-        - content: rm -rf ~/.fastlane
-    - script:
-        inputs:
-        - content: rm -rf ./_tmp
-    - change-workdir:
-        title: Switch working dir to test/_tmp dir
-        run_if: "true"
-        inputs:
-        - path: ./_tmp
-        - is_create_path: true
-    - git::https://github.com/bitrise-steplib/bitrise-step-simple-git-clone:
-        inputs:
-        - repository_url: $SAMPLE_APP_URL
-        - branch: $BRANCH
-        - clone_into_dir: .
-    - certificate-and-profile-installer: { }
-    - script:
-        inputs:
-        - content: |-
-            CURRENT_BUILD_NUMBER=${BITRISE_BUILD_NUMBER}
-
-            if [[ -z "$E2E_ORIG_BUILD_NUM" ]]; then
-              envman add --key E2E_ORIG_BUILD_NUM --value "$CURRENT_BUILD_NUMBER"
-            else
-              CURRENT_BUILD_NUMBER="$E2E_ORIG_BUILD_NUM"
-            fi
-
-            BITRISE_BUILD_NUMBER=$((($(gdate +%Y%m%d%H%M%S)-20000000000000)*10000))
-            if [[ -z "${BITRISE_BUILD_NUMBER}" ]]; then
-              echo "error: failed to calculated build number"
-              exit 1
-            fi
-
-            if [[ -n "${CURRENT_BUILD_NUMBER}" ]]; then
-              BITRISE_BUILD_NUMBER=$((${BITRISE_BUILD_NUMBER}+${CURRENT_BUILD_NUMBER}))
-            fi
-
-            envman add --key BITRISE_BUILD_NUMBER --value "${BITRISE_BUILD_NUMBER}"
-    - set-xcode-build-number:
-        title: Set Build Number
-        run_if: "true"
-        inputs:
-        - build_version: $BITRISE_BUILD_NUMBER
-        - plist_path: $INFO_PLIST_PATH
-        - build_version_offset: $BITRISE_BUILD_VERSION_OFFSET
-        - build_short_version_string: 1.0.2
-
-  generate-readme:
+  generate_readme:
     steps:
     - git::https://github.com/bitrise-steplib/steps-readme-generator.git@main: { }
+
+  ci:
+    before_run:
+    - check

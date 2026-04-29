@@ -1,6 +1,6 @@
 # fastlane
 
-[![Step changelog](https://shields.io/github/v/release/bitrise-io/steps-fastlane?include_prereleases&label=changelog&color=blueviolet)](https://github.com/bitrise-io/steps-fastlane/releases)
+[![Step changelog](https://shields.io/github/v/release/bitrise-steplib/steps-fastlane?include_prereleases&label=changelog&color=blueviolet)](https://github.com/bitrise-steplib/steps-fastlane/releases)
 
 Runs your fastlane lane on [bitrise.io](https://www.bitrise.io).
 
@@ -9,11 +9,11 @@ Runs your fastlane lane on [bitrise.io](https://www.bitrise.io).
 
 fastlane is an open-source app automation tool for iOS, Android and for most cross-platform frameworks, for example, React Native, Xamarin and Flutter.
 **fastlane** Step helps you integrate your lane to your Bitrise Workflow and runs your lane based on the fastlane actions with minimal configuration.
-If your Apple Developer Portal account is [connected to Bitrise](https://devcenter.bitrise.io/getting-started/connecting-to-services/configuring-bitrise-steps-that-require-apple-developer-account-data/), the `FASTLANE_SESSION` Environment Variable will pass on the session data to fastlane.
+If your Apple Developer Portal account is [connected to Bitrise](https://docs.bitrise.io/en/bitrise-platform/integrations/apple-services-connection/about-connecting-to-apple-services.html), the `FASTLANE_SESSION` Environment Variable will pass on the session data to fastlane.
 
 ### Configuring the Step
 
-Before you start configuring the Step, make sure you've [connected to Apple services either by API key, Apple ID or through Fastlane Step's input fields](https://devcenter.bitrise.io/getting-started/connecting-to-services/bitrise-steps-and-their-authentication-methods/#fastlane-step).
+Before you start configuring the Step, make sure you've [connected to Apple services either by API key, Apple ID or through Fastlane Step's input fields](https://docs.bitrise.io/en/bitrise-platform/integrations/apple-services-connection/steps-requiring-apple-authentication.html#fastlane-step).
 1. Add the **fastlane** Step to your Workflow after the **Git Clone Repository** Step or any other dependency Step.
 1. Based on your project's fastlane setup, you can add your project's default lane or a custom lane in the **fastlane lane** input.
 2. If your fastlane directory is not available in your repository's root, then you can add the parent directory of fastlane directory in the **Working directory** input.
@@ -21,6 +21,7 @@ Before you start configuring the Step, make sure you've [connected to Apple serv
 Set this input to `true` so that the Step can install the latest fastlane version to your project.
 If a gem lockfile (Gemfile.lock or gems.locked) includes the fastlane gem in the working directory, that specific fastlane version will be installed.
 4. Select `yes` in the **Enable verbose logging** input if you wish to run your build in debug mode and print out error additional debug logs.
+5. Select `yes` in the **Enable collecting files to be included in the build cache** to cache pods, Carthage and Android dependencies.
 
 ### Troubleshooting
 If you run your lane on Bitrise and your build fails on the **fastlane** Step, the logs won't reveal too much about the error since it's most likely related to the fastlane file's configuration.
@@ -28,12 +29,13 @@ We recommend you swap your fastlane actions for Bitrise Steps which will bring o
 
 ### Useful links
 - [About fastlane](https://docs.fastlane.tools)
-- [Connecting your Apple Developer Account to Bitrise](https://devcenter.bitrise.io/getting-started/connecting-to-services/configuring-bitrise-steps-that-require-apple-developer-account-data/)
-- [Running fastlane on Bitrise](https://devcenter.bitrise.io/tutorials/fastlane/fastlane-index/)
+- [Connecting your Apple Developer Account to Bitrise](https://docs.bitrise.io/en/bitrise-platform/integrations/apple-services-connection/about-connecting-to-apple-services.html)
+- [Common issues with fastlane](https://support.bitrise.io/en/?q=fastlane)
 
 ### Related Steps
-- [Deploy to iTunes Connect/Deliver](https://www.bitrise.io/integrations/steps/deploy-to-itunesconnect-deliver)
-- [iOS Auto Provision](https://www.bitrise.io/integrations/steps/ios-auto-provision)
+- [Deploy to App Store Connect - Application Loader](https://bitrise.io/integrations/steps/deploy-to-itunesconnect-application-loader)
+- [Deploy to App Store Connect with Deliver](https://www.bitrise.io/integrations/steps/deploy-to-itunesconnect-deliver)
+- [Manage iOS Code Signing](https://bitrise.io/integrations/steps/manage-ios-code-signing)
 - [Fastlane Match](https://www.bitrise.io/integrations/steps/fastlane-match)
 </details>
 
@@ -69,7 +71,7 @@ There are no outputs defined in this step
 
 ## 🙋 Contributing
 
-We welcome [pull requests](https://github.com/bitrise-io/steps-fastlane/pulls) and [issues](https://github.com/bitrise-io/steps-fastlane/issues) against this repository.
+We welcome [pull requests](https://github.com/bitrise-steplib/steps-fastlane/pulls) and [issues](https://github.com/bitrise-steplib/steps-fastlane/issues) against this repository.
 
 For pull requests, work on your changes in a forked repository and use the Bitrise CLI to [run step tests locally](https://docs.bitrise.io/en/bitrise-ci/bitrise-cli/running-your-first-local-build-with-the-cli.html).
 
