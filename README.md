@@ -21,7 +21,6 @@ Before you start configuring the Step, make sure you've [connected to Apple serv
 Set this input to `true` so that the Step can install the latest fastlane version to your project.
 If a gem lockfile (Gemfile.lock or gems.locked) includes the fastlane gem in the working directory, that specific fastlane version will be installed.
 4. Select `yes` in the **Enable verbose logging** input if you wish to run your build in debug mode and print out error additional debug logs.
-5. Select `yes` in the **Enable collecting files to be included in the build cache** to cache pods, Carthage and Android dependencies.
 
 ### Troubleshooting
 If you run your lane on Bitrise and your build fails on the **fastlane** Step, the logs won't reveal too much about the error since it's most likely related to the fastlane file's configuration.
