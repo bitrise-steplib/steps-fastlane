@@ -24,7 +24,7 @@ const (
 type InstallType int8
 
 const (
-	// Unknown means that Ruby is available in the PATH, but the install type could not be determined.
+	// Unknown means that the Ruby install type could not be determined.
 	Unknown InstallType = iota
 	// SystemRuby ...
 	SystemRuby

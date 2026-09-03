@@ -26,7 +26,7 @@ github.com/bitrise-io/go-steputils/command/rubycommand
 github.com/bitrise-io/go-steputils/input
 github.com/bitrise-io/go-steputils/step
 github.com/bitrise-io/go-steputils/tools
-# github.com/bitrise-io/go-steputils/v2 v2.0.0-alpha.53.0.20260903095353-bfed17b497c6
+# github.com/bitrise-io/go-steputils/v2 v2.0.0-alpha.53.0.20260903144231-5524d905ae5a
 ## explicit; go 1.21
 github.com/bitrise-io/go-steputils/v2/ruby
 github.com/bitrise-io/go-steputils/v2/stepconf
