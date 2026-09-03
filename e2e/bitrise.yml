@@ -46,8 +46,10 @@ workflows:
     description: Builds an iOS Flutter project
     steps:
     - bitrise-run:
+        # Needs Xcode: run on macOS stacks only. Checking for "android" in the stack ID is not
+        # enough, as ubuntu-latest-stable is also in the automatic stack selection.
         run_if: |-
-          {{ not (envcontain "BITRISEIO_STACK_ID" "android") }}
+          {{ envcontain "BITRISEIO_STACK_ID" "osx" }}
         inputs:
         - workflow_id: utility_test_build_flutter
         - bitrise_config_path: ./e2e/bitrise.yml
