@@ -181,7 +181,7 @@ workflows:
         - repository_url: $SAMPLE_APP_URL
         - branch: $BRANCH
         - clone_into_dir: .
-    - certificate-and-profile-installer: { }
+    - certificate-and-profile-installer: {}
     - script:
         inputs:
         - content: |-
