@@ -6,7 +6,7 @@ require (
 	github.com/bitrise-io/bitrise-init v0.0.0-20231030091557-cb74e61d668e
 	github.com/bitrise-io/go-android/v2 v2.0.0-alpha.5
 	github.com/bitrise-io/go-steputils v1.0.6
-	github.com/bitrise-io/go-steputils/v2 v2.0.0-alpha.53.0.20260903144231-5524d905ae5a
+	github.com/bitrise-io/go-steputils/v2 v2.0.0-alpha.54
 	github.com/bitrise-io/go-utils v1.0.10
 	github.com/bitrise-io/go-utils/v2 v2.0.0-alpha.39
 	github.com/bitrise-io/go-xcode v1.0.18
