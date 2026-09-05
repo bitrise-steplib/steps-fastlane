@@ -58,7 +58,9 @@ workflows:
     envs:
     - SAMPLE_APP_URL: https://github.com/bitrise-io/sample-apps-flutter-veggieseasons.git
     - PROJECT_PATH: ./ios/Runner.xcworkspace
-    - BRANCH: master
+    # TEMPORARY: the sample app's iOS deployment target fix, needed to build on the newest Xcode.
+    # Revert to master once bitrise-io/sample-apps-flutter-veggieseasons#8 is merged.
+    - BRANCH: fix/ios-deployment-target-15
     - XCODE_SCHEME: Runner
     steps:
     - script:
@@ -183,7 +185,7 @@ workflows:
         - repository_url: $SAMPLE_APP_URL
         - branch: $BRANCH
         - clone_into_dir: .
-    - certificate-and-profile-installer: { }
+    - certificate-and-profile-installer: {}
     - script:
         inputs:
         - content: |-

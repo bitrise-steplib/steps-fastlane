@@ -9,7 +9,7 @@ import (
 	"github.com/bitrise-io/go-utils/v2/command"
 	"github.com/bitrise-io/go-utils/v2/env"
 	"github.com/bitrise-io/go-utils/v2/errorutil"
-	. "github.com/bitrise-io/go-utils/v2/exitcode"
+	"github.com/bitrise-io/go-utils/v2/exitcode"
 	"github.com/bitrise-io/go-utils/v2/log"
 	"github.com/bitrise-io/go-utils/v2/pathutil"
 )
@@ -19,7 +19,7 @@ func main() {
 	os.Exit(int(exitCode))
 }
 
-func run() ExitCode {
+func run() exitcode.ExitCode {
 	logger := log.NewLogger()
 	buildStep, err := createStep(logger)
 	if err != nil {
@@ -31,8 +31,9 @@ func run() ExitCode {
 	config, err := buildStep.ProcessConfig()
 	if err != nil {
 		buildStep.logger.Println()
-		buildStep.logger.Errorf(errorutil.FormattedError(fmt.Errorf("Failed to process Step inputs: %w", err)))
-		return Failure
+		// Capitalized on purpose: this is the user-facing Step error, not a wrapped Go error.
+		buildStep.logger.Errorf(errorutil.FormattedError(fmt.Errorf("Failed to process Step inputs: %w", err))) //nolint:staticcheck
+		return exitcode.Failure
 	}
 
 	dependenciesOpts := EnsureDependenciesOpts{
@@ -44,20 +45,22 @@ func run() ExitCode {
 
 	if err := buildStep.InstallDependencies(dependenciesOpts); err != nil {
 		buildStep.logger.Println()
-		buildStep.logger.Errorf(errorutil.FormattedError(fmt.Errorf("Failed to install Step dependencies: %w", err)))
-		return Failure
+		// Capitalized on purpose: this is the user-facing Step error, not a wrapped Go error.
+		buildStep.logger.Errorf(errorutil.FormattedError(fmt.Errorf("Failed to install Step dependencies: %w", err))) //nolint:staticcheck
+		return exitcode.Failure
 	}
 
 	runOpts := createRunOptions(config)
 	if err := buildStep.Run(runOpts); err != nil {
 		buildStep.logger.Println()
-		logger.Errorf(errorutil.FormattedError(fmt.Errorf("Failed to execute Step: %w", err)))
-		return Failure
+		// Capitalized on purpose: this is the user-facing Step error, not a wrapped Go error.
+		logger.Errorf(errorutil.FormattedError(fmt.Errorf("Failed to execute Step: %w", err))) //nolint:staticcheck
+		return exitcode.Failure
 	}
 
 	buildStep.tracker.wait()
 
-	return Success
+	return exitcode.Success
 }
 
 func createStep(logger log.Logger) (FastlaneRunner, error) {
