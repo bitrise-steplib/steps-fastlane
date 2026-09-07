@@ -24,8 +24,9 @@ func run() exitcode.ExitCode {
 	buildStep, err := createStep(logger)
 	if err != nil {
 		logger.Println()
-		logger.Errorf(errorutil.FormattedError(fmt.Errorf("Failed to initialize Step: %w", err)))
-		return Failure
+		// Capitalized on purpose: this is the user-facing Step error, not a wrapped Go error.
+		logger.Errorf(errorutil.FormattedError(fmt.Errorf("Failed to initialize Step: %w", err))) //nolint:staticcheck
+		return exitcode.Failure
 	}
 
 	config, err := buildStep.ProcessConfig()
