@@ -21,8 +21,6 @@ github.com/bitrise-io/go-android/v2/cache
 # github.com/bitrise-io/go-steputils v1.0.6
 ## explicit; go 1.15
 github.com/bitrise-io/go-steputils/cache
-github.com/bitrise-io/go-steputils/command/gems
-github.com/bitrise-io/go-steputils/command/rubycommand
 github.com/bitrise-io/go-steputils/input
 github.com/bitrise-io/go-steputils/step
 github.com/bitrise-io/go-steputils/tools
