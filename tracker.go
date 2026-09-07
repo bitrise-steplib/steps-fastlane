@@ -18,7 +18,7 @@ func newStepTracker(envRepo env.Repository, logger log.Logger) stepTracker {
 		"step_id":           "fastlane",
 	}
 	return stepTracker{
-		tracker: analytics.NewDefaultTracker(logger, p),
+		tracker: analytics.NewDefaultTracker(logger, envRepo, p),
 		logger:  logger,
 	}
 }

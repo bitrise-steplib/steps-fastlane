@@ -21,7 +21,12 @@ func main() {
 
 func run() exitcode.ExitCode {
 	logger := log.NewLogger()
-	buildStep := createStep(logger)
+	buildStep, err := createStep(logger)
+	if err != nil {
+		logger.Println()
+		logger.Errorf(errorutil.FormattedError(fmt.Errorf("Failed to initialize Step: %w", err)))
+		return Failure
+	}
 
 	config, err := buildStep.ProcessConfig()
 	if err != nil {
@@ -58,14 +63,16 @@ func run() exitcode.ExitCode {
 	return exitcode.Success
 }
 
-func createStep(logger log.Logger) FastlaneRunner {
+func createStep(logger log.Logger) (FastlaneRunner, error) {
 	envRepository := env.NewRepository()
 	inputParser := stepconf.NewInputParser(envRepository)
 	cmdFactory := command.NewFactory(envRepository)
 	cmdLocator := env.NewCommandLocator()
-	rbyFactory, err := ruby.NewCommandFactory(cmdFactory, cmdLocator)
+	// An unrecognised Ruby install type is only warned about, but a missing Ruby is fatal: the Step
+	// cannot run any of its Ruby tooling without it, and carrying a nil factory around panics later.
+	rbyFactory, err := ruby.NewCommandFactory(cmdFactory, cmdLocator, logger)
 	if err != nil {
-		logger.Warnf("%s", err)
+		return FastlaneRunner{}, err
 	}
 
 	rubyEnv := ruby.NewEnvironment(rbyFactory, cmdLocator, logger)
@@ -73,7 +80,7 @@ func createStep(logger log.Logger) FastlaneRunner {
 	pathModifier := pathutil.NewPathModifier()
 	tracker := newStepTracker(envRepository, logger)
 
-	return NewFastlaneRunner(inputParser, logger, cmdLocator, cmdFactory, rbyFactory, rubyEnv, pathModifier, tracker)
+	return NewFastlaneRunner(inputParser, logger, cmdLocator, cmdFactory, rbyFactory, rubyEnv, pathModifier, tracker), nil
 }
 
 // FastlaneRunner ...

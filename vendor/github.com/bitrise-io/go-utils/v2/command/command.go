@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"os"
 	"os/exec"
 	"strings"
 
@@ -73,12 +74,17 @@ type Command interface {
 	RunAndReturnTrimmedCombinedOutput() (string, error)
 	Start() error
 	Wait() error
+	Signal(sig os.Signal) error
+	Kill() error
 }
 
 type command struct {
 	cmd            *exec.Cmd
 	errorCollector *errorCollector
 }
+
+// ErrProcessNotStarted ...
+var ErrProcessNotStarted = errors.New("command has not been started")
 
 // PrintableCommandArgs ...
 func (c command) PrintableCommandArgs() string {
@@ -152,6 +158,26 @@ func (c command) Wait() error {
 	return err
 }
 
+// Signal ...
+func (c command) Signal(sig os.Signal) error {
+	if c.cmd.Process == nil {
+		return ErrProcessNotStarted
+	}
+	// os.Process tracks completion itself, so signalling after Wait reports ErrProcessDone
+	// instead of reaching a process that reused the PID. Reading cmd.ProcessState here would
+	// race with Wait.
+	if err := c.cmd.Process.Signal(sig); err != nil {
+		return fmt.Errorf("signalling command failed (%s): %w", c.PrintableCommandArgs(), err)
+	}
+
+	return nil
+}
+
+// Kill ...
+func (c command) Kill() error {
+	return c.Signal(os.Kill)
+}
+
 func printableCommandArgs(isQuoteFirst bool, fullCommandArgs []string) string {
 	var cmdArgsDecorated []string
 	for idx, anArg := range fullCommandArgs {
@@ -168,11 +194,14 @@ func printableCommandArgs(isQuoteFirst bool, fullCommandArgs []string) string {
 func (c command) wrapError(err error) error {
 	var exitErr *exec.ExitError
 	if errors.As(err, &exitErr) {
-		if c.errorCollector != nil && len(c.errorCollector.errorLines) > 0 {
-			return fmt.Errorf("command failed with exit status %d (%s): %w", exitErr.ExitCode(), c.PrintableCommandArgs(), errors.New(strings.Join(c.errorCollector.errorLines, "\n")))
+		errorLines := []string{}
+		if c.errorCollector != nil {
+			errorLines = c.errorCollector.errorLines
 		}
-		return fmt.Errorf("command failed with exit status %d (%s): %w", exitErr.ExitCode(), c.PrintableCommandArgs(), errors.New("check the command's output for details"))
+
+		return NewExitStatusError(c.PrintableCommandArgs(), exitErr, errorLines)
 	}
+
 	return fmt.Errorf("executing command failed (%s): %w", c.PrintableCommandArgs(), err)
 }
 
