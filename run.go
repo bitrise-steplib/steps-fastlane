@@ -10,7 +10,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/bitrise-io/go-steputils/command/gems"
+	"github.com/bitrise-io/go-steputils/v2/ruby"
 	"github.com/bitrise-io/go-utils/fileutil"
 	"github.com/bitrise-io/go-utils/pathutil"
 	"github.com/bitrise-io/go-utils/v2/command"
@@ -119,7 +119,7 @@ you can find the output of fastlane env in the following log file: %s`, deployPt
 	return nil
 }
 
-func (f FastlaneRunner) fastlaneDebugInfo(workDir string, useBundler bool, bundlerVersion gems.Version) (string, error) {
+func (f FastlaneRunner) fastlaneDebugInfo(workDir string, useBundler bool, bundlerVersion ruby.Version) (string, error) {
 	name := "fastlane"
 	args := []string{"env"}
 	var outBuffer bytes.Buffer
