@@ -159,6 +159,7 @@ func (f FastlaneRunner) reportRubyVersion(useBundler bool, bundlerVersion string
 	versionSlice := strings.Split(output, " ")
 	if len(versionSlice) < 2 || versionSlice[0] != "ruby" {
 		f.logger.Warnf("Unrecognized Ruby version: %s", versionSlice)
+		return
 	}
 	version := versionSlice[1]
 
