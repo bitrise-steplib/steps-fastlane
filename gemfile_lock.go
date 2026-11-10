@@ -4,7 +4,6 @@ import (
 	"errors"
 
 	"github.com/bitrise-io/go-steputils/v2/ruby"
-	"github.com/bitrise-io/go-utils/log"
 )
 
 type gemVersions struct {
@@ -28,9 +27,9 @@ func (f FastlaneRunner) parseGemfileLock(searchDir string) (gemVersions, error) 
 		return gemVersions, err
 	}
 	if gemVersions.fastlane.Found {
-		log.Printf("Gem lockfile defined Fastlane version: %s", gemVersions.fastlane.Version)
+		f.logger.Printf("Gem lockfile defined Fastlane version: %s", gemVersions.fastlane.Version)
 	} else {
-		log.Printf("No Fastlane version defined in gem lockfile")
+		f.logger.Printf("No Fastlane version defined in gem lockfile")
 	}
 
 	gemVersions.bundler, err = ruby.ParseBundlerVersion(content)
@@ -38,9 +37,9 @@ func (f FastlaneRunner) parseGemfileLock(searchDir string) (gemVersions, error) 
 		return gemVersions, err
 	}
 	if gemVersions.bundler.Found {
-		log.Printf("Gem lockfile defined bundler version: %s", gemVersions.bundler.Version)
+		f.logger.Printf("Gem lockfile defined bundler version: %s", gemVersions.bundler.Version)
 	} else {
-		log.Printf("No bundler version defined in gem lockfile")
+		f.logger.Printf("No bundler version defined in gem lockfile")
 	}
 
 	return gemVersions, nil

@@ -47,9 +47,11 @@ workflows:
     steps:
     - bitrise-run:
         # Needs Xcode: run on macOS stacks only. Checking for "android" in the stack ID is not
-        # enough, as ubuntu-latest-stable is also in the automatic stack selection.
+        # enough, as ubuntu-latest-stable is also in the automatic stack selection. Nothing sets
+        # the stack ID outside CI, so the local run has to be let through explicitly, otherwise
+        # `bitrise run test_build_flutter` skips the Step and reports green without testing.
         run_if: |-
-          {{ envcontain "BITRISEIO_STACK_ID" "osx" }}
+          {{ or (envcontain "BITRISEIO_STACK_ID" "osx") (not .IsCI) }}
         inputs:
         - workflow_id: utility_test_build_flutter
         - bitrise_config_path: ./e2e/bitrise.yml
